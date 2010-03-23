@@ -26,6 +26,7 @@ import java.util.List;
 import javax.swing.tree.DefaultTreeModel;
 
 import org.apache.jmeter.config.gui.AbstractConfigGui;
+import org.apache.jmeter.control.gui.MonitorGui;
 import org.apache.jmeter.control.gui.TestPlanGui;
 import org.apache.jmeter.control.gui.WorkBenchGui;
 import org.apache.jmeter.exceptions.IllegalUserActionException;
@@ -41,13 +42,13 @@ import org.apache.jorphan.collections.ListedHashTree;
 
 public class JMeterTreeModel extends DefaultTreeModel {
 
-    public JMeterTreeModel(TestElement tp, TestElement wb) {
+    public JMeterTreeModel(TestElement tp, TestElement wb,TestElement mo) {	//jex001C
         super(new JMeterTreeNode(wb, null));
-        initTree(tp,wb);
+        initTree(tp,wb,mo);		//jex001C
     }
 
     public JMeterTreeModel() {
-        this(new TestPlanGui().createTestElement(),new WorkBenchGui().createTestElement());
+        this(new TestPlanGui().createTestElement(),new WorkBenchGui().createTestElement(),new MonitorGui().createTestElement());	//jex001C
 //        super(new JMeterTreeNode(new WorkBenchGui().createTestElement(), null));
 //        TestElement tp = new TestPlanGui().createTestElement();
 //        initTree(tp);
@@ -60,7 +61,7 @@ public class JMeterTreeModel extends DefaultTreeModel {
      * @param o - dummy
      */
     public JMeterTreeModel(Object o) {
-        this(new TestPlan(),new WorkBench());
+        this(new TestPlan(),new WorkBench(),new WorkBench());	//jex001C
 //      super(new JMeterTreeNode(new WorkBench(), null));
 //      TestElement tp = new TestPlan();
 //      initTree(tp, new WorkBench());
@@ -221,7 +222,7 @@ public class JMeterTreeModel extends DefaultTreeModel {
             children = getChildCount(getRoot());
         }
         // Init the tree
-        initTree(testPlan,new WorkBenchGui().createTestElement()); // Assumes this is only called from GUI mode
+        initTree(testPlan,new WorkBenchGui().createTestElement(),new MonitorGui().createTestElement()); // Assumes this is only called from GUI mode // jex001C
     }
 
     /**
@@ -230,11 +231,13 @@ public class JMeterTreeModel extends DefaultTreeModel {
      * @param tp the element to use as testplan
      * @param wb the element to use as workbench
      */
-    private void initTree(TestElement tp, TestElement wb) {
+    private void initTree(TestElement tp, TestElement wb, TestElement mo) { // jex001C
         // Insert the test plan node
         insertNodeInto(new JMeterTreeNode(tp, this), (JMeterTreeNode) getRoot(), 0);
         // Insert the workbench node
         insertNodeInto(new JMeterTreeNode(wb, this), (JMeterTreeNode) getRoot(), 1);
+        // Insert the monitor node
+        insertNodeInto(new JMeterTreeNode(mo, this), (JMeterTreeNode) getRoot(), 2);	//jex-001
         // Let others know that the tree content has changed.
         // This should not be necessary, but without it, nodes are not shown when the user
         // uses the Close menu item

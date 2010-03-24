@@ -4,12 +4,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Collection;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -17,6 +20,7 @@ import javax.swing.JPopupMenu;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.apache.jmeter.machine.Machine;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.threads.ThreadGroup;
 import org.apache.jmeter.util.JMeterUtils;
@@ -28,20 +32,19 @@ import sun.tools.jconsole.JConsole;
  * @author chenchao.yecc
  * @version jex001A
  */
-public class MachineGui extends AbstractJMeterGuiComponent implements ItemListener {
+public class MachineGui extends AbstractJMeterGuiComponent implements ItemListener,ActionListener {
 	private static final long serialVersionUID = 1L;
 
     private JDesktopPane mainPanel;
+    private JPanel Panel;
+    private JPanel upPanel;
+    private JButton start_btn = new JButton("Click to configure");
     public static final String STATIC_LABEL="machine";
 
     public MachineGui() {
         super();
         init();
         initGui();
-        Container cp=new Container();
-        mainPanel.add(cp,BorderLayout.CENTER);
-        mainPanel.add(new JLabel("Hello World"),BorderLayout.NORTH);
-        mainPanel.setBackground(Color.YELLOW);
     }
 
     public Collection<String> getMenuCategories() {
@@ -49,9 +52,9 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
     }
 
     public TestElement createTestElement() {
-        ThreadGroup tg = new ThreadGroup();
-        modifyTestElement(tg);
-        return tg;
+        Machine machine = new Machine();
+        modifyTestElement(machine);
+        return machine;
     }
 
     /**
@@ -100,6 +103,10 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
     private void initGui(){
     }
 
+    public JDesktopPane getMainPanel(){
+    	return mainPanel;
+    }
+    
     private void init() {
         setLayout(new BorderLayout(0, 5));
         setBorder(makeBorder());
@@ -108,12 +115,23 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
         box.add(makeTitlePanel());
         add(box, BorderLayout.NORTH);
 
+        Panel=new JPanel();
+        Panel.setLayout(new BorderLayout());
+        upPanel=new JPanel();
         mainPanel = new JDesktopPane();
-        mainPanel.setLayout(new BorderLayout());
+//        mainPanel.setBackground(Color.black);
+//        mainPanel.setLayout(new BorderLayout());
 //        mainPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
 //                JMeterUtils.getResString("jvm_monitor"))); // $NON-NLS-1$
+        upPanel.add(new JLabel("Click the next area to start jvm monitor"),BorderLayout.EAST);
+        upPanel.add(start_btn,BorderLayout.CENTER);
+        start_btn.addActionListener(this);
+        Panel.add(upPanel,BorderLayout.NORTH);
+        Panel.add(mainPanel,BorderLayout.CENTER);
         mainPanel.setVisible(true);
-        this.add(mainPanel, BorderLayout.CENTER);
+        Panel.setVisible(true);
+        Panel.setBackground(Color.YELLOW);
+        this.add(Panel, BorderLayout.CENTER);
         
     }
 
@@ -128,5 +146,12 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	@Override
 	public String getLabelResource() {
 		return "machine";
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource()==start_btn){
+			JConsole.getInstance().showConnectDialog("", "", 0, null, null, null);
+		}
 	}
 }

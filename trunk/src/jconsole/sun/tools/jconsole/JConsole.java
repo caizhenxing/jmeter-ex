@@ -641,7 +641,7 @@ public class JConsole extends JFrame
                 // Ignore
             }
         }
-        desktop.add(vmIF);
+        getDesktopPane().add(vmIF);	// jex001C
 
         vmIF.setLocation(frameLoc, frameLoc);
         frameLoc += 30;
@@ -655,7 +655,7 @@ public class JConsole extends JFrame
             }
         }
         vmIF.addInternalFrameListener(this);
-        windowMenu.add(vmIF);
+//        windowMenu.add(vmIF);	// jex001D
 
         return vmIF;
     }

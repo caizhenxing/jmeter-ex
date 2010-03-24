@@ -362,7 +362,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     private void onConnecting() {
         time0 = System.currentTimeMillis();
 
-        final JConsole jc = (JConsole)SwingUtilities.getWindowAncestor(this);
+//        final JConsole jc = (JConsole)SwingUtilities.getWindowAncestor(this);	// jex001D
 
         String connectionName = getConnectionName();
         progressBar = new JProgressBar();
@@ -466,7 +466,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     private void vmPanelDied() {
         disconnect();
 
-        final JConsole jc = (JConsole)SwingUtilities.getWindowAncestor(this);
+//        final JConsole jc = (JConsole)SwingUtilities.getWindowAncestor(this);// jex001D
 
         JOptionPane optionPane;
 

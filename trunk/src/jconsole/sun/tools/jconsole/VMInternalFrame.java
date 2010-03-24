@@ -43,7 +43,7 @@ public class VMInternalFrame extends MaximizableInternalFrame {
     private VMPanel vmPanel;
 
     public VMInternalFrame(VMPanel vmPanel) {
-        super("", true, true, true, true);
+        super("", false, false, false, false);	// jex001C
 
         this.vmPanel = vmPanel;
         setAccessibleDescription(this,

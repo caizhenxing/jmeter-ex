@@ -38,7 +38,7 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
     private JDesktopPane mainPanel;
     private JPanel Panel;
     private JPanel upPanel;
-    private JButton start_btn = new JButton("Click to configure");
+    private JButton start_btn = new JButton("configure");
     public static final String STATIC_LABEL="machine";
 
     public MachineGui() {
@@ -119,18 +119,18 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
         Panel.setLayout(new BorderLayout());
         upPanel=new JPanel();
         mainPanel = new JDesktopPane();
-//        mainPanel.setBackground(Color.black);
+        mainPanel.setBackground(new Color(235, 245, 255));
 //        mainPanel.setLayout(new BorderLayout());
 //        mainPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
 //                JMeterUtils.getResString("jvm_monitor"))); // $NON-NLS-1$
-        upPanel.add(new JLabel("Click the next area to start jvm monitor"),BorderLayout.EAST);
+        upPanel.add(new JLabel("Click the right button to start jvm monitor"),BorderLayout.EAST);
         upPanel.add(start_btn,BorderLayout.CENTER);
         start_btn.addActionListener(this);
         Panel.add(upPanel,BorderLayout.NORTH);
         Panel.add(mainPanel,BorderLayout.CENTER);
         mainPanel.setVisible(true);
         Panel.setVisible(true);
-        Panel.setBackground(Color.YELLOW);
+//        Panel.setBackground(Color.YELLOW);
         this.add(Panel, BorderLayout.CENTER);
         
     }

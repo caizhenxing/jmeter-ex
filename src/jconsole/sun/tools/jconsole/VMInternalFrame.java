@@ -50,7 +50,7 @@ public class VMInternalFrame extends MaximizableInternalFrame {
                                  getText("VMInternalFrame.accessibleDescription"));
         getContentPane().add(vmPanel, BorderLayout.CENTER);
         pack();
-        vmPanel.updateFrameTitle();
+//        vmPanel.updateFrameTitle();	// jex001D
     }
 
     public VMPanel getVMPanel() {

@@ -54,7 +54,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     private String userName;
     private String password;
     private String url;
-    private VMInternalFrame vmIF = null;
+//    private VMInternalFrame vmIF = null;	// jex001D
 
     private static final String windowsLaF =
         "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
@@ -305,7 +305,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     // Call on EDT
     public void disconnect() {
         proxyClient.disconnect();
-        updateFrameTitle();
+//        updateFrameTitle();	// jex001D
     }
 
 
@@ -328,7 +328,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                     progressBar.setValue(100);
                 }
                 closeOptionPane();
-                updateFrameTitle();
+//                updateFrameTitle();	// jex001D
                 // create tabs if not done
                 createPluginTabs();
                 repaint();
@@ -412,6 +412,8 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         }
     }
 
+    // jex001D begin
+    /*
     void updateFrameTitle() {
         VMInternalFrame vmIF = getFrame();
         if (vmIF != null) {
@@ -430,6 +432,8 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
         }
         return vmIF;
     }
+     */
+    // jex001D end
 
     // TODO: this method is not needed when all JConsole tabs
     // are migrated to use the new JConsolePlugin API.
@@ -504,11 +508,11 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                     if (value == reconnectStr || value == connectStr) {
                         connect();
                     } else if (!everConnected) {
-                        try {
-                            getFrame().setClosed(true);
-                        } catch (PropertyVetoException ex) {
+//                        try {									// jex001D
+//                            getFrame().setClosed(true);		// jex001D
+//                        } catch (PropertyVetoException ex) {	// jex001D
                             // Should not happen, but can be ignored.
-                        }
+//                        }										// jex001D
                     }
                 }
             }

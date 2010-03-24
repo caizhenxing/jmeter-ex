@@ -65,8 +65,8 @@ public class ConnectDialog extends InternalDialog
     JButton connectButton, cancelButton;
     JPanel radioButtonPanel;
 
-    private Icon mastheadIcon =
-        new MastheadIcon(getText("ConnectDialog.masthead.title"));
+//    private Icon mastheadIcon =										// jex001D
+//        new MastheadIcon(getText("ConnectDialog.masthead.title"));	// jex001D
     private Color hintTextColor, disabledTableCellColor;
 
     // The table of managed VM (local process)
@@ -101,11 +101,11 @@ public class ConnectDialog extends InternalDialog
         Font boldLabelFont = normalLabelFont.deriveFont(Font.BOLD);
         Font smallLabelFont = normalLabelFont.deriveFont(normalLabelFont.getSize2D() - 1);
 
-        JLabel mastheadLabel = new JLabel(mastheadIcon);
-        setAccessibleName(mastheadLabel,
-                          getText("ConnectDialog.masthead.accessibleName"));
+//        JLabel mastheadLabel = new JLabel(mastheadIcon);	// jex001D
+//        setAccessibleName(mastheadLabel,					// jex001D
+//                          getText("ConnectDialog.masthead.accessibleName"));	// jex001D
 
-        cp.add(mastheadLabel, NORTH);
+//        cp.add(mastheadLabel, NORTH);						// jex001D
         cp.add(radioButtonPanel, CENTER);
         cp.add(bottomPanel, SOUTH);
 
@@ -644,7 +644,7 @@ public class ConnectDialog extends InternalDialog
             localTableScrollPane.getViewport().setPreferredSize(dim);
         }
         pack();
-        setLocationRelativeTo(jConsole);
+        setLocationRelativeTo(jConsole.getDesktopPane());	// jex001C
     }
 
     // Represents the list of managed VMs as a tabular data model.

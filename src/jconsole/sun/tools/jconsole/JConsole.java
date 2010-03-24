@@ -38,10 +38,20 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.swing.plaf.*;
+import javax.swing.tree.TreePath;
 import javax.management.remote.JMXServiceURL;
 import javax.management.remote.JMXConnector;
 import javax.security.auth.login.FailedLoginException;
 import javax.net.ssl.SSLHandshakeException;
+
+import org.apache.jmeter.exceptions.IllegalUserActionException;
+import org.apache.jmeter.gui.GuiPackage;
+import org.apache.jmeter.gui.JMeterGUIComponent;
+import org.apache.jmeter.gui.MainFrame;
+import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.apache.jmeter.machine.gui.MachineGui;
+import org.apache.jmeter.testelement.TestElement;
+import org.apache.jmeter.util.JMeterUtils;
 
 import com.sun.tools.jconsole.JConsolePlugin;
 
@@ -110,7 +120,41 @@ public class JConsole extends JFrame
 
     private int frameLoc = 5;
     static boolean debug;
-
+    public static boolean hotspot = false;						// jex001A
+    private static JConsole jConsole = new JConsole(hotspot);	// jex001A
+    private MainFrame mainFrame = null;	// jex001A
+    
+    /**
+     * set frame
+     * 
+     * @since jex001A
+     * @author chenchao.yecc
+     */
+    public void setMainFrame(MainFrame mainFrame) {
+		this.mainFrame = mainFrame;
+	}
+    
+    /**
+     * get frame
+     * 
+     * @since jex001A
+     * @author chenchao.yecc
+     */
+    public MainFrame getMainFrame() {
+    	return mainFrame;
+    }
+    
+    /**
+     * get JConsole instance
+     * 
+     * @since jex001A
+     * @author chenchao.yecc
+     * @return JConsole instance
+     */
+    public static JConsole getInstance(){
+    	return jConsole;
+    }
+    
     public JConsole(boolean hotspot) {
         super(title);
 
@@ -175,7 +219,13 @@ public class JConsole extends JFrame
     }
 
     public JDesktopPane getDesktopPane() {
-        return desktop;
+    	JDesktopPane desk=null;								// jex001A
+    	GuiPackage guiPackage = GuiPackage.getInstance();	// jex001A
+    	JMeterGUIComponent gui=guiPackage.getCurrentGui();	// jex001A
+    	if (gui instanceof MachineGui) {					// jex001A
+    		desk=((MachineGui) gui).getMainPanel();			// jex001A
+		}													// jex001A
+        return desk;										// jex001C
     }
 
     public List<VMInternalFrame> getInternalFrames() {
@@ -610,14 +660,14 @@ public class JConsole extends JFrame
         return vmIF;
     }
 
-    private void showConnectDialog(String url,
+    public void showConnectDialog(String url,		// jex001C
                                    String hostName,
                                    int port,
                                    String userName,
                                    String password,
                                    String msg) {
         if (connectDialog == null) {
-            connectDialog = new ConnectDialog(this);
+            connectDialog = new ConnectDialog(JConsole.getInstance());	// jex001C
         }
         connectDialog.setConnectionParameters(url,
                                               hostName,

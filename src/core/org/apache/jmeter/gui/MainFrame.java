@@ -67,6 +67,8 @@ import org.apache.jmeter.threads.JMeterContextService;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.ComponentUtil;
 
+import sun.tools.jconsole.JConsole;
+
 /**
  * The main JMeter frame, containing the menu bar, test tree, and an area for
  * JMeter component GUIs.
@@ -403,6 +405,7 @@ public class MainFrame extends JFrame implements TestListener, Remoteable {
 
         setTitle(DEFAULT_TITLE);
         setIconImage(JMeterUtils.getImage("jmeter.jpg").getImage());// $NON-NLS-1$
+        JConsole.getInstance().setMainFrame(this);	// jex001A
     }
 
     public void setExtendedFrameTitle(String fname) {

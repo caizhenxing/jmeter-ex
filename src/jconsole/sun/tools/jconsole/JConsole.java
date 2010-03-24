@@ -62,7 +62,7 @@ import static sun.tools.jconsole.Utilities.*;
 
 @SuppressWarnings("serial")
 public class JConsole extends JFrame
-    implements ActionListener, InternalFrameListener {
+    implements ActionListener {	// jex001C
 
     static /*final*/ boolean IS_GTK;
     static /*final*/ boolean IS_WIN;
@@ -104,14 +104,14 @@ public class JConsole extends JFrame
     private static int updateInterval = 4000;
     private static String pluginPath = "";
 
-    private JMenuBar menuBar;
-    private JMenuItem hotspotMI, connectMI, exitMI;
-    private WindowMenu windowMenu;
-    private JMenuItem tileMI, cascadeMI, minimizeAllMI, restoreAllMI;
-    private JMenuItem userGuideMI, aboutMI;
+//    private JMenuBar menuBar;											// jex001D
+//    private JMenuItem hotspotMI, connectMI, exitMI;					// jex001D
+//    private WindowMenu windowMenu;									// jex001D
+//    private JMenuItem tileMI, cascadeMI, minimizeAllMI, restoreAllMI;	// jex001D
+//    private JMenuItem userGuideMI, aboutMI;							// jex001D
 
     private JButton connectButton;
-    private JDesktopPane desktop;
+//    private JDesktopPane desktop;										// jex001D
     private ConnectDialog connectDialog;
     private CreateMBeanDialog createDialog;
 
@@ -122,7 +122,7 @@ public class JConsole extends JFrame
     static boolean debug;
     public static boolean hotspot = false;						// jex001A
     private static JConsole jConsole = new JConsole(hotspot);	// jex001A
-    private MainFrame mainFrame = null;	// jex001A
+    private MainFrame mainFrame = null;							// jex001A
     
     /**
      * set frame
@@ -163,59 +163,59 @@ public class JConsole extends JFrame
                                  getText("JConsole.accessibleDescription"));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        menuBar = new JMenuBar();
-        setJMenuBar(menuBar);
+//        menuBar = new JMenuBar();	// jex001D
+//        setJMenuBar(menuBar);		// jex001D
 
         // TODO: Use Actions !
 
-        JMenu connectionMenu = new JMenu(getText("Connection"));
-        connectionMenu.setMnemonic(getMnemonicInt("Connection"));
-        menuBar.add(connectionMenu);
-        if(hotspot) {
-            hotspotMI = new JMenuItem(getText("Hotspot MBeans..."));
-            hotspotMI.setMnemonic(getMnemonicInt("Hotspot MBeans..."));
-            hotspotMI.setAccelerator(KeyStroke.
-                                     getKeyStroke(KeyEvent.VK_H,
-                                                  InputEvent.CTRL_MASK));
-            hotspotMI.addActionListener(this);
-            connectionMenu.add(hotspotMI);
+//        JMenu connectionMenu = new JMenu(getText("Connection"));					// jex001D
+//        connectionMenu.setMnemonic(getMnemonicInt("Connection"));					// jex001D
+//        menuBar.add(connectionMenu);												// jex001D
+//        if(hotspot) {																// jex001D
+//            hotspotMI = new JMenuItem(getText("Hotspot MBeans..."));				// jex001D
+//            hotspotMI.setMnemonic(getMnemonicInt("Hotspot MBeans..."));			// jex001D
+//            hotspotMI.setAccelerator(KeyStroke.									// jex001D
+//                                     getKeyStroke(KeyEvent.VK_H,					// jex001D
+//                                                  InputEvent.CTRL_MASK));			// jex001D
+//            hotspotMI.addActionListener(this);									// jex001D
+//            connectionMenu.add(hotspotMI);										// jex001D
 
-            connectionMenu.addSeparator();
-        }
+//            connectionMenu.addSeparator();										// jex001D
+//        }																			// jex001D
 
-        connectMI = new JMenuItem(Resources.getText("New Connection..."));
-        connectMI.setMnemonic(getMnemonicInt("New Connection..."));
-        connectMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N,
-                                                        InputEvent.CTRL_MASK));
-        connectMI.addActionListener(this);
-        connectionMenu.add(connectMI);
+//        connectMI = new JMenuItem(Resources.getText("New Connection..."));		// jex001D
+//        connectMI.setMnemonic(getMnemonicInt("New Connection..."));				// jex001D
+//        connectMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N,			// jex001D
+//                                                        InputEvent.CTRL_MASK));	// jex001D
+//        connectMI.addActionListener(this);										// jex001D
+//        connectionMenu.add(connectMI);											// jex001D
 
-        connectionMenu.addSeparator();
+//        connectionMenu.addSeparator();											// jex001D
 
-        exitMI = new JMenuItem(Resources.getText("Exit"));
-        exitMI.setMnemonic(getMnemonicInt("Exit"));
-        exitMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4,
-                                                     InputEvent.ALT_MASK));
-        exitMI.addActionListener(this);
-        connectionMenu.add(exitMI);
+//        exitMI = new JMenuItem(Resources.getText("Exit"));						// jex001D
+//        exitMI.setMnemonic(getMnemonicInt("Exit"));								// jex001D
+//        exitMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F4,				// jex001D
+//                                                     InputEvent.ALT_MASK));		// jex001D
+//        exitMI.addActionListener(this);											// jex001D
+//        connectionMenu.add(exitMI);												// jex001D
 
 
-        JMenu helpMenu = new JMenu(getText("HelpMenu.title"));
-        helpMenu.setMnemonic(getMnemonicInt("HelpMenu.title"));
-        menuBar.add(helpMenu);
+//        JMenu helpMenu = new JMenu(getText("HelpMenu.title"));					// jex001D
+//        helpMenu.setMnemonic(getMnemonicInt("HelpMenu.title"));					// jex001D
+//        menuBar.add(helpMenu);													// jex001D
 
-        if (AboutDialog.isBrowseSupported()) {
-            userGuideMI = new JMenuItem(getText("HelpMenu.UserGuide.title"));
-            userGuideMI.setMnemonic(getMnemonicInt("HelpMenu.UserGuide.title"));
-            userGuideMI.addActionListener(this);
-            helpMenu.add(userGuideMI);
-            helpMenu.addSeparator();
-        }
-        aboutMI = new JMenuItem(getText("HelpMenu.About.title"));
-        aboutMI.setMnemonic(getMnemonicInt("HelpMenu.About.title"));
-        aboutMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
-        aboutMI.addActionListener(this);
-        helpMenu.add(aboutMI);
+//        if (AboutDialog.isBrowseSupported()) {									// jex001D
+//            userGuideMI = new JMenuItem(getText("HelpMenu.UserGuide.title"));		// jex001D
+//            userGuideMI.setMnemonic(getMnemonicInt("HelpMenu.UserGuide.title"));	// jex001D
+//            userGuideMI.addActionListener(this);									// jex001D
+//            helpMenu.add(userGuideMI);											// jex001D
+//            helpMenu.addSeparator();												// jex001D
+//        }																			// jex001D
+//        aboutMI = new JMenuItem(getText("HelpMenu.About.title"));					// jex001D
+//        aboutMI.setMnemonic(getMnemonicInt("HelpMenu.About.title"));				// jex001D
+//        aboutMI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));		// jex001D
+//        aboutMI.addActionListener(this);											// jex001D
+//        helpMenu.add(aboutMI);													// jex001D
     }
 
     public JDesktopPane getDesktopPane() {
@@ -241,21 +241,22 @@ public class JConsole extends JFrame
             ((BorderLayout)cp.getLayout()).
             getLayoutComponent(BorderLayout.CENTER);
 
-        windowMenu = new WindowMenu(Resources.getText("Window"));
-        windowMenu.setMnemonic(getMnemonicInt("Window"));
+//        windowMenu = new WindowMenu(Resources.getText("Window"));	// jex001D
+//        windowMenu.setMnemonic(getMnemonicInt("Window"));			// jex001D
         // Add Window menu before Help menu
-        menuBar.add(windowMenu, menuBar.getComponentCount() - 1);
+//        menuBar.add(windowMenu, menuBar.getComponentCount() - 1);	// jex001D
 
-        desktop = new JDesktopPane();
-        desktop.setBackground(new Color(235, 245, 255));
+//        desktop = new JDesktopPane();								// jex001D
+//        desktop.setBackground(new Color(235, 245, 255));			// jex001D
 
-        cp.add(desktop, BorderLayout.CENTER);
+//        cp.add(desktop, BorderLayout.CENTER);						// jex001D
 
         if (oldCenter instanceof VMPanel) {
             addFrame((VMPanel)oldCenter);
         }
     }
-
+    // jex001D begin
+    /*
     private class WindowMenu extends JMenu {
         VMInternalFrame[] windowMenuWindows = new VMInternalFrame[0];
         int separatorPosition;
@@ -365,16 +366,18 @@ public class JConsole extends JFrame
             }
         }
     }
+     */
+    // jex001D end
 
     public void actionPerformed(ActionEvent ev) {
         Object src = ev.getSource();
-        if (src == hotspotMI) {
-            showCreateMBeanDialog();
-        }
+//        if (src == hotspotMI) {			// jex001D
+//            showCreateMBeanDialog();		// jex001D
+//        }									// jex001D
 
-        if (src == connectButton || src == connectMI) {
+        if (src == connectButton) {		// jex001C
             VMPanel vmPanel = null;
-            JInternalFrame vmIF = desktop.getSelectedFrame();
+            JInternalFrame vmIF = getDesktopPane().getSelectedFrame();	// jex001C
             if (vmIF instanceof VMInternalFrame) {
                 vmPanel = ((VMInternalFrame)vmIF).getVMPanel();
             }
@@ -386,32 +389,32 @@ public class JConsole extends JFrame
                         url = vmPanel.getUrl();
                 }
                 showConnectDialog(url, hostName, 0, null, null, null);
-        } else if (src == tileMI) {
-            tileWindows();
-        } else if (src == cascadeMI) {
-            cascadeWindows();
-        } else if (src == minimizeAllMI) {
-            for (VMInternalFrame vmIF : windows) {
-                try {
-                    vmIF.setIcon(true);
-                } catch (PropertyVetoException ex) {
-                    // Ignore
-                }
-            }
-        } else if (src == restoreAllMI) {
-            for (VMInternalFrame vmIF : windows) {
-                try {
-                    vmIF.setIcon(false);
-                } catch (PropertyVetoException ex) {
-                    // Ignore
-                }
-            }
-        } else if (src == exitMI) {
-            System.exit(0);
-        } else if (src == userGuideMI) {
-            AboutDialog.browseUserGuide(this);
-        } else if (src == aboutMI) {
-            AboutDialog.showAboutDialog(this);
+//        } else if (src == tileMI) {				// jex001D
+//            tileWindows();						// jex001D
+//        } else if (src == cascadeMI) {			// jex001D
+//            cascadeWindows();						// jex001D
+//        } else if (src == minimizeAllMI) {		// jex001D
+//            for (VMInternalFrame vmIF : windows) {	// jex001D
+//                try {									// jex001D
+//                    vmIF.setIcon(true);				// jex001D
+//                } catch (PropertyVetoException ex) {	// jex001D
+//                    // Ignore							// jex001D
+//                }										// jex001D
+//            }											// jex001D
+//        } else if (src == restoreAllMI) {				// jex001D
+//            for (VMInternalFrame vmIF : windows) {	// jex001D
+//                try {									// jex001D
+//                    vmIF.setIcon(false);				// jex001D
+//                } catch (PropertyVetoException ex) {	// jex001D
+//                    // Ignore						// jex001D
+//                }									// jex001D
+//            }										// jex001D
+//        } else if (src == exitMI) {				// jex001D
+//            System.exit(0);						// jex001D
+//        } else if (src == userGuideMI) {			// jex001D
+//            AboutDialog.browseUserGuide(this);	// jex001D
+//        } else if (src == aboutMI) {				// jex001D
+//            AboutDialog.showAboutDialog(this);	// jex001D
         } else if (src instanceof JMenuItem) {
             JMenuItem mi = (JMenuItem)src;
             VMInternalFrame vmIF = (VMInternalFrame)mi.
@@ -428,7 +431,8 @@ public class JConsole extends JFrame
         }
     }
 
-
+    // jex001D begin
+    /*
     public void tileWindows() {
         int w = -1;
         int h = -1;
@@ -519,7 +523,8 @@ public class JConsole extends JFrame
             }
         }
     }
-
+     */
+    // jex001D end
     // Call on EDT
     void addHost(String hostName, int port,
                  String userName, String password) {
@@ -602,7 +607,7 @@ public class JConsole extends JFrame
                 if (tile) {
                     SwingUtilities.invokeLater(new Runnable() {
                         public void run() {
-                            tileWindows();
+//                            tileWindows();	// jex001D
                         }
                     });
                 }
@@ -654,8 +659,8 @@ public class JConsole extends JFrame
                 // Ignore
             }
         }
-        vmIF.addInternalFrameListener(this);
-//        windowMenu.add(vmIF);	// jex001D
+//        vmIF.addInternalFrameListener(this);	// jex001D
+//        windowMenu.add(vmIF);					// jex001D
 
         return vmIF;
     }
@@ -698,9 +703,9 @@ public class JConsole extends JFrame
     }
 
     private void removeVMInternalFrame(VMInternalFrame vmIF) {
-        windowMenu.remove(vmIF);
-        desktop.remove(vmIF);
-        desktop.repaint();
+//        windowMenu.remove(vmIF);	// jex001D
+//        desktop.remove(vmIF);		// jex001D
+//        desktop.repaint();		// jex001D
         vmIF.getVMPanel().cleanUp();
         vmIF.dispose();
     }
@@ -798,7 +803,8 @@ public class JConsole extends JFrame
 
 
     // InternalFrameListener interface
-
+    // jex001D begin
+    /*
     public void internalFrameClosing(InternalFrameEvent e) {
         VMInternalFrame vmIF = (VMInternalFrame)e.getInternalFrame();
         removeVMInternalFrame(vmIF);
@@ -817,8 +823,8 @@ public class JConsole extends JFrame
     public void internalFrameDeiconified(InternalFrameEvent e) {}
     public void internalFrameActivated(InternalFrameEvent e) {}
     public void internalFrameDeactivated(InternalFrameEvent e) {}
-
-
+     */
+    // jex001D end
     private static void usage() {
         System.err.println(Resources.getText("zz usage text", "jconsole"));
     }

@@ -115,8 +115,8 @@ public class JConsole extends JFrame
     private ConnectDialog connectDialog;
     private CreateMBeanDialog createDialog;
 
-    private ArrayList<VMInternalFrame> windows =
-        new ArrayList<VMInternalFrame>();
+    private ArrayList<VMPanel> windows =				// jex001C
+        new ArrayList<VMPanel>();						// jex001C
 
     private int frameLoc = 5;
     static boolean debug;
@@ -228,7 +228,7 @@ public class JConsole extends JFrame
         return desk;										// jex001C
     }
 
-    public List<VMInternalFrame> getInternalFrames() {
+    public List<VMPanel> getInternalFrames() {	// jex001C
         return windows;
     }
 
@@ -636,33 +636,34 @@ public class JConsole extends JFrame
     }
 
 
-    private VMInternalFrame addFrame(VMPanel vmPanel) {
-        final VMInternalFrame vmIF = new VMInternalFrame(vmPanel);
+    private void addFrame(VMPanel vmPanel) {							// jex001C
+//        final VMInternalFrame vmIF = new VMInternalFrame(vmPanel);	// jex001D
 
-        for (VMInternalFrame f : windows) {
-            try {
-                f.setMaximum(false);
-            } catch (PropertyVetoException ex) {
+//        for (VMInternalFrame f : windows) {							// jex001D
+//            try {														// jex001D
+//                f.setMaximum(false);									// jex001D
+//            } catch (PropertyVetoException ex) {						// jex001D
                 // Ignore
-            }
-        }
-        getDesktopPane().add(vmIF);	// jex001C
+//            }															// jex001D
+//        }																// jex001D
+        getDesktopPane().add(vmPanel,BorderLayout.CENTER);	// jex001C
 
-        vmIF.setLocation(frameLoc, frameLoc);
-        frameLoc += 30;
-        vmIF.setVisible(true);
-        windows.add(vmIF);
-        if (windows.size() == 1) {
-            try {
-                vmIF.setMaximum(true);
-            } catch (PropertyVetoException ex) {
-                // Ignore
-            }
-        }
-//        vmIF.addInternalFrameListener(this);	// jex001D
-//        windowMenu.add(vmIF);					// jex001D
+//        vmIF.setLocation(frameLoc, frameLoc);			// jex001D
+//        frameLoc += 30;								// jex001D
+//        vmIF.setVisible(true);						// jex001D
+        windows.add(vmPanel);							// jex001C
+        vmPanel.setVisible(true);
+//        if (windows.size() == 1) {					// jex001D
+//            try {										// jex001D
+//                vmIF.setMaximum(true);				// jex001D
+//            } catch (PropertyVetoException ex) {		// jex001D
+//                // Ignore								// jex001D
+//            }											// jex001D
+//        }												// jex001D
+//        vmIF.addInternalFrameListener(this);			// jex001D
+//        windowMenu.add(vmIF);							// jex001D
 
-        return vmIF;
+//        return vmIF;									// jex001D
     }
 
     public void showConnectDialog(String url,		// jex001C
@@ -702,10 +703,12 @@ public class JConsole extends JFrame
         }
     }
 
+    // jex001D begin
+    /*
     private void removeVMInternalFrame(VMInternalFrame vmIF) {
-//        windowMenu.remove(vmIF);	// jex001D
-//        desktop.remove(vmIF);		// jex001D
-//        desktop.repaint();		// jex001D
+        windowMenu.remove(vmIF);
+        desktop.remove(vmIF);
+        desktop.repaint();
         vmIF.getVMPanel().cleanUp();
         vmIF.dispose();
     }
@@ -718,7 +721,8 @@ public class JConsole extends JFrame
         }
         return false;
     }
-
+     */
+    // jex001D end
     static boolean isValidRemoteString(String txt) {
         boolean valid = false;
         if (txt != null) {

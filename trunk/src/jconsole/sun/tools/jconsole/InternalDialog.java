@@ -46,7 +46,15 @@ public class InternalDialog extends JInternalFrame {
         setLayer(PALETTE_LAYER);
         putClientProperty("JInternalFrame.frameType", "optionDialog");
 
-        jConsole.getDesktopPane().add(this);
+        JPanel outer=new JPanel(new BorderLayout());// jex001A
+        JDesktopPane inter=new JDesktopPane();		// jex001A
+        inter.setLayout(null);						// jex001A
+        inter.add(this);							// jex001A
+        inter.setBounds(10, 10, 250, 100);			// jex001A
+        outer.add(inter,BorderLayout.CENTER);		// jex001A
+        inter.setBackground(Color.LIGHT_GRAY);		// jex001A
+        outer.setBackground(Color.LIGHT_GRAY);		// jex001A
+        jConsole.getDesktopPane().add(outer);		// jex001C
 
 
         getActionMap().put("cancel", new AbstractAction() {

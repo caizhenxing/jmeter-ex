@@ -309,6 +309,7 @@ public class ConnectDialog extends InternalDialog
                 if (!isEnabled() || !isVisible()) {
                     return;
                 }
+                jConsole.getDesktopPane().removeAll();	// jex001A
                 setVisible(false);
                 statusBar.setText("");
 

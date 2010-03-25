@@ -119,7 +119,8 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
         Panel.setLayout(new BorderLayout());
         upPanel=new JPanel();
         mainPanel = new JDesktopPane();
-        mainPanel.setBackground(new Color(235, 245, 255));
+        mainPanel.setLayout(new BorderLayout());
+        mainPanel.setBackground(Color.LIGHT_GRAY);
 //        mainPanel.setLayout(new BorderLayout());
 //        mainPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
 //                JMeterUtils.getResString("jvm_monitor"))); // $NON-NLS-1$

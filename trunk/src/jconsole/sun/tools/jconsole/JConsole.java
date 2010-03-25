@@ -154,6 +154,48 @@ public class JConsole extends JFrame
     public static JConsole getInstance(){
     	return jConsole;
     }
+
+    /**
+     * set the information label
+     * 
+     * @since jex001A
+     * @author chenchao.yecc
+     */
+    public void setJvmState(String info){
+    	GuiPackage guiPackage = GuiPackage.getInstance();
+    	JMeterGUIComponent gui=guiPackage.getCurrentGui();
+    	if (gui instanceof MachineGui) {
+    		((MachineGui) gui).setJvmState(info);
+		}
+    }
+    
+    /**
+     * set the information label
+     * 
+     * @since jex001A
+     * @author chenchao.yecc
+     */
+    public void setButtonEnable(boolean enable){
+    	GuiPackage guiPackage = GuiPackage.getInstance();
+    	JMeterGUIComponent gui=guiPackage.getCurrentGui();
+    	if (gui instanceof MachineGui) {
+    		((MachineGui) gui).setStartButtonEnable(enable);
+    	}
+    }
+
+    /**
+     * remove jvm panel from machine gui
+     * 
+     * @since jex001A
+     * @author chenchao.yecc
+     */
+    public void removeJVMPanle(){
+    	GuiPackage guiPackage = GuiPackage.getInstance();
+    	JMeterGUIComponent gui=guiPackage.getCurrentGui();
+    	if (gui instanceof MachineGui) {
+    		((MachineGui) gui).removeJvmPanel();
+    	}
+    }
     
     public JConsole(boolean hotspot) {
         super(title);
@@ -712,17 +754,17 @@ public class JConsole extends JFrame
         vmIF.getVMPanel().cleanUp();
         vmIF.dispose();
     }
-
+     */
+    // jex001D end
     private boolean isProxyClientUsed(ProxyClient client) {
-        for(VMInternalFrame frame : windows) {
-            ProxyClient cli = frame.getVMPanel().getProxyClient(false);
+        for(VMPanel frame : windows) {									// jex001C
+            ProxyClient cli = frame.getProxyClient(false);				// jex001C
             if(client == cli)
                 return true;
         }
         return false;
     }
-     */
-    // jex001D end
+    
     static boolean isValidRemoteString(String txt) {
         boolean valid = false;
         if (txt != null) {
@@ -807,20 +849,20 @@ public class JConsole extends JFrame
 
 
     // InternalFrameListener interface
-    // jex001D begin
-    /*
-    public void internalFrameClosing(InternalFrameEvent e) {
-        VMInternalFrame vmIF = (VMInternalFrame)e.getInternalFrame();
-        removeVMInternalFrame(vmIF);
-        windows.remove(vmIF);
-        ProxyClient client = vmIF.getVMPanel().getProxyClient(false);
+    public void vmPanelClosing(VMPanel vmPanel) {			// jex001C
+//        VMInternalFrame vmIF = (VMInternalFrame)e.getInternalFrame();	// jex001D
+//        removeVMInternalFrame(vmIF);									// jex001D
+        windows.remove(vmPanel);
+        ProxyClient client = vmPanel.getProxyClient(false);
         if(!isProxyClientUsed(client))
             client.markAsDead();
-        if (windows.size() == 0) {
-            showConnectDialog("", "", 0, null, null, null);
-        }
+//        if (windows.size() == 0) {							// jex001D
+//            showConnectDialog("", "", 0, null, null, null);	// jex001D
+//        }														// jex001D
     }
 
+    // jex001D begin
+    /*
     public void internalFrameOpened(InternalFrameEvent e) {}
     public void internalFrameClosed(InternalFrameEvent e) {}
     public void internalFrameIconified(InternalFrameEvent e) {}

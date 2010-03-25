@@ -305,7 +305,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
     // Call on EDT
     public void disconnect() {
         proxyClient.disconnect();
-//        updateFrameTitle();	// jex001D
+        updateFrameTitle();
     }
 
 
@@ -328,7 +328,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                     progressBar.setValue(100);
                 }
                 closeOptionPane();
-//                updateFrameTitle();	// jex001D
+                updateFrameTitle();
                 // create tabs if not done
                 createPluginTabs();
                 repaint();
@@ -411,19 +411,19 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             }.start();
         }
     }
-
-    // jex001D begin
-    /*
     void updateFrameTitle() {
-        VMInternalFrame vmIF = getFrame();
-        if (vmIF != null) {
+//        VMInternalFrame vmIF = getFrame();	// jex001D
+//        if (vmIF != null) {					// jex001D
             String displayName = getDisplayName();
             if (!proxyClient.isConnected()) {
                 displayName = getText("ConnectionName (disconnected)", displayName);
             }
-            vmIF.setTitle(displayName);
-        }
+            JConsole.getInstance().setJvmState(displayName);	// jex001C
+//        }										// jex001D
     }
+    
+    // jex001D begin
+    /*
 
     private VMInternalFrame getFrame() {
         if (vmIF == null) {

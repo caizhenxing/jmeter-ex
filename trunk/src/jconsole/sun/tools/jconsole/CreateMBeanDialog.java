@@ -104,7 +104,7 @@ public class CreateMBeanDialog extends InternalDialog
     }
 
     private void updateConnections() {
-        List<VMInternalFrame> frames = jConsole.getInternalFrames();
+        List<VMPanel> frames = jConsole.getInternalFrames();	// jex001C
         TreeSet<ProxyClient> data =
             new TreeSet<ProxyClient>(new Comparator<ProxyClient>() {
             public int compare(ProxyClient o1, ProxyClient o2) {
@@ -114,7 +114,7 @@ public class CreateMBeanDialog extends InternalDialog
         });
 
         if (frames.size() == 0) {
-            JComponent cp = (JComponent)jConsole.getContentPane();
+            JComponent cp = (JComponent)jConsole.getDesktopPane();	// jex001C
             Component comp = ((BorderLayout)cp.getLayout()).
                 getLayoutComponent(BorderLayout.CENTER);
             if (comp instanceof VMPanel) {
@@ -125,8 +125,8 @@ public class CreateMBeanDialog extends InternalDialog
                 }
             }
         } else {
-            for (VMInternalFrame f : frames) {
-                ProxyClient client = f.getVMPanel().getProxyClient(false);
+            for (VMPanel f : frames) {		// jex001C
+                ProxyClient client = f.getProxyClient(false);	// jex001C
                 if (client != null && client.hasPlatformMXBeans()) {
                     data.add(client);
                 }

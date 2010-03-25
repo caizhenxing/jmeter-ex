@@ -325,6 +325,7 @@ public class ConnectDialog extends InternalDialog
                             String msg = null;
                             jConsole.addUrl(url, userName, password, false);
                             remoteTF.setText(JConsole.ROOT_URL);
+                            jConsole.setButtonEnable(false);	// jex001A
                             return;
                         } else {
                             String host = remoteTF.getText().trim();
@@ -340,6 +341,7 @@ public class ConnectDialog extends InternalDialog
                                 remoteTF.setText("");
                                 userNameTF.setText("");
                                 passwordTF.setText("");
+                                jConsole.setButtonEnable(false);	// jex001A
                                 return;
                             }
                         }
@@ -358,6 +360,7 @@ public class ConnectDialog extends InternalDialog
                         jConsole.addVmid(vmModel.vmAt(row));
                     }
                     refresh();
+                    jConsole.setButtonEnable(false);	// jex001A
                 }
             }
         };

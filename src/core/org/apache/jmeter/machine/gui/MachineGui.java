@@ -2,15 +2,14 @@ package org.apache.jmeter.machine.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Collection;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
@@ -22,10 +21,9 @@ import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.machine.Machine;
 import org.apache.jmeter.testelement.TestElement;
-import org.apache.jmeter.threads.ThreadGroup;
-import org.apache.jmeter.util.JMeterUtils;
 
 import sun.tools.jconsole.JConsole;
+import sun.tools.jconsole.VMPanel;
 
 /**
  * Machine panel
@@ -35,10 +33,14 @@ import sun.tools.jconsole.JConsole;
 public class MachineGui extends AbstractJMeterGuiComponent implements ItemListener,ActionListener {
 	private static final long serialVersionUID = 1L;
 
-    private JDesktopPane mainPanel;
-    private JPanel Panel;
-    private JPanel upPanel;
-    private JButton start_btn = new JButton("configure");
+	// the panel of jvm
+    private JDesktopPane jvmPanel;
+    //
+    private JPanel mainPanel;
+    private JPanel controlPanel;
+    private JButton start_btn = new JButton("start");
+    private JButton close_btn = new JButton("close");
+    private JLabel info_lbl = new JLabel();
     public static final String STATIC_LABEL="machine";
 
     public MachineGui() {
@@ -57,6 +59,18 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
         return machine;
     }
 
+    public void setJvmState(String info){
+    	info_lbl.setText(info);
+    }
+    
+    public void removeJvmPanel(){
+    	setStartButtonEnable(true);
+    }
+    
+    public void setStartButtonEnable(boolean enable){
+    	start_btn.setEnabled(enable);
+    	close_btn.setEnabled(!enable);
+    }
     /**
      * Modifies a given TestElement to mirror the data in the gui components.
      *
@@ -68,7 +82,7 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 
     public void configure(TestElement tg) {
         super.configure(tg);
-        mainPanel.setVisible(true);
+        jvmPanel.setVisible(true);
     }
 
     public void itemStateChanged(ItemEvent ie) {
@@ -104,7 +118,7 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
     }
 
     public JDesktopPane getMainPanel(){
-    	return mainPanel;
+    	return jvmPanel;
     }
     
     private void init() {
@@ -115,25 +129,33 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
         box.add(makeTitlePanel());
         add(box, BorderLayout.NORTH);
 
-        Panel=new JPanel();
-        Panel.setLayout(new BorderLayout());
-        upPanel=new JPanel();
-        mainPanel = new JDesktopPane();
+        mainPanel=new JPanel();
         mainPanel.setLayout(new BorderLayout());
-        mainPanel.setBackground(Color.LIGHT_GRAY);
+        controlPanel=new JPanel();
+        controlPanel.setLayout(new BorderLayout());
+        jvmPanel = new JDesktopPane();
+        jvmPanel.setLayout(new BorderLayout());
+        jvmPanel.setBackground(Color.LIGHT_GRAY);
 //        mainPanel.setLayout(new BorderLayout());
 //        mainPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(),
 //                JMeterUtils.getResString("jvm_monitor"))); // $NON-NLS-1$
-        upPanel.add(new JLabel("Click the right button to start jvm monitor"),BorderLayout.EAST);
-        upPanel.add(start_btn,BorderLayout.CENTER);
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel right = new JPanel();
+        info_lbl.setText("Click the right button to start jvm monitor");
+        left.add(info_lbl);
+        right.add(start_btn);
+        right.add(close_btn);
+        controlPanel.add(right,BorderLayout.EAST);
+        controlPanel.add(left,BorderLayout.CENTER);
+        controlPanel.setBackground(Color.RED);
         start_btn.addActionListener(this);
-        Panel.add(upPanel,BorderLayout.NORTH);
-        Panel.add(mainPanel,BorderLayout.CENTER);
-        mainPanel.setVisible(true);
-        Panel.setVisible(true);
-//        Panel.setBackground(Color.YELLOW);
-        this.add(Panel, BorderLayout.CENTER);
-        
+        close_btn.addActionListener(this);
+        mainPanel.add(controlPanel,BorderLayout.NORTH);
+        mainPanel.add(jvmPanel,BorderLayout.CENTER);
+//        controlPanel.setVisible(true);
+//        jvmPanel.setVisible(true);
+//        mainPanel.setVisible(true);
+        this.add(mainPanel, BorderLayout.CENTER);
     }
 
     public void setNode(JMeterTreeNode node) {
@@ -153,6 +175,11 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource()==start_btn){
 			JConsole.getInstance().showConnectDialog("", "", 0, null, null, null);
+		} else if (e.getSource()==close_btn){
+			JConsole.getInstance().vmPanelClosing((VMPanel)jvmPanel.getComponent(0));
+			jvmPanel.removeAll();
+			info_lbl.setText("Click the right button to start jvm monitor");
+			setStartButtonEnable(true);
 		}
 	}
 }

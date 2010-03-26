@@ -39,7 +39,6 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
     private JPanel mainPanel;
     private JPanel controlPanel;
     private JButton start_btn = new JButton("start");
-    private JButton close_btn = new JButton("close");
     private JLabel info_lbl = new JLabel();
     public static final String STATIC_LABEL="machine";
 
@@ -69,7 +68,6 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
     
     public void setStartButtonEnable(boolean enable){
     	start_btn.setEnabled(enable);
-    	close_btn.setEnabled(!enable);
     }
     /**
      * Modifies a given TestElement to mirror the data in the gui components.
@@ -144,12 +142,10 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
         info_lbl.setText("Click the right button to start jvm monitor");
         left.add(info_lbl);
         right.add(start_btn);
-        right.add(close_btn);
         controlPanel.add(right,BorderLayout.EAST);
         controlPanel.add(left,BorderLayout.CENTER);
         controlPanel.setBackground(new Color(235, 233, 237));
         start_btn.addActionListener(this);
-        close_btn.addActionListener(this);
         mainPanel.add(controlPanel,BorderLayout.NORTH);
         mainPanel.add(jvmPanel,BorderLayout.CENTER);
 //        controlPanel.setVisible(true);
@@ -175,11 +171,6 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource()==start_btn){
 			JConsole.getInstance().showConnectDialog("", "", 0, null, null, null);
-		} else if (e.getSource()==close_btn){
-			JConsole.getInstance().vmPanelClosing((VMPanel)jvmPanel.getComponent(0));
-			jvmPanel.removeAll();
-			info_lbl.setText("Click the right button to start jvm monitor");
-			setStartButtonEnable(true);
 		}
 	}
 }

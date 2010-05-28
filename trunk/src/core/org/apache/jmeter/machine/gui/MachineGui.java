@@ -19,6 +19,7 @@ import javax.swing.JPopupMenu;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.apache.jmeter.gui.util.MenuFactory;
 import org.apache.jmeter.machine.Machine;
 import org.apache.jmeter.testelement.TestElement;
 
@@ -163,23 +164,10 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	 * 
 	 */
 	public JPopupMenu createPopupMenu() {
-		JPopupMenu pop = new JPopupMenu();
-		// pop.add(MenuFactory.makeMenus(new String[] {
-		// MenuFactory.CONTROLLERS,
-		// MenuFactory.CONFIG_ELEMENTS,
-		// MenuFactory.TIMERS,
-		// MenuFactory.PRE_PROCESSORS,
-		// MenuFactory.SAMPLERS,
-		// MenuFactory.POST_PROCESSORS,
-		// MenuFactory.ASSERTIONS,
-		// MenuFactory.LISTENERS,
-		// },
-		// JMeterUtils.getResString("add"), // $NON-NLS-1$
-		// ActionNames.ADD));
-		// MenuFactory.addEditMenu(pop, true);
-		// MenuFactory.addFileMenu(pop);
-		return pop;
-	}
+        JPopupMenu menu = new JPopupMenu();
+        MenuFactory.addServerMenu(menu);
+        return menu;
+    }
 
 	/**
 	 * @see org.apache.jmeter.gui.JMeterGUIComponent#clearGui()

@@ -169,6 +169,14 @@ public final class MenuFactory {
         }
     }
 
+    /**
+     * jconsole server menu
+     * @since jex001A
+     */
+	public static void addServerMenu(JPopupMenu menu) {
+		menu.add(makeMenuItemRes("remove", ActionNames.REMOVE, KeyStrokes.REMOVE));
+	}
+
     public static void addPasteResetMenu(JPopupMenu menu) {
         addSeparator(menu);
         menu.add(makeMenuItemRes("paste", ActionNames.PASTE, KeyStrokes.PASTE)); //$NON-NLS-1$

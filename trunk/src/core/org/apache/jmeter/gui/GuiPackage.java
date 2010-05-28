@@ -238,6 +238,19 @@ public final class GuiPackage implements LocaleChangeListener {
     }
 
     /**
+     * get current gui component
+     * 
+     * @since jex001A
+     * @author chenchao.yecc
+     * @return gui component
+     */
+    public JMeterGUIComponent getCurrentGuiWithNoUpdate() {
+            TestElement curNode = treeListener.getCurrentNode().getTestElement();
+            JMeterGUIComponent comp = getGui(curNode);
+            return comp;
+    }
+
+    /**
      * Find the JMeterTreeNode for a certain TestElement object.
      *
      * @param userObject

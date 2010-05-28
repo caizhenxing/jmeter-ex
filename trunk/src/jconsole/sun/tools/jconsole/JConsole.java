@@ -29,29 +29,21 @@ import java.awt.*;
 import java.awt.event.*;
 import java.beans.*;
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.*;
 import java.util.*;
 import java.util.List;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.*;
 import javax.swing.plaf.*;
-import javax.swing.tree.TreePath;
-import javax.management.remote.JMXServiceURL;
-import javax.management.remote.JMXConnector;
 import javax.security.auth.login.FailedLoginException;
 import javax.net.ssl.SSLHandshakeException;
 
-import org.apache.jmeter.exceptions.IllegalUserActionException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.JMeterGUIComponent;
 import org.apache.jmeter.gui.MainFrame;
-import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.apache.jmeter.machine.Machine;
 import org.apache.jmeter.machine.gui.MachineGui;
-import org.apache.jmeter.testelement.TestElement;
-import org.apache.jmeter.util.JMeterUtils;
 
 import com.sun.tools.jconsole.JConsolePlugin;
 
@@ -113,12 +105,13 @@ public class JConsole extends JFrame
     private JButton connectButton;
 //    private JDesktopPane desktop;										// jex001D
     private ConnectDialog connectDialog;
-    private CreateMBeanDialog createDialog;
+//    private CreateMBeanDialog createDialog;							// jex001D
 
     private ArrayList<VMPanel> windows =				// jex001C
         new ArrayList<VMPanel>();						// jex001C
+    public HashMap<Machine,VMPanel> mp=new HashMap<Machine,VMPanel>();
 
-    private int frameLoc = 5;
+//    private int frameLoc = 5;							// jex001D
     static boolean debug;
     public static boolean hotspot = false;						// jex001A
     private static JConsole jConsole = new JConsole(hotspot);	// jex001A
@@ -155,48 +148,6 @@ public class JConsole extends JFrame
     	return jConsole;
     }
 
-    /**
-     * set the information label
-     * 
-     * @since jex001A
-     * @author chenchao.yecc
-     */
-    public void setJvmState(String info){
-    	GuiPackage guiPackage = GuiPackage.getInstance();
-    	JMeterGUIComponent gui=guiPackage.getCurrentGui();
-    	if (gui instanceof MachineGui) {
-    		((MachineGui) gui).setJvmState(info);
-		}
-    }
-    
-    /**
-     * set the information label
-     * 
-     * @since jex001A
-     * @author chenchao.yecc
-     */
-    public void setButtonEnable(boolean enable){
-    	GuiPackage guiPackage = GuiPackage.getInstance();
-    	JMeterGUIComponent gui=guiPackage.getCurrentGui();
-    	if (gui instanceof MachineGui) {
-    		((MachineGui) gui).setStartButtonEnable(enable);
-    	}
-    }
-
-    /**
-     * remove jvm panel from machine gui
-     * 
-     * @since jex001A
-     * @author chenchao.yecc
-     */
-    public void removeJVMPanle(){
-    	GuiPackage guiPackage = GuiPackage.getInstance();
-    	JMeterGUIComponent gui=guiPackage.getCurrentGui();
-    	if (gui instanceof MachineGui) {
-    		((MachineGui) gui).removeJvmPanel();
-    	}
-    }
-    
     public JConsole(boolean hotspot) {
         super(title);
 
@@ -263,7 +214,7 @@ public class JConsole extends JFrame
     public JDesktopPane getDesktopPane() {
     	JDesktopPane desk=null;								// jex001A
     	GuiPackage guiPackage = GuiPackage.getInstance();	// jex001A
-    	JMeterGUIComponent gui=guiPackage.getCurrentGui();	// jex001A
+    	JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();	// jex001A
     	if (gui instanceof MachineGui) {					// jex001A
     		desk=((MachineGui) gui).getMainPanel();			// jex001A
 		}													// jex001A
@@ -679,8 +630,7 @@ public class JConsole extends JFrame
 
 
     private void addFrame(VMPanel vmPanel) {							// jex001C
-//        final VMInternalFrame vmIF = new VMInternalFrame(vmPanel);	// jex001D
-
+        final VMInternalFrame vmIF = new VMInternalFrame(vmPanel);
 //        for (VMInternalFrame f : windows) {							// jex001D
 //            try {														// jex001D
 //                f.setMaximum(false);									// jex001D
@@ -688,13 +638,22 @@ public class JConsole extends JFrame
                 // Ignore
 //            }															// jex001D
 //        }																// jex001D
-        getDesktopPane().add(vmPanel,BorderLayout.CENTER);	// jex001C
+//        desktop.add(vmIF);											// jex001D
 
 //        vmIF.setLocation(frameLoc, frameLoc);			// jex001D
 //        frameLoc += 30;								// jex001D
 //        vmIF.setVisible(true);						// jex001D
+    	GuiPackage guiPackage = GuiPackage.getInstance();				// jex001A
+    	JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();	// jex001A
+    	if (gui instanceof MachineGui) {								// jex001A
+    		MachineGui machineGui=(MachineGui)gui;						// jex001A
+    		mp.put(machineGui.getMachine(),vmPanel);					// jex001A
+    		machineGui.getMachine().setFrame(vmIF);						// jex001A
+    		getDesktopPane().add(vmPanel,BorderLayout.CENTER);			// jex001A
+    		machineGui.setStartButtonEnable(machineGui.getMachine());	// jex001A
+		}																// jex001A
         windows.add(vmPanel);							// jex001C
-        vmPanel.setVisible(true);
+//        vmPanel.setVisible(true);						// jex001D
 //        if (windows.size() == 1) {					// jex001D
 //            try {										// jex001D
 //                vmIF.setMaximum(true);				// jex001D
@@ -716,6 +675,8 @@ public class JConsole extends JFrame
                                    String msg) {
         if (connectDialog == null) {
             connectDialog = new ConnectDialog(JConsole.getInstance());	// jex001C
+        } else {														// jex001A
+        	connectDialog.initDialogPanel();							// jex001A
         }
         connectDialog.setConnectionParameters(url,
                                               hostName,
@@ -732,6 +693,8 @@ public class JConsole extends JFrame
         } catch (PropertyVetoException e) {
         }
     }
+    // jex001D begin
+    /*
 
     private void showCreateMBeanDialog() {
         if (createDialog == null) {
@@ -745,8 +708,6 @@ public class JConsole extends JFrame
         }
     }
 
-    // jex001D begin
-    /*
     private void removeVMInternalFrame(VMInternalFrame vmIF) {
         windowMenu.remove(vmIF);
         desktop.remove(vmIF);

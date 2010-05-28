@@ -43,6 +43,10 @@ import javax.swing.table.*;
 import javax.management.remote.JMXServiceURL;
 import javax.management.remote.JMXConnector;
 
+import org.apache.jmeter.gui.GuiPackage;
+import org.apache.jmeter.gui.JMeterGUIComponent;
+import org.apache.jmeter.machine.gui.MachineGui;
+
 import static java.awt.BorderLayout.*;
 import static javax.swing.ListSelectionModel.*;
 import static sun.tools.jconsole.Resources.*;
@@ -80,8 +84,8 @@ public class ConnectDialog extends InternalDialog
 
     public ConnectDialog(JConsole jConsole) {
         super(jConsole, Resources.getText("ConnectDialog.title"), true);
-
         this.jConsole = jConsole;
+        initDialogPanel();					// jex001A
         setAccessibleDescription(this,
                                  getText("ConnectDialog.accessibleDescription"));
         setDefaultCloseOperation(HIDE_ON_CLOSE);
@@ -273,6 +277,29 @@ public class ConnectDialog extends InternalDialog
         Utilities.updateTransparency(this);
     }
 
+    /**
+     * rebuild the panel where the dialog shows
+     */
+    public void initDialogPanel(){
+        JPanel outer=new JPanel(new BorderLayout());// jex001A
+        JDesktopPane inter=new JDesktopPane();		// jex001A
+        inter.setLayout(null);						// jex001A
+        inter.add(this);							// jex001A
+        inter.setBounds(10, 10, 250, 100);			// jex001A
+        outer.add(inter,BorderLayout.CENTER);		// jex001A
+        inter.setBackground(Color.LIGHT_GRAY);		// jex001A
+        outer.setBackground(Color.LIGHT_GRAY);		// jex001A
+        jConsole.getDesktopPane().add(outer);		// jex001A
+    }
+
+    private void setCurrentGUIRunState(boolean runState){
+    	GuiPackage guiPackage = GuiPackage.getInstance();
+    	JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();
+    	if (gui instanceof MachineGui) {
+    		MachineGui mg=(MachineGui)gui;
+    		mg.getMachine().setStart(runState);
+		}
+    }
     public void revalidate() {
         // Adjust some colors
         hintTextColor =
@@ -325,7 +352,7 @@ public class ConnectDialog extends InternalDialog
                             String msg = null;
                             jConsole.addUrl(url, userName, password, false);
                             remoteTF.setText(JConsole.ROOT_URL);
-                            jConsole.setButtonEnable(false);	// jex001A
+                            setCurrentGUIRunState(false);	// jex001A
                             return;
                         } else {
                             String host = remoteTF.getText().trim();
@@ -341,7 +368,7 @@ public class ConnectDialog extends InternalDialog
                                 remoteTF.setText("");
                                 userNameTF.setText("");
                                 passwordTF.setText("");
-                                jConsole.setButtonEnable(false);	// jex001A
+                                setCurrentGUIRunState(false);	// jex001A
                                 return;
                             }
                         }
@@ -359,8 +386,8 @@ public class ConnectDialog extends InternalDialog
                     if (row >= 0) {
                         jConsole.addVmid(vmModel.vmAt(row));
                     }
+                    setCurrentGUIRunState(false);	// jex001A
                     refresh();
-                    jConsole.setButtonEnable(false);	// jex001A
                 }
             }
         };
@@ -368,6 +395,8 @@ public class ConnectDialog extends InternalDialog
         cancelAction = new AbstractAction(getText("Cancel")) {
             public void actionPerformed(ActionEvent ev) {
                 setVisible(false);
+            	jConsole.getDesktopPane().removeAll();	// jex001A
+            	jConsole.getDesktopPane().repaint();	// jex001A
                 statusBar.setText("");
             }
         };

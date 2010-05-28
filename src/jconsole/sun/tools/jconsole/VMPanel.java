@@ -37,6 +37,10 @@ import java.util.Timer;
 import javax.swing.*;
 import javax.swing.plaf.*;
 
+import org.apache.jmeter.gui.GuiPackage;
+import org.apache.jmeter.gui.JMeterGUIComponent;
+import org.apache.jmeter.machine.gui.MachineGui;
+
 import com.sun.tools.jconsole.JConsolePlugin;
 import com.sun.tools.jconsole.JConsoleContext;
 import static com.sun.tools.jconsole.JConsoleContext.ConnectionState.*;
@@ -418,8 +422,14 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             if (!proxyClient.isConnected()) {
                 displayName = getText("ConnectionName (disconnected)", displayName);
             }
-            JConsole.getInstance().setJvmState(displayName);	// jex001C
-//        }										// jex001D
+            GuiPackage guiPackage = GuiPackage.getInstance();				// jex001A
+            JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();	// jex001A
+            if (gui instanceof MachineGui) {								// jex001A
+                MachineGui magui=(MachineGui) gui;							// jex001A
+                magui.getMachine().setInfo(displayName);					// jex001A
+                magui.setJvmState(displayName);								// jex001A
+            }																// jex001A
+//        }																	// jex001D
     }
     
     // jex001D begin

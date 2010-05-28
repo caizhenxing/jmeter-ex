@@ -33,6 +33,10 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.text.*;
 
+import org.apache.jmeter.gui.GuiPackage;
+import org.apache.jmeter.gui.JMeterGUIComponent;
+import org.apache.jmeter.machine.gui.MachineGui;
+
 import static javax.swing.JOptionPane.*;
 
 @SuppressWarnings("serial")
@@ -51,7 +55,13 @@ public final class SheetDialog {
                                         int optionType, int messageType,
                                         Icon icon, Object[] options, Object initialValue) {
 
-        JRootPane rootPane = SwingUtilities.getRootPane(vmPanel);
+//        JRootPane rootPane = SwingUtilities.getRootPane(vmPanel);		// jex001D
+        GuiPackage guiPackage = GuiPackage.getInstance();				// jex001A
+        JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();	// jex001A
+        JRootPane rootPane=null;										// jex001A
+        if (gui instanceof MachineGui) {								// jex001A
+            rootPane=((MachineGui) gui).getMainPanel().getRootPane();	// jex001A
+        }																// jex001A
         JPanel glassPane = (JPanel)rootPane.getGlassPane();
 
         if (!(glassPane instanceof SlideAndFadeGlassPane)) {

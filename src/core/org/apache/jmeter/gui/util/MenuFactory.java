@@ -43,9 +43,11 @@ import org.apache.jmeter.gui.action.ActionNames;
 import org.apache.jmeter.gui.action.ActionRouter;
 import org.apache.jmeter.gui.action.KeyStrokes;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.apache.jmeter.machine.Machine;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testbeans.gui.TestBeanGUI;
+import org.apache.jmeter.testelement.MonitorBench;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.testelement.WorkBench;
@@ -526,7 +528,18 @@ public final class MenuFactory {
         if (foundClass(nodes, new Class[]{TestPlan.class})){// Can't add a TestPlan anywhere
             return false;
         }
+        // Can't add a MonitorBench anywhere
+        if (foundClass(nodes, new Class[]{MonitorBench.class})){	// jex001A
+            return false;											// jex001A
+        }															// jex001A
         TestElement parent = parentNode.getTestElement();
+        if (foundClass(nodes, new Class[] { Machine.class })) {		// jex001A
+			if (parent instanceof MonitorBench){					// jex001A
+				return true;										// jex001A
+			} else {												// jex001A
+				return false;										// jex001A
+			}														// jex001A
+		}															// jex001A
         if (parent instanceof WorkBench) {// allow everything else
             return true;
         }

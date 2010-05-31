@@ -26,7 +26,7 @@ import java.util.List;
 import javax.swing.tree.DefaultTreeModel;
 
 import org.apache.jmeter.config.gui.AbstractConfigGui;
-import org.apache.jmeter.control.gui.MonitorGui;
+import org.apache.jmeter.control.gui.JVMBenchGui;
 import org.apache.jmeter.control.gui.TestPlanGui;
 import org.apache.jmeter.control.gui.WorkBenchGui;
 import org.apache.jmeter.exceptions.IllegalUserActionException;
@@ -48,7 +48,7 @@ public class JMeterTreeModel extends DefaultTreeModel {
     }
 
     public JMeterTreeModel() {
-        this(new TestPlanGui().createTestElement(),new WorkBenchGui().createTestElement(),new MonitorGui().createTestElement());	//jex001C
+        this(new TestPlanGui().createTestElement(),new WorkBenchGui().createTestElement(),new JVMBenchGui().createTestElement());	//jex001C
 //        super(new JMeterTreeNode(new WorkBenchGui().createTestElement(), null));
 //        TestElement tp = new TestPlanGui().createTestElement();
 //        initTree(tp);
@@ -222,7 +222,7 @@ public class JMeterTreeModel extends DefaultTreeModel {
             children = getChildCount(getRoot());
         }
         // Init the tree
-        initTree(testPlan,new WorkBenchGui().createTestElement(),new MonitorGui().createTestElement()); // Assumes this is only called from GUI mode // jex001C
+        initTree(testPlan,new WorkBenchGui().createTestElement(),new JVMBenchGui().createTestElement()); // Assumes this is only called from GUI mode // jex001C
     }
 
     /**

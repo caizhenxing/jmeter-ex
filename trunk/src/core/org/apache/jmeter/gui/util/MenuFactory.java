@@ -47,7 +47,7 @@ import org.apache.jmeter.machine.Machine;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testbeans.gui.TestBeanGUI;
-import org.apache.jmeter.testelement.MonitorBench;
+import org.apache.jmeter.testelement.JVMBench;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.testelement.WorkBench;
@@ -176,7 +176,7 @@ public final class MenuFactory {
      * @since jex001A
      */
 	public static void addServerMenu(JPopupMenu menu) {
-		menu.add(makeMenuItemRes("remove", ActionNames.REMOVE, KeyStrokes.REMOVE));
+		menu.add(makeMenuItemRes("machine", ActionNames.REMOVE, KeyStrokes.REMOVE));
 	}
 
     public static void addPasteResetMenu(JPopupMenu menu) {
@@ -529,12 +529,12 @@ public final class MenuFactory {
             return false;
         }
         // Can't add a MonitorBench anywhere
-        if (foundClass(nodes, new Class[]{MonitorBench.class})){	// jex001A
+        if (foundClass(nodes, new Class[]{JVMBench.class})){	// jex001A
             return false;											// jex001A
         }															// jex001A
         TestElement parent = parentNode.getTestElement();
         if (foundClass(nodes, new Class[] { Machine.class })) {		// jex001A
-			if (parent instanceof MonitorBench){					// jex001A
+			if (parent instanceof JVMBench){					// jex001A
 				return true;										// jex001A
 			} else {												// jex001A
 				return false;										// jex001A

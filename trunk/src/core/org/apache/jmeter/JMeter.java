@@ -36,9 +36,6 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
-
 import org.apache.commons.cli.avalon.CLArgsParser;
 import org.apache.commons.cli.avalon.CLOption;
 import org.apache.commons.cli.avalon.CLOptionDescriptor;
@@ -56,7 +53,6 @@ import org.apache.jmeter.gui.action.ActionNames;
 import org.apache.jmeter.gui.action.ActionRouter;
 import org.apache.jmeter.gui.action.Load;
 import org.apache.jmeter.gui.action.LoadRecentProject;
-import org.apache.jmeter.gui.action.LookAndFeelCommand;
 import org.apache.jmeter.gui.tree.JMeterTreeListener;
 import org.apache.jmeter.gui.tree.JMeterTreeModel;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
@@ -226,14 +222,6 @@ public class JMeter implements JMeterPlugin {
         GuiPackage.getInstance(treeLis, treeModel);
         MainFrame main = new MainFrame(ActionRouter.getInstance(), treeModel, treeLis);
         ComponentUtil.centerComponentInWindow(main, 80);
-        try {																// jex001A
-			// update mainframe look and feel
-			UIManager.setLookAndFeel(LookAndFeelCommand.getJMeterLaf());	// jex001A
-		} catch (ClassNotFoundException e1) {								// jex001A
-		} catch (InstantiationException e1) {								// jex001A
-		} catch (IllegalAccessException e1) {								// jex001A
-		} catch (UnsupportedLookAndFeelException e1) {						// jex001A
-		}																	// jex001A
         main.show();
         ActionRouter.getInstance().actionPerformed(new ActionEvent(main, 1, ActionNames.ADD_ALL));
         if (testFile != null) {

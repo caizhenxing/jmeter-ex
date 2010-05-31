@@ -59,6 +59,8 @@ public class JConsole extends JFrame
     static /*final*/ boolean IS_GTK;
     static /*final*/ boolean IS_WIN;
 
+    // jex001D begin
+    /*
     static {
         // Apply the system L&F if it is GTK or Windows, and
         // the L&F is not specified using a system property.
@@ -77,7 +79,8 @@ public class JConsole extends JFrame
 
         updateLafValues();
     }
-
+	*/
+    // jex001D end
 
     static void updateLafValues() {
         String lafName = UIManager.getLookAndFeel().getClass().getName();

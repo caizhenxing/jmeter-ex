@@ -27,7 +27,7 @@ import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeListener;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.gui.util.MenuFactory;
-import org.apache.jmeter.testelement.MonitorBench;
+import org.apache.jmeter.testelement.JVMBench;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.testelement.WorkBench;
@@ -52,7 +52,7 @@ public class DragNDrop extends AbstractAction {
         JMeterTreeNode currentNode = treeListener.getCurrentNode();
         JMeterTreeNode parentNode = (JMeterTreeNode) currentNode.getParent();
         TestElement te = currentNode.getTestElement();
-        if (te instanceof TestPlan || te instanceof WorkBench || te instanceof MonitorBench) {	// jex001C
+        if (te instanceof TestPlan || te instanceof WorkBench || te instanceof JVMBench) {	// jex001C
             parentNode = null; // So elements can only be added as children
         }
 

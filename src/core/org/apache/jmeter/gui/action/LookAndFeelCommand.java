@@ -64,7 +64,7 @@ public class LookAndFeelCommand implements Command {
      * </ul>
      * @return LAF classname
      */
-    public static String getJMeterLaf(){				// jex001C
+    private static String getJMeterLaf(){
         String osName = System.getProperty("os.name") // $NON-NLS-1$
                         .toLowerCase(Locale.ENGLISH);
         String laf;

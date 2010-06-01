@@ -24,6 +24,12 @@ import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
+/**
+ * jfreechart component
+ * 
+ * @author chenchao.yecc
+ * @since jex001A
+ */
 public class JFreeChartGraph {
 	private ChartPanel chartPanel;
 	private JFreeChart jfc = null;

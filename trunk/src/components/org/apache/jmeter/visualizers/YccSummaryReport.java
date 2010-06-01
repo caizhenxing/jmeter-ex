@@ -80,16 +80,10 @@ public class YccSummaryReport extends AbstractVisualizer implements Clearable,
 	private static final String USE_GROUP_NAME = "useGroupName";
 
 	private static final String[] COLUMNS = { "sampler_label",
-			"aggregate_report_count",
-			"average",
-			"aggregate_report_min",
-			"aggregate_report_max",
-			"aggregate_report_stddev",
-			"aggregate_report_error%",
-			"aggregate_report_rate",
-			"aggregate_report_bandwidth",
-			"average_bytes",
-	};
+			"aggregate_report_count", "average", "aggregate_report_min",
+			"aggregate_report_max", "aggregate_report_stddev",
+			"aggregate_report_error%", "aggregate_report_rate",
+			"aggregate_report_bandwidth", "average_bytes", };
 
 	private final String TOTAL_ROW_LABEL = JMeterUtils
 			.getResString("aggregate_report_total_label");
@@ -106,7 +100,8 @@ public class YccSummaryReport extends AbstractVisualizer implements Clearable,
 
 	private transient ObjectTableModel model;
 
-	private final Map<String,Calculator> tableRows = Collections.synchronizedMap(new HashMap<String,Calculator>());
+	private final Map<String, Calculator> tableRows = Collections
+			.synchronizedMap(new HashMap<String, Calculator>());
 
 	// Column renderers
 	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
@@ -130,29 +125,28 @@ public class YccSummaryReport extends AbstractVisualizer implements Clearable,
 
 	public YccSummaryReport() {
 		super();
-		model = new ObjectTableModel(COLUMNS, Calculator.class,// All rows have
-				// this class
+		model = new ObjectTableModel(COLUMNS, Calculator.class,
 				new Functor[] { new Functor("getLabel"),
 						new Functor("getCount"),
-						new Functor("getMeanAsNumber"),
-						new Functor("getMin"),
+						new Functor("getMeanAsNumber"), new Functor("getMin"),
 						new Functor("getMax"),
 						new Functor("getStandardDeviation"),
 						new Functor("getErrorPercentage"),
-						new Functor("getRate"),
-						new Functor("getKBPerSecond"),
-						new Functor("getAvgPageBytes"),
-				}, new Functor[] { null, null, null, null, null, null, null,
-						null, null, null }, new Class[] { String.class,
-						Long.class, Long.class, Long.class, Long.class,
-						String.class, String.class, String.class, String.class,
-						String.class });
+						new Functor("getRate"), new Functor("getKBPerSecond"),
+						new Functor("getAvgPageBytes"), }, new Functor[] {
+						null, null, null, null, null, null, null, null, null,
+						null },
+				new Class[] { String.class, Long.class, Long.class, Long.class,
+						Long.class, String.class, String.class, String.class,
+						String.class, String.class });
 		m_jfGraph = new JFreeChartGraph();
 		clearData();
 		init();
 	}
 
-	/** @deprecated - only for use in testing */
+	/**
+	 * @deprecated - only for use in testing
+	 */
 	public static boolean testFunctors() {
 		YccSummaryReport instance = new YccSummaryReport();
 		return instance.model.checkFunctors(null, instance.getClass());
@@ -174,9 +168,7 @@ public class YccSummaryReport extends AbstractVisualizer implements Clearable,
 				model.insertRow(row, model.getRowCount() - 1);
 			}
 		}
-		/*
-		 * Synch is needed because multiple threads can update the counts.
-		 */
+		// Synch is needed because multiple threads can update the counts.
 		synchronized (row) {
 			row.addSample(res);
 		}
@@ -189,7 +181,7 @@ public class YccSummaryReport extends AbstractVisualizer implements Clearable,
 	}
 
 	/**
-	 * Clears this visualizer and its model, and forces a repaint of the table.
+	 * @see org.apache.jmeter.samplers.Clearable#clearData()
 	 */
 	public void clearData() {
 		synchronized (tableRows) {
@@ -223,15 +215,12 @@ public class YccSummaryReport extends AbstractVisualizer implements Clearable,
 		RendererUtils.applyRenderers(myJTable, RENDERERS);
 		myScrollPane = new JScrollPane(myJTable);
 		this.add(mainPanel, BorderLayout.NORTH);
-		// ycc9958 add begin
-		// this.add(myScrollPane, BorderLayout.CENTER);
 
 		JPanel content = new JPanel(new BorderLayout());
 		content.add(myScrollPane, BorderLayout.NORTH);
 		content.add(createChoosePanel(), BorderLayout.CENTER);
 		content.add(m_jfGraph.getJFreeChartPanel(), BorderLayout.SOUTH);
 		this.add(content, BorderLayout.CENTER);
-		// ycc9958 add end
 		saveTable.addActionListener(this);
 		saveGraph.addActionListener(this);
 		JPanel opts = new JPanel();

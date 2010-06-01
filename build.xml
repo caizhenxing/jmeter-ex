@@ -76,7 +76,7 @@
   <property name="gump.run" value="false"/>
 
   <!-- The version of this file -->
-  <property name="version.build" value="$Revision: 785577 $"/>
+  <property name="version.build" value="$Revision: 801473 $"/>
 
    <!-- Findbugs task and target -->
    <!--
@@ -281,8 +281,8 @@
   <!-- Compilation parameters -->
   <property name="optimize" value="on"/>
   <property name="deprecation" value="off"/>
-  <property name="target.java.version" value="1.4"/>
-  <property name="src.java.version" value="1.4"/>
+  <property name="target.java.version" value="1.6"/>
+  <property name="src.java.version" value="1.6"/>
   <property name="encoding" value="UTF-8"/>
 
   <!-- 3rd party libraries to be included in the binary distribution -->
@@ -329,6 +329,8 @@
     <include name="${xml-apis.jar}"/>
     <include name="${xpp3.jar}"/>
     <include name="${xstream.jar}"/>
+	<include name="${jfreechart.jar}"/>
+	<include name="${jcommon.jar}"/>
   </patternset>
 
   <!--
@@ -382,6 +384,8 @@
     <pathelement location="${xml-apis.jar}"/>
     <pathelement location="${xpp3.jar}"/>
     <pathelement location="${xstream.jar}"/>
+	<pathelement location="${jfreechart.jar}"/>
+	<pathelement location="${jcommon.jar}"/>
     <!-- Generated jars -->
     <fileset dir="${lib.dir}" includes="jorphan.jar"/>
     <!-- API-only jars-->
@@ -995,6 +999,8 @@ run JMeter unless all the JMeter jars are added.
     <include name="${dest.jar.jmeter}/mirror-server.*"/>
     <include name="${dest.jar.jmeter}/shutdown.*"/>
     <include name="${dest.jar.jmeter}/stoptest.*"/>
+  	<!-- Fake SSL cert for JMeter proxy recorder in https -->
+  	<include name="${dest.jar.jmeter}/proxyserver.jks"/>
     <!-- Exclude any files that might be present from testing the release -->
     <exclude name="${dest.jar.jmeter}/*.log"/>
     <include name="${dest.jar}/"/>

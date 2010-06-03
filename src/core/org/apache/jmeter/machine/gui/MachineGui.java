@@ -119,11 +119,6 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	 */
 	public void modifyTestElement(TestElement tg) {
 		super.configureTestElement(tg);
-		if (tg instanceof Machine) {
-			machine = (Machine) tg;
-			setJvmState(machine.getInfo());
-			setJvmPanel(machine);
-		}
 	}
 
 	/**
@@ -147,6 +142,7 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	public void setJvmPanel(Machine m) {
 		setStartButtonEnable(m);
 		if (m.getPanel() != null) {
+			jvmPanel.removeAll();
 			jvmPanel.add(m.getPanel(), BorderLayout.CENTER);
 		}
 	}

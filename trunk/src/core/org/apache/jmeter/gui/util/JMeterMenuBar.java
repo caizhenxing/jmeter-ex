@@ -119,6 +119,8 @@ public class JMeterMenuBar extends JMenuBar implements LocaleChangeListener {
 
     private Collection remote_engine_exit;
 
+    private JMenuItem jtlMenu = null;	// jex001A
+
     public JMeterMenuBar() {
         // List for recent files menu items
         file_load_recent_files = new LinkedList();
@@ -279,6 +281,9 @@ public class JMeterMenuBar extends JMenuBar implements LocaleChangeListener {
         optionsMenu = makeMenuRes("option",'O'); //$NON-NLS-1$
         JMenuItem functionHelper = makeMenuItemRes("function_dialog_menu_item", 'F', ActionNames.FUNCTIONS, KeyStrokes.FUNCTIONS); //$NON-NLS-1$
 
+        // jtlparser item
+        jtlMenu = makeMenuItemRes("jtl_parser", ActionNames.JTLPARSE);
+        
         lafMenu = makeMenuRes("appearance",'L'); //$NON-NLS-1$
         UIManager.LookAndFeelInfo lafs[] = UIManager.getInstalledLookAndFeels();
         for (int i = 0; i < lafs.length; ++i) {
@@ -288,6 +293,7 @@ public class JMeterMenuBar extends JMenuBar implements LocaleChangeListener {
             lafMenu.add(laf);
         }
         optionsMenu.add(functionHelper);
+        optionsMenu.add(jtlMenu);	// jex001A
         optionsMenu.add(lafMenu);
         if (SSLManager.isSSLSupported()) {
             sslManager = makeMenuItemRes("sslmanager", 'S', ActionNames.SSL_MANAGER, KeyStrokes.SSL_MANAGER); //$NON-NLS-1$

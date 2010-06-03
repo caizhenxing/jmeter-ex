@@ -90,9 +90,9 @@ public class JFreeChartGraph {
 	}
 
 	public void updateGui(final Calculator tot) {
-		m_average.add(new Millisecond(), tot.getMean());
-		m_tps.add(new Millisecond(), tot.getRate());
-		m_deviation.add(new Millisecond(), tot.getStandardDeviation());
+		m_average.addOrUpdate(new Millisecond(), tot.getMean());
+		m_tps.addOrUpdate(new Millisecond(), tot.getRate());
+		m_deviation.addOrUpdate(new Millisecond(), tot.getStandardDeviation());
 	}
 
 	public void clearAllData() {

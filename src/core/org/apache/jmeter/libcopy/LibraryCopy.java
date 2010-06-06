@@ -5,9 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -18,7 +16,7 @@ public class LibraryCopy {
 	private String srcPath;
 	private String desPath;
 	private File srcFile;
-	private Set libs = new HashSet();
+//	private Set libs = new HashSet();
 
 	public LibraryCopy() {
 
@@ -61,6 +59,7 @@ public class LibraryCopy {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void parseClassPathFile(File cpFile) {
 		SAXReader reader = new SAXReader();
 		Document document;

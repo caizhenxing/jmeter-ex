@@ -2,37 +2,19 @@ package org.apache.jmeter.jtlparse.gui;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
-import org.apache.jmeter.config.Argument;
-import org.apache.jmeter.config.Arguments;
-import org.apache.jmeter.config.gui.ArgumentsPanel;
-import org.apache.jmeter.functions.Function;
-import org.apache.jmeter.gui.action.ActionRouter;
-import org.apache.jmeter.gui.action.Help;
 import org.apache.jmeter.jtlparse.JTLParser;
-import org.apache.jmeter.testelement.property.PropertyIterator;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.ComponentUtil;
-import org.apache.jorphan.gui.JLabeledChoice;
 import org.apache.jorphan.gui.JLabeledTextField;
-import org.apache.jorphan.reflect.ClassFinder;
 
 public class JTLParserDialog extends JDialog  implements ActionListener {
 	/**
@@ -47,8 +29,8 @@ public class JTLParserDialog extends JDialog  implements ActionListener {
 	private CardLayout card= new CardLayout(10, 10);
 	private JLabel time=new JLabel(JMeterUtils.getResString("jtl_parser_time"));
 	private JLabel tps=new JLabel(JMeterUtils.getResString("jtl_parser_tps"));
-	private JList timeLst;
-	private JList tpsLst;
+//	private JList timeLst;
+//	private JList tpsLst;
 //	private JLabeledTextField host;
 	private JLabeledTextField path=new JLabeledTextField("路径：");
 	private JButton start=new JButton("开始解析");

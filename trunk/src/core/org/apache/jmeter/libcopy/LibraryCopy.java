@@ -50,7 +50,6 @@ public class LibraryCopy {
 				copyDirectory(fs[i]);
 			} else {
 				if (fs[i].getName().equals(".classpath")) {
-					System.out.println(fs[i].getAbsolutePath());
 					parseClassPathFile(fs[i]);
 				} else {
 					continue;

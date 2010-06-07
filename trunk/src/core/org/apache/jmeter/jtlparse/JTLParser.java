@@ -334,9 +334,7 @@ public class JTLParser extends DefaultHandler {
 
 	public static void main(String[] args) throws Exception {
 		final JTLParser parser = new JTLParser();
-		// parser.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\http.jtl");
-		parser
-				.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\q20.jtl");
+		parser.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\q20.jtl");
 		parser.parse();
 	}
 }

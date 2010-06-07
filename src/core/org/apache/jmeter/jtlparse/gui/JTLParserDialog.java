@@ -1,6 +1,5 @@
 package org.apache.jmeter.jtlparse.gui;
 
-import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,7 +8,6 @@ import java.io.File;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -28,19 +26,10 @@ public class JTLParserDialog extends JDialog  implements ActionListener {
 	private static final long serialVersionUID = 1L;
 
 	private JPanel paneReq;
-	private JPanel paneRes;
-	private JPanel panelUp;
-	private JPanel panelDown;
 	private CardLayout card= new CardLayout(10, 10);
-	private JLabel time=new JLabel(JMeterUtils.getResString("jtl_parser_time"));
-	private JLabel tps=new JLabel(JMeterUtils.getResString("jtl_parser_tps"));
-//	private JList timeLst;
-//	private JList tpsLst;
-//	private JLabeledTextField host;
-	private JLabeledTextField openPath=new JLabeledTextField("JTL文件路径：");
-	private JLabeledTextField savePath=new JLabeledTextField("保存路径：");
-	private JButton start=new JButton("开始");
-	private JButton cancel=new JButton("返回");
+	private JLabeledTextField openPath=new JLabeledTextField(JMeterUtils.getResString("jtl_parser_file_path"));
+	private JLabeledTextField savePath=new JLabeledTextField(JMeterUtils.getResString("jtl_parser_save_path"));
+	private JButton start=new JButton(JMeterUtils.getResString("jtl_parser_start"));
 
 	public JTLParserDialog() {
 		super((JFrame) null, JMeterUtils.getResString("jtl_parser_title"),false);
@@ -59,25 +48,14 @@ public class JTLParserDialog extends JDialog  implements ActionListener {
 		paneReq.add(start);
 		start.setBounds(this.getWidth()/2-40, 70, 80, 25);
 		
-		paneRes=new JPanel(new BorderLayout());
-		panelUp=new JPanel(new BorderLayout());
-		panelDown=new JPanel(new BorderLayout());
-		panelUp.add(time,BorderLayout.NORTH);
-		panelDown.add(tps,BorderLayout.NORTH);
-		paneRes.add(panelUp,BorderLayout.NORTH);
-		paneRes.add(panelDown,BorderLayout.CENTER);
-		paneRes.add(cancel,BorderLayout.SOUTH);
 		start.addActionListener(this);
 		this.getContentPane().add(paneReq, "req");
-		this.getContentPane().add(paneRes, "res");
 		this.setResizable(false);
-//		this.pack();
 		ComponentUtil.centerComponentInWindow(this);
 	}
 
 
 	public void actionPerformed(ActionEvent e) {
-//		card.show(this.getContentPane(), "res");
 		parseJTLFile(openPath.getText(),savePath.getText());
 	}
 

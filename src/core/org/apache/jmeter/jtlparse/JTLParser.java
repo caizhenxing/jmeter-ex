@@ -26,27 +26,35 @@ public class JTLParser extends DefaultHandler {
 	private long maxRsTime = Long.MIN_VALUE;
 	private long minRsTime = Long.MAX_VALUE;
 	private double sumRsTime = 0;
-	private double maxTps = Long.MIN_VALUE;
-	private double minTps = Long.MAX_VALUE;
+	private double maxTps = Double.MIN_VALUE;
+	private double minTps = Double.MAX_VALUE;
 	private long firstTime = 0;
 	private long endTime = 0;
 	private long error = 0;
 	private long count = 0;
-	private File file = null;
+	private File jtlFile = null;
+	private File saveFile = null;
 	boolean firstTimeInit = false;
+
 	public void setJmeterLogFile(String path) {
-		this.file = new File(path);
+		this.jtlFile = new File(path);
+	}
+
+	public void setSaveFile(String path) {
+		this.saveFile = new File(path);
+		if(!saveFile.exists()){
+			saveFile.mkdirs();
+		} 
+		if (!saveFile.isFile()) {
+			saveFile=new File(saveFile.getAbsolutePath()+File.separator+"result.txt");
+		} 
 	}
 
 	public void parse() throws Exception {
-		parseJTLFile();
-	}
-
-	public void parseJTLFile() {
 		SAXParserFactory sf = SAXParserFactory.newInstance();
 		try {
 			SAXParser sp = sf.newSAXParser();
-			sp.parse(new InputSource(file.getAbsolutePath()), this);
+			sp.parse(new InputSource(jtlFile.getAbsolutePath()), this);
 			writeResultToTemplate();
 		} catch (ParserConfigurationException e) {
 			e.printStackTrace();
@@ -57,12 +65,12 @@ public class JTLParser extends DefaultHandler {
 		}
 	}
 
-	private void writeResultToTemplate(){
-		BufferedWriter bw=null;
-		FileWriter fw =null;
-		PrintWriter pw=null;
+	private void writeResultToTemplate() {
+		BufferedWriter bw = null;
+		FileWriter fw = null;
+		PrintWriter pw = null;
 		try {
-			fw = new FileWriter("D:\\res.txt");
+			fw = new FileWriter(saveFile);
 			bw = new BufferedWriter(fw);
 			pw = new PrintWriter(bw);
 			pw.println("平均响应时间：" + sumRsTime / count);
@@ -73,20 +81,21 @@ public class JTLParser extends DefaultHandler {
 			pw.println("平均TPS：" + throughput);
 			pw.println("最大TPS：" + maxTps);
 			pw.println("最小TPS：" + minTps);
-			java.text.DecimalFormat   df=new   java.text.DecimalFormat("#0.0000000000");
-			double rate=((double)error/(double)count)*100;
+			java.text.DecimalFormat df = new java.text.DecimalFormat(
+					"#0.0000000000");
+			double rate = ((double) error / (double) count) * 100;
 			pw.println("失败率：" + df.format(rate) + "%");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			if (bw!=null) {
+			if (bw != null) {
 				try {
 					bw.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-			if (fw!=null) {
+			if (fw != null) {
 				try {
 					fw.close();
 				} catch (IOException e) {
@@ -95,10 +104,10 @@ public class JTLParser extends DefaultHandler {
 			}
 		}
 	}
-	
+
 	public void startElement(String uri, String localName, String qName,
 			Attributes attrs) {
-		JtlNode node=createJtlNode(attrs);
+		JtlNode node = createJtlNode(attrs);
 		analyseJtlNode(node);
 	}
 
@@ -117,15 +126,17 @@ public class JTLParser extends DefaultHandler {
 			minRsTime = Math.min(node.getAttTime(), minRsTime);
 			maxRsTime = Math.max(node.getAttTime(), maxRsTime);
 			sumRsTime = sumRsTime + (double) node.getAttTime();
-			double tps = ((double) count / (double) howLongRunning) * 1000.0;
-			minTps = Math.min(tps, minTps);
-			maxTps = Math.max(tps, maxTps);
+			if (howLongRunning != 0) {
+				double tps = ((double) count / (double) howLongRunning) * 1000.0;
+				minTps = Math.min(tps, minTps);
+				maxTps = Math.max(tps, maxTps);
+			}
 		} else {
 			error = error + 1;
 		}
 	}
-	
-	private JtlNode createJtlNode(Attributes attrs){
+
+	private JtlNode createJtlNode(Attributes attrs) {
 		long newValue;
 		boolean newResult;
 		JtlNode node = new JtlNode();
@@ -320,10 +331,12 @@ public class JTLParser extends DefaultHandler {
 			this.bytes = bytes;
 		}
 	}
+
 	public static void main(String[] args) throws Exception {
 		final JTLParser parser = new JTLParser();
 		// parser.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\http.jtl");
-		parser.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\q20.jtl");
-		parser.parseJTLFile();
+		parser
+				.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\q20.jtl");
+		parser.parse();
 	}
 }

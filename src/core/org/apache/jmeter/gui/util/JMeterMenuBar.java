@@ -344,16 +344,16 @@ public class JMeterMenuBar extends JMenuBar implements LocaleChangeListener {
     public static String[] getLanguages(){
         List lang = new ArrayList(20);
         lang.add(Locale.ENGLISH.toString()); // en
-        lang.add(Locale.FRENCH.toString()); // fr
-        lang.add(Locale.GERMAN.toString()); // de
-        lang.add("no"); // $NON-NLS-1$
-        lang.add("pl"); // $NON-NLS-1$
-        lang.add("pt_BR"); // $NON-NLS-1$
-        lang.add("es"); // $NON-NLS-1$
-        lang.add("tr"); // $NON-NLS-1$
-        lang.add(Locale.JAPANESE.toString()); // ja
+//        lang.add(Locale.FRENCH.toString()); // fr		// jex001D
+//        lang.add(Locale.GERMAN.toString()); // de		// jex001D
+//        lang.add("no"); // $NON-NLS-1$				// jex001D
+//        lang.add("pl"); // $NON-NLS-1$				// jex001D
+//        lang.add("pt_BR"); // $NON-NLS-1$				// jex001D
+//        lang.add("es"); // $NON-NLS-1$				// jex001D
+//        lang.add("tr"); // $NON-NLS-1$				// jex001D
+//        lang.add(Locale.JAPANESE.toString()); // ja	// jex001D
         lang.add(Locale.SIMPLIFIED_CHINESE.toString()); // zh_CN
-        lang.add(Locale.TRADITIONAL_CHINESE.toString()); // zh_TW
+//        lang.add(Locale.TRADITIONAL_CHINESE.toString()); // zh_TW	// jex001D
         final String addedLocales = JMeterUtils.getProperty("locales.add");
         if (addedLocales != null){
             String [] addLanguages =addedLocales.split(","); // $NON-NLS-1$

@@ -13,13 +13,15 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 
 public class LibraryCopy {
-	private String srcPath;
-	private String desPath;
-	private File srcFile;
-//	private Set libs = new HashSet();
+	private String srcPath = null;
+	private String desPath = null;
+	private File srcFile = null;
+	private String m2path = null;
+
+	// private Set libs = new HashSet();
 
 	public LibraryCopy() {
-
+		m2path = System.getProperty("user.home") + File.separator + ".m2";
 	}
 
 	public void setSrcPath(String path) {
@@ -69,18 +71,19 @@ public class LibraryCopy {
 					.hasNext();) {
 				Element classpathentry = (Element) i.next();
 				// do something
-				String type=classpathentry.attributeValue("kind");
+				String type = classpathentry.attributeValue("kind");
 				if (type.equals("var")) {
 					String path = classpathentry.attributeValue("path");
-					String m2_repo = "C:\\Documents and Settings\\chenchao.yecc\\.m2\\repository";
-					path = path.replace("M2_REPO", m2_repo);
-					path = path.replace("/", "\\");
+					path = path.replace("M2_REPO", m2path);
+					path = path.replace("/", File.separator);
+					path = path.replace("\\", File.separator);
 					copyFile(path);
 				} else if (type.equals("lib")) {
 					String path = classpathentry.attributeValue("path");
 					if (!path.contains(":")) {
-						path=srcPath+File.separator+path;
-						path = path.replace("/", "\\");
+						path = srcPath + File.separator + path;
+						path = path.replace("/", File.separator);
+						path = path.replace("\\", File.separator);
 					}
 					copyFile(path);
 				} else {
@@ -93,29 +96,31 @@ public class LibraryCopy {
 	}
 
 	private void copyFile(String path) {
-		FileInputStream fis=null;
-		FileOutputStream fos=null;
+		FileInputStream fis = null;
+		FileOutputStream fos = null;
 		try {
-			File f=new File(path);
-			fis=new FileInputStream(f);
-			fos=new FileOutputStream(this.desPath+File.separator+f.getName());
-			int c=0;
-			while((c=fis.read())!=-1){
-				fos.write(c);
+			File f = new File(path);
+			fis = new FileInputStream(f);
+			fos = new FileOutputStream(this.desPath + File.separator
+					+ f.getName());
+			int byteread = 0;
+			byte[] buffer = new byte[1024];
+			while ((byteread = fis.read(buffer)) != -1) {
+				fos.write(buffer, 0, byteread);
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally{
-			if (fis!=null) {
+		} finally {
+			if (fis != null) {
 				try {
 					fis.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-			if (fos!=null) {
+			if (fos != null) {
 				try {
 					fos.close();
 				} catch (IOException e) {
@@ -126,16 +131,19 @@ public class LibraryCopy {
 	}
 
 	public static void main(String[] args) {
-//		String path = "D:\\Project\\Project01\\Rialto\\rialto";
-//		String path = "D:\\Project\\Project01\\Rialto\\rialto\\rialto.container.admin";
-//		String path = "D:\\Project\\Project01\\Otter\\Otter3.0.0\\Otter3.0";
-//		String path = "D:\\Project\\Project01\\Napoli1.3\\maven.1273199094711\\napoli.client";
-		String path = "D:\\Project\\Project01\\NapoliTest\\NapoliClient1.3.0";
+		// String path = "D:\\Project\\Project01\\Rialto\\rialto";
+		// String path =
+		// "D:\\Project\\Project01\\Rialto\\rialto\\rialto.container.admin";
+		// String path = "D:\\Project\\Project01\\Otter\\Otter3.0.0\\Otter3.0";
+		// String path =
+		// "D:\\Project\\Project01\\Napoli1.3\\maven.1273199094711\\napoli.client";
+		// String path =
+		// "D:\\Project\\Project01\\NapoliTest\\NapoliClient1.3.0";
+		String path = "D:\\Project\\DemoSpace\\XMLDemo";
 		LibraryCopy lc = new LibraryCopy();
 		lc.setSrcPath(path);
 		lc.setDesPath("D:\\Project\\lib");
 		lc.copyLibrary();
 		System.out.println("Mission Over");
 	}
-
 }

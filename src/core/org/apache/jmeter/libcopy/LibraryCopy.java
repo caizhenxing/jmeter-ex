@@ -99,9 +99,9 @@ public class LibraryCopy {
 			File f=new File(path);
 			fis=new FileInputStream(f);
 			fos=new FileOutputStream(this.desPath+File.separator+f.getName());
-			byte[] b =new byte[1024];
-			while(fis.read(b)!=-1){
-				fos.write(b);
+			int c=0;
+			while((c=fis.read())!=-1){
+				fos.write(c);
 			}
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -126,10 +126,11 @@ public class LibraryCopy {
 	}
 
 	public static void main(String[] args) {
-		String path = "D:\\Project\\Project01\\Rialto\\rialto";
+//		String path = "D:\\Project\\Project01\\Rialto\\rialto";
 //		String path = "D:\\Project\\Project01\\Rialto\\rialto\\rialto.container.admin";
 //		String path = "D:\\Project\\Project01\\Otter\\Otter3.0.0\\Otter3.0";
 //		String path = "D:\\Project\\Project01\\Napoli1.3\\maven.1273199094711\\napoli.client";
+		String path = "D:\\Project\\Project01\\NapoliTest\\NapoliClient1.3.0";
 		LibraryCopy lc = new LibraryCopy();
 		lc.setSrcPath(path);
 		lc.setDesPath("D:\\Project\\lib");

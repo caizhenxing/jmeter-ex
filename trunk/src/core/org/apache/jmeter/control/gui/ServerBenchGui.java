@@ -1,6 +1,9 @@
 package org.apache.jmeter.control.gui;
 
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.net.MalformedURLException;
 import java.util.Collection;
 
 import javax.swing.BorderFactory;
@@ -9,11 +12,14 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.util.VerticalPanel;
+import org.apache.jmeter.server.AliperClientModel;
+import org.apache.jmeter.server.IModelAccess;
 import org.apache.jmeter.testelement.ServerBench;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jorphan.gui.layout.VerticalLayout;
@@ -24,13 +30,15 @@ import org.apache.jorphan.gui.layout.VerticalLayout;
  * @since jex002A
  * @author chenchao.yecc
  */
-public class ServerBenchGui extends AbstractJMeterGuiComponent {
+public class ServerBenchGui extends AbstractJMeterGuiComponent implements ActionListener{
 	private static final long serialVersionUID = 1L;
 
 	private JComboBox com = new JComboBox();
 	private JTextField rangeField = new JTextField(58);
 	private JButton update = new JButton("update");
 	private JButton connect = new JButton("connect");
+	private IModelAccess model = new AliperClientModel();
+	
 	/**
 	 * Create a new JVMbenchGui.
 	 */
@@ -100,6 +108,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent {
 		urls.setPreferredSize(new Dimension(80,20));
 		urlsPanel.add(urls);
 
+		rangeField.setText("http://10.20.136.18:8080/aliper-server/AliperServlet");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);
@@ -115,6 +124,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent {
 		projectPanel.add(com);
 		projectPanel.add(Box.createHorizontalStrut(5));
 		projectPanel.add(update);
+		update.addActionListener(this);
 		mainPanel.add(projectPanel);
 		
 		Box buttonPanel = Box.createHorizontalBox();
@@ -122,5 +132,19 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent {
 		buttonPanel.add(connect);
 		mainPanel.add(buttonPanel);
 		add(mainPanel);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		String s[]=null;
+		try {
+			s = this.model.getProjects(rangeField.getText());
+			com.setModel(new DefaultComboBoxModel(s));
+		} catch (MalformedURLException e1) {
+			JOptionPane.showMessageDialog(this, "can not connect to " + rangeField.getText());
+			return ;
+
+		}
+		
 	}
 }

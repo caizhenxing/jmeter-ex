@@ -35,7 +35,7 @@ import javax.swing.text.*;
 
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.JMeterGUIComponent;
-import org.apache.jmeter.machine.gui.MachineGui;
+import org.apache.jmeter.jvm.gui.JvmConsoleGui;
 
 import static javax.swing.JOptionPane.*;
 
@@ -59,8 +59,8 @@ public final class SheetDialog {
         GuiPackage guiPackage = GuiPackage.getInstance();				// jex001A
         JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();	// jex001A
         JRootPane rootPane=null;										// jex001A
-        if (gui instanceof MachineGui) {								// jex001A
-            rootPane=((MachineGui) gui).getMainPanel().getRootPane();	// jex001A
+        if (gui instanceof JvmConsoleGui) {								// jex001A
+            rootPane=((JvmConsoleGui) gui).getMainPanel().getRootPane();	// jex001A
         }																// jex001A
         JPanel glassPane = (JPanel)rootPane.getGlassPane();
 

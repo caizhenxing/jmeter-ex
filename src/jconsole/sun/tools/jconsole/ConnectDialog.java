@@ -45,7 +45,7 @@ import javax.management.remote.JMXConnector;
 
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.JMeterGUIComponent;
-import org.apache.jmeter.machine.gui.MachineGui;
+import org.apache.jmeter.jvm.gui.JvmConsoleGui;
 
 import static java.awt.BorderLayout.*;
 import static javax.swing.ListSelectionModel.*;
@@ -295,8 +295,8 @@ public class ConnectDialog extends InternalDialog
     private void setCurrentGUIRunState(boolean runState){
     	GuiPackage guiPackage = GuiPackage.getInstance();
     	JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();
-    	if (gui instanceof MachineGui) {
-    		MachineGui mg=(MachineGui)gui;
+    	if (gui instanceof JvmConsoleGui) {
+    		JvmConsoleGui mg=(JvmConsoleGui)gui;
     		mg.getMachine().setStart(runState);
 		}
     }

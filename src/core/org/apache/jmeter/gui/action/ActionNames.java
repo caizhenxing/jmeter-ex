@@ -81,6 +81,7 @@ public class ActionNames {
     public static final String WHAT_CLASS       = "what_class"; // $NON-NLS-1$
     public static final String JTLPARSE         = "jtl_parse"; // jex001A
     public static final String LIBCOPY         = "lib_copy"; // jex001A
+    public static final String ADD_AGENT        = "add_agent"; // jex002A
 
     // Prevent instantiation
     private ActionNames(){

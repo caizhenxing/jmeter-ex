@@ -9,7 +9,7 @@ import javax.swing.JPopupMenu;
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.action.ActionNames;
 import org.apache.jmeter.gui.util.MenuFactory;
-import org.apache.jmeter.machine.gui.MachineGui;
+import org.apache.jmeter.jvm.gui.JvmConsoleGui;
 import org.apache.jmeter.testelement.JVMBench;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
@@ -60,7 +60,7 @@ public class JVMBenchGui extends AbstractJMeterGuiComponent {
     public JPopupMenu createPopupMenu() {
         JPopupMenu menu = new JPopupMenu();
         JMenu addMenu = new JMenu(JMeterUtils.getResString("add"));
-        addMenu.add(MenuFactory.makeMenuItem(JMeterUtils.getResString("machine"), MachineGui.class.getName(),
+        addMenu.add(MenuFactory.makeMenuItem(JMeterUtils.getResString("machine"), JvmConsoleGui.class.getName(),
                 ActionNames.ADD));
         menu.add(addMenu);
         return menu;

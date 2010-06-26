@@ -1,4 +1,4 @@
-package org.apache.jmeter.machine;
+package org.apache.jmeter.jvm;
 
 import java.io.Serializable;
 
@@ -13,7 +13,7 @@ import sun.tools.jconsole.VMPanel;
  * @since jex001A
  * @author chenchao.yecc
  */
-public class Machine extends AbstractTestElement implements Serializable {
+public class JvmConsole extends AbstractTestElement implements Serializable {
 
 	private static final long serialVersionUID = -7087997027675418139L;
 	private VMInternalFrame interFrame = null;

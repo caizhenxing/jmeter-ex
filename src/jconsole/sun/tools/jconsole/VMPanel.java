@@ -39,7 +39,7 @@ import javax.swing.plaf.*;
 
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.JMeterGUIComponent;
-import org.apache.jmeter.machine.gui.MachineGui;
+import org.apache.jmeter.jvm.gui.JvmConsoleGui;
 
 import com.sun.tools.jconsole.JConsolePlugin;
 import com.sun.tools.jconsole.JConsoleContext;
@@ -424,8 +424,8 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
             }
             GuiPackage guiPackage = GuiPackage.getInstance();				// jex001A
             JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();	// jex001A
-            if (gui instanceof MachineGui) {								// jex001A
-                MachineGui magui=(MachineGui) gui;							// jex001A
+            if (gui instanceof JvmConsoleGui) {								// jex001A
+                JvmConsoleGui magui=(JvmConsoleGui) gui;							// jex001A
                 magui.getMachine().setInfo(displayName);					// jex001A
                 magui.setJvmState(displayName);								// jex001A
             }																// jex001A
@@ -597,7 +597,7 @@ public class VMPanel extends JTabbedPane implements PropertyChangeListener {
                 }
             }
 
-            // Set the first enabled tab in the tab´s list
+            // Set the first enabled tab in the tabï¿½s list
             // as the selected tab on initial update
             //
             if (initialUpdate) {

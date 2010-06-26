@@ -74,7 +74,8 @@ public class LibraryCopy {
 				String type = classpathentry.attributeValue("kind");
 				if (type.equals("var")) {
 					String path = classpathentry.attributeValue("path");
-					path = path.replace("M2_REPO", m2path);
+					String res=m2path+File.separator+"repository"+File.separator;
+					path = path.replace("M2_REPO", res);
 					path = path.replace("/", File.separator);
 					path = path.replace("\\", File.separator);
 					copyFile(path);

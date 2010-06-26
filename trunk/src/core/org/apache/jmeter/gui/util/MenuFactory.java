@@ -43,7 +43,7 @@ import org.apache.jmeter.gui.action.ActionNames;
 import org.apache.jmeter.gui.action.ActionRouter;
 import org.apache.jmeter.gui.action.KeyStrokes;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
-import org.apache.jmeter.machine.Machine;
+import org.apache.jmeter.jvm.JvmConsole;
 import org.apache.jmeter.samplers.Sampler;
 import org.apache.jmeter.testbeans.TestBean;
 import org.apache.jmeter.testbeans.gui.TestBeanGUI;
@@ -533,7 +533,7 @@ public final class MenuFactory {
             return false;											// jex001A
         }															// jex001A
         TestElement parent = parentNode.getTestElement();
-        if (foundClass(nodes, new Class[] { Machine.class })) {		// jex001A
+        if (foundClass(nodes, new Class[] { JvmConsole.class })) {		// jex001A
 			if (parent instanceof JVMBench){					// jex001A
 				return true;										// jex001A
 			} else {												// jex001A

@@ -42,8 +42,8 @@ import javax.net.ssl.SSLHandshakeException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.JMeterGUIComponent;
 import org.apache.jmeter.gui.MainFrame;
-import org.apache.jmeter.machine.Machine;
-import org.apache.jmeter.machine.gui.MachineGui;
+import org.apache.jmeter.jvm.JvmConsole;
+import org.apache.jmeter.jvm.gui.JvmConsoleGui;
 
 import com.sun.tools.jconsole.JConsolePlugin;
 
@@ -112,7 +112,7 @@ public class JConsole extends JFrame
 
     private ArrayList<VMPanel> windows =				// jex001C
         new ArrayList<VMPanel>();						// jex001C
-    public HashMap<Machine,VMPanel> mp=new HashMap<Machine,VMPanel>();
+    public HashMap<JvmConsole,VMPanel> mp=new HashMap<JvmConsole,VMPanel>();
 
 //    private int frameLoc = 5;							// jex001D
     static boolean debug;
@@ -218,8 +218,8 @@ public class JConsole extends JFrame
     	JDesktopPane desk=null;								// jex001A
     	GuiPackage guiPackage = GuiPackage.getInstance();	// jex001A
     	JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();	// jex001A
-    	if (gui instanceof MachineGui) {					// jex001A
-    		desk=((MachineGui) gui).getMainPanel();			// jex001A
+    	if (gui instanceof JvmConsoleGui) {					// jex001A
+    		desk=((JvmConsoleGui) gui).getMainPanel();			// jex001A
 		}													// jex001A
         return desk;										// jex001C
     }
@@ -648,8 +648,8 @@ public class JConsole extends JFrame
 //        vmIF.setVisible(true);						// jex001D
     	GuiPackage guiPackage = GuiPackage.getInstance();				// jex001A
     	JMeterGUIComponent gui=guiPackage.getCurrentGuiWithNoUpdate();	// jex001A
-    	if (gui instanceof MachineGui) {								// jex001A
-    		MachineGui machineGui=(MachineGui)gui;						// jex001A
+    	if (gui instanceof JvmConsoleGui) {								// jex001A
+    		JvmConsoleGui machineGui=(JvmConsoleGui)gui;						// jex001A
     		mp.put(machineGui.getMachine(),vmPanel);					// jex001A
     		machineGui.getMachine().setFrame(vmIF);						// jex001A
     		getDesktopPane().add(vmPanel,BorderLayout.CENTER);			// jex001A

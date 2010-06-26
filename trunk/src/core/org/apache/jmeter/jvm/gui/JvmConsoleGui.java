@@ -1,4 +1,4 @@
-package org.apache.jmeter.machine.gui;
+package org.apache.jmeter.jvm.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -20,7 +20,7 @@ import javax.swing.JPopupMenu;
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.gui.util.MenuFactory;
-import org.apache.jmeter.machine.Machine;
+import org.apache.jmeter.jvm.JvmConsole;
 import org.apache.jmeter.testelement.TestElement;
 
 import sun.tools.jconsole.JConsole;
@@ -31,7 +31,7 @@ import sun.tools.jconsole.JConsole;
  * @author chenchao.yecc
  * @version jex001A
  */
-public class MachineGui extends AbstractJMeterGuiComponent implements ItemListener, ActionListener {
+public class JvmConsoleGui extends AbstractJMeterGuiComponent implements ItemListener, ActionListener {
 	private static final long serialVersionUID = 1L;
 
 	public static final String STATIC_LABEL = "machine";
@@ -42,29 +42,21 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	private JButton start_btn = new JButton("start");
 	private JLabel info_lbl = new JLabel();
 	// current machine
-	private Machine machine = null;
+	private JvmConsole machine = null;
 
 	/**
 	 * get current machine
 	 * 
 	 */
-	public Machine getMachine() {
+	public JvmConsole getMachine() {
 		return machine;
-	}
-
-	/**
-	 * set machine
-	 * 
-	 */
-	public void setMachine(Machine machine) {
-		this.machine = machine;
 	}
 
 	/**
 	 * construct method
 	 * 
 	 */
-	public MachineGui() {
+	public JvmConsoleGui() {
 		super();
 		init();
 		initGui();
@@ -82,7 +74,7 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	 * set start button state
 	 * 
 	 */
-	public void setStartButtonEnable(Machine m) {
+	public void setStartButtonEnable(JvmConsole m) {
 		start_btn.setEnabled(m.isStart());
 	}
 
@@ -107,7 +99,7 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	 * @see org.apache.jmeter.gui.JMeterGUIComponent#createTestElement()
 	 */
 	public TestElement createTestElement() {
-		Machine machine = new Machine();
+		JvmConsole machine = new JvmConsole();
 		modifyTestElement(machine);
 		return machine;
 	}
@@ -128,8 +120,8 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	 */
 	public void configure(TestElement tg) {
 		super.configure(tg);
-		if (tg instanceof Machine) {
-			machine = (Machine) tg;
+		if (tg instanceof JvmConsole) {
+			machine = (JvmConsole) tg;
 		}
 		setJvmState(machine.getInfo());
 		setJvmPanel(machine);
@@ -139,7 +131,7 @@ public class MachineGui extends AbstractJMeterGuiComponent implements ItemListen
 	 * configur the jvm panel
 	 * 
 	 */
-	public void setJvmPanel(Machine m) {
+	public void setJvmPanel(JvmConsole m) {
 		setStartButtonEnable(m);
 		if (m.getPanel() != null) {
 			jvmPanel.removeAll();

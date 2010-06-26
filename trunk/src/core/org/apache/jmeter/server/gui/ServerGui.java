@@ -4,10 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.Collection;
 
 import javax.swing.Box;
@@ -19,11 +16,9 @@ import javax.swing.JPopupMenu;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
-import org.apache.jmeter.gui.util.MenuFactory;
-import org.apache.jmeter.machine.Machine;
+import org.apache.jmeter.jvm.JvmConsole;
+import org.apache.jmeter.server.Server;
 import org.apache.jmeter.testelement.TestElement;
-
-import sun.tools.jconsole.JConsole;
 
 /**
  * Server Gui
@@ -31,34 +26,15 @@ import sun.tools.jconsole.JConsole;
  * @since jex002A
  * @author chenchao.yecc
  */
-public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListener, ActionListener {
+public class ServerGui  extends AbstractJMeterGuiComponent {
 	private static final long serialVersionUID = 1L;
 
-	public static final String STATIC_LABEL = "machine";
+	public static final String STATIC_LABEL = "server";
 	// the panel of jvm
 	private JDesktopPane jvmPanel;
 	private JPanel mainPanel;
 	private JPanel controlPanel;
-	private JButton start_btn = new JButton("mail_reader_pop3");
 	private JLabel info_lbl = new JLabel();
-	// current machine
-	private Machine machine = null;
-
-	/**
-	 * get current machine
-	 * 
-	 */
-	public Machine getMachine() {
-		return machine;
-	}
-
-	/**
-	 * set machine
-	 * 
-	 */
-	public void setMachine(Machine machine) {
-		this.machine = machine;
-	}
 
 	/**
 	 * construct method
@@ -68,22 +44,6 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		super();
 		init();
 		initGui();
-	}
-
-	/**
-	 * set start button state
-	 * 
-	 */
-	public void setStartButtonEnable(boolean state) {
-		start_btn.setEnabled(state);
-	}
-
-	/**
-	 * set start button state
-	 * 
-	 */
-	public void setStartButtonEnable(Machine m) {
-		start_btn.setEnabled(m.isStart());
 	}
 
 	/**
@@ -107,7 +67,7 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	 * @see org.apache.jmeter.gui.JMeterGUIComponent#createTestElement()
 	 */
 	public TestElement createTestElement() {
-		Machine machine = new Machine();
+		Server machine = new Server();
 		modifyTestElement(machine);
 		return machine;
 	}
@@ -128,23 +88,6 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	 */
 	public void configure(TestElement tg) {
 		super.configure(tg);
-		if (tg instanceof Machine) {
-			machine = (Machine) tg;
-		}
-		setJvmState(machine.getInfo());
-		setJvmPanel(machine);
-	}
-
-	/**
-	 * configur the jvm panel
-	 * 
-	 */
-	public void setJvmPanel(Machine m) {
-		setStartButtonEnable(m);
-		if (m.getPanel() != null) {
-			jvmPanel.removeAll();
-			jvmPanel.add(m.getPanel(), BorderLayout.CENTER);
-		}
 	}
 
 	/**
@@ -160,9 +103,7 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	 * 
 	 */
 	public JPopupMenu createPopupMenu() {
-        JPopupMenu menu = new JPopupMenu();
-        MenuFactory.addServerMenu(menu);
-        return menu;
+        return null;
     }
 
 	/**
@@ -212,12 +153,11 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		JPanel right = new JPanel();
 		info_lbl.setText("Click the right button to start jvm monitor");
-		left.add(info_lbl);
-		right.add(start_btn);
+//		left.add(info_lbl);
+//		right.add(start_btn);
 		controlPanel.add(right, BorderLayout.EAST);
 		controlPanel.add(left, BorderLayout.CENTER);
 		controlPanel.setBackground(new Color(235, 233, 237));
-		start_btn.addActionListener(this);
 		mainPanel.add(controlPanel, BorderLayout.NORTH);
 		mainPanel.add(jvmPanel, BorderLayout.CENTER);
 		controlPanel.setVisible(true);
@@ -249,19 +189,6 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	 */
 	@Override
 	public String getLabelResource() {
-		return "machine";
-	}
-
-	/**
-	 * @see ActionListener#actionPerformed(ActionEvent)
-	 * 
-	 */
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == start_btn) {
-			clearGui();
-			JConsole.getInstance().showConnectDialog("", "", 0, null, null,
-					null);
-		}
+		return "m_server";
 	}
 }

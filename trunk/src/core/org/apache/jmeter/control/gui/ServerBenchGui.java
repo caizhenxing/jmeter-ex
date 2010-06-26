@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -18,8 +19,7 @@ import javax.swing.JTextField;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.util.VerticalPanel;
-import org.apache.jmeter.server.AliperClientModel;
-import org.apache.jmeter.server.IModelAccess;
+import org.apache.jmeter.server.MonitorClientModel;
 import org.apache.jmeter.testelement.ServerBench;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jorphan.gui.layout.VerticalLayout;
@@ -37,7 +37,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JTextField rangeField = new JTextField(58);
 	private JButton update = new JButton("update");
 	private JButton connect = new JButton("connect");
-	private IModelAccess model = new AliperClientModel();
+	private MonitorClientModel model = new MonitorClientModel();
 	
 	/**
 	 * Create a new JVMbenchGui.
@@ -108,7 +108,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		urls.setPreferredSize(new Dimension(80,20));
 		urlsPanel.add(urls);
 
-		rangeField.setText("http://10.20.136.18:8080/aliper-server/AliperServlet");
+//		rangeField.setText("http://10.20.136.18:8080/aliper-server/AliperServlet");
+		rangeField.setText("http://10.249.129.159:8080/monitor.server/remote/remoteDataService");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);
@@ -130,20 +131,31 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		Box buttonPanel = Box.createHorizontalBox();
 		buttonPanel.add(Box.createHorizontalStrut(20));
 		buttonPanel.add(connect);
+		connect.addActionListener(this);
 		mainPanel.add(buttonPanel);
 		add(mainPanel);
 	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String s[]=null;
-		try {
-			s = this.model.getProjects(rangeField.getText());
-			com.setModel(new DefaultComboBoxModel(s));
-		} catch (MalformedURLException e1) {
-			JOptionPane.showMessageDialog(this, "can not connect to " + rangeField.getText());
-			return ;
-
+		if (e.getSource() == update) {
+			List<String> lst = null;
+			try {
+				lst = this.model.getProjects(rangeField.getText());
+				com.setModel(new DefaultComboBoxModel(lst.toArray()));
+			} catch (MalformedURLException e1) {
+				JOptionPane.showMessageDialog(this, "can not connect to "
+						+ rangeField.getText());
+				return;
+			}
+		} else if (e.getSource() == connect) {
+			this.model.setServiceUrl(rangeField.getText());
+        	try {
+        		model.setProject((String)com.getSelectedItem());
+        		model.connect();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 		}
 		
 	}

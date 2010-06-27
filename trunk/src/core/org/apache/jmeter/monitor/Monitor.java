@@ -4,8 +4,14 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,14 +21,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jmeter.gui.util.FileDialoger;
 import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.testelement.AbstractTestElement;
 import org.apache.jmeter.util.JMeterUtils;
 import org.jfree.chart.ChartPanel;
+import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.axis.NumberAxis;
@@ -38,15 +49,16 @@ import org.jfree.data.time.TimeSeriesCollection;
  * @version jex002A
  *
  */
-public class Monitor extends AbstractTestElement implements Serializable, ItemListener {
+public class Monitor extends AbstractTestElement implements Serializable, ItemListener, ActionListener {
 
 	private static final long serialVersionUID = 1L;
 	private static final String TYPE_LONG = "Long";
 	private static final String TYPE_DOUBLE = "Double";
 	private static final String TYPE_STRING = "String[5]";
-	private static final String PRE_TITLE = "monitor_";
+	public static final String PRE_TITLE = "monitor_";
 	private static final String PRE_NUM_AXISL = "number_axis_";
 	private static final String PRE_NUM_AXISR = "number_axis_r_";
+	private static final String PRE_TK = "tk_";
 
 	private Map<String, TimeSeries> dataMap = new HashMap<String, TimeSeries>();
 
@@ -79,6 +91,8 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 	private Map<JCheckBox, String> cbMap = new HashMap<JCheckBox, String>();
 
 	private JPanel checkboxPanel = new JPanel();
+	
+	private JButton save = new JButton("Save Graph");
 
 	public Monitor() {
 		DateAxis localDateAxis = new DateAxis(JMeterUtils
@@ -109,6 +123,8 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 		localNumberAxisL.setStandardTickUnits(NumberAxis
 				.createIntegerTickUnits());
 		checkboxPanel.setLayout(new FlowLayout());
+		checkboxPanel.add(save);
+		save.addActionListener(this);
 		localJFreeChart = new JFreeChart("", new Font("SansSerif", 1, 24),
 				localXYPlot, true);
 		chartPanel = new ChartPanel(localJFreeChart, true);
@@ -269,8 +285,10 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 			String state = lines[pos];
 			if (state.equals("1")) {
 				localTimeSeriesCollectionL.addSeries(ts);
-			} else {
+			} else if(state.equals("2")) {
 				localTimeSeriesCollectionR.addSeries(ts);
+			} else {
+				
 			}
 		}
 		dataMap.put(name, ts);
@@ -285,6 +303,8 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 		checkBox.setSelected(true);
 		checkBox.addItemListener(this);
 		checkBox.setForeground(color);
+		System.out.println(PRE_TK+category+"_"+labelResourceName);
+		checkBox.setToolTipText(JMeterUtils.getResString(PRE_TK+category+"_"+labelResourceName));
 		return checkBox;
 	}
 
@@ -307,30 +327,37 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 		for (int j = 1; j < fs.length; j++) {
 			String name = pathName + "$$" + fs[j];
 			TimeSeries ts = dataMap.get(name);
-			if (ts != null) {
-				Date time = null;
-				try {
-					time = new Date(Long.parseLong(strings[0]));
-				} catch (NumberFormatException e) {
-					System.out.println("Error date value:" + strings[j]);
-				}
-				int pos = MonitorGui.CATEGORY_LIST.indexOf(category);
-				String type = MonitorGui.TYPE[pos][j];
-				if (type.equals(Monitor.TYPE_LONG)) {
-					Long v = Long.parseLong(StringUtils.strip(strings[j]));
-					updateGui(ts, new Second(time), v);
-				} else if (type.equals(Monitor.TYPE_DOUBLE)) {
-					Double v = Double
-							.parseDouble(StringUtils.strip(strings[j]));
-					updateGui(ts, new Second(time), v);
-				} else if (type.equals(Monitor.TYPE_STRING)) {
+			if (ts == null) {
+				continue;
+			}
 
+			Date time = null;
+			try {
+				time = new Date(Long.parseLong(strings[0]));
+			} catch (NumberFormatException e) {
+				System.out.println("Error date value:" + strings[j]);
+			}
+			int pos = MonitorGui.CATEGORY_LIST.indexOf(category);
+			String type = MonitorGui.TYPE[pos][j];
+			if (type.equals(Monitor.TYPE_LONG)) {
+				Long v = Long.parseLong(StringUtils.strip(strings[j]));
+				updateGui(ts, new Second(time), v);
+			} else if (type.equals(Monitor.TYPE_DOUBLE)) {
+				// TODO 把Monitor根据category进行抽象，将net的判断加至子类
+				Double v = null;
+				if (category.equals("net")) {
+					v = Double.parseDouble(StringUtils.strip(strings[j + 9]));
+				} else {
+					v = Double.parseDouble(StringUtils.strip(strings[j]));
 				}
+				updateGui(ts, new Second(time), v);
+			} else if (type.equals(Monitor.TYPE_STRING)) {
+
 			}
 		}
 	}
 
-	private synchronized void updateGui(TimeSeries ts, Second s, double v) {
+	private synchronized void updateGui(TimeSeries ts, Second s, Number v) {
 		ts.addOrUpdate(s, v);
 	}
 
@@ -355,6 +382,46 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 						name)) {
 					localXYLineAndShapeRendererR.setSeriesVisible(i, e
 							.getStateChange() == ItemEvent.SELECTED);
+				}
+			}
+		}
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		JFileChooser chooser = FileDialoger.promptToSaveFile(category+".png");
+		if (chooser == null) {
+			return;
+		}
+		saveAsFile(chooser.getSelectedFile().getAbsolutePath());
+		JOptionPane.showMessageDialog(null, "保存成功", "完成",
+				JOptionPane.INFORMATION_MESSAGE);
+	}
+	
+	private void saveAsFile(String outputPath) {
+		FileOutputStream out = null;
+		try {
+			File outFile = new File(outputPath);
+			if (!outFile.getParentFile().exists()) {
+				outFile.getParentFile().mkdirs();
+			}
+			out = new FileOutputStream(outputPath);
+			// 保存为PNG
+			ChartUtilities.writeChartAsPNG(out, localJFreeChart, 800, 600);
+			// 保存为JPEG
+			// ChartUtilities.writeChartAsJPEG(out, chart, 500, 400);
+			out.flush();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					// do nothing
 				}
 			}
 		}

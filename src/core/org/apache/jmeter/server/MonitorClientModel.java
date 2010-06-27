@@ -35,25 +35,33 @@ public class MonitorClientModel implements Runnable{
 	private RemoteDataService remoteDataService = null;
 	private Map<String, ArrayList<HashMap<String,String>>> agents=null;
 	private boolean running;
-	private HashMap<String,Monitor> linespecMap = null;
+	private HashMap<String,Monitor> linespecMap = new HashMap<String, Monitor>();
 	private int periods=30000;
+	private Thread dataFetcher=null;
+
 	// 缓存agent，取数据时使用
 	private Map<String,Map<String,String>> agentMap=new HashMap<String,Map<String,String>>();
 	
-	public synchronized void connect() throws MalformedURLException {
+	public synchronized boolean connect() throws MalformedURLException {
 		HessianProxyFactory factory = new HessianProxyFactory();
 		remoteDataService = (RemoteDataService) factory.create(
                 RemoteDataService.class, this.serviceUrl);
 		if (this.remoteDataService == null) {
 			JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(), "未连接服务器", "出错了",
 					JOptionPane.ERROR_MESSAGE);
-			return;
+			return false;
 		}
-		initCategoryGui();
+		if(!initCategoryGui()){
+			JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(), "错误的工程名", "出错了",
+					JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
 		if(!this.running){
 			this.running = true;
-			new Thread(this,"aliperClientModelThread").start();
+			dataFetcher=new Thread(this,"aliperClientModelThread");
+			dataFetcher.start();
 		}
+		return true;
 	}
 // 每个Monitor对应一个线程
 //	private class LineDrawer implements Runnable {
@@ -118,12 +126,15 @@ public class MonitorClientModel implements Runnable{
 		}
 	}
 	
-	private synchronized void initCategoryGui() {
-		this.linespecMap = new HashMap<String, Monitor>();
+	private synchronized boolean initCategoryGui() {
+		// 清空原数据
+		agentMap.clear();
+		linespecMap.clear();
+
 		// 初始化Agent组
 		agents= remoteDataService.getProjectAgents(project);
 		if (agents == null) {
-			return;
+			return false;
 		}
 		// 初始化agentMap
 		for (String agent : agents.keySet()) {
@@ -135,26 +146,41 @@ public class MonitorClientModel implements Runnable{
 		}
 		// 初始化Gui
 		for (String agent : agents.keySet()) {
+
 			// 为每一个Agent生成服务器Gui
 			GuiPackage guiPackage = GuiPackage.getInstance();
 			JMeterTreeNode benchNode = guiPackage.getCurrentNode();
+
+			// 清空当前结点下的所有子节点
+			int count = benchNode.getChildCount();
+			for (int i = 0; i < count; i++) {
+				JMeterTreeNode tmpNode = (JMeterTreeNode) benchNode
+						.getChildAt(i);
+				TestElement testElement = tmpNode.getTestElement();
+				guiPackage.getTreeModel().removeNodeFromParent(tmpNode);
+				guiPackage.removeNode(testElement);
+			}
+
+			// 新建结点
 			JMeterTreeNode serverNode = addAgentToTree(benchNode, agent,
 					"org.apache.jmeter.server.gui.ServerGui");
 			for (int i = 0; i < MonitorGui.CATEGORY.length; i++) {
-				String chartName=agent+"$$"+MonitorGui.CATEGORY[i];
-				
-				if (MonitorGui.CATEGORY[i].equals("net")){
-					MonitorData monitors=null;
-					monitors = remoteDataService.getStartMonitorData(agentMap.get(chartName));
-					if (monitors==null) {
-						return;
-					}
-				}
-				
+				String chartName = agent + "$$" + MonitorGui.CATEGORY[i];
+
+//				if (MonitorGui.CATEGORY[i].equals("net")) {
+//					MonitorData monitors = null;
+//					monitors = remoteDataService.getStartMonitorData(agentMap
+//							.get(chartName));
+//					if (monitors == null) {
+//						continue;
+//					}
+//				}
+
 				// 为每一个Agent的监控分类生成类别Gui
-				JMeterTreeNode dataNode = addAgentToTree(serverNode, MonitorGui.CATEGORY[i],
-				"org.apache.jmeter.monitor.gui.MonitorGui");
-				
+				JMeterTreeNode dataNode = addAgentToTree(serverNode,
+						JMeterUtils.getResString(Monitor.PRE_TITLE + MonitorGui.CATEGORY[i]),
+						"org.apache.jmeter.monitor.gui.MonitorGui");
+
 				// 初始化每一个monitor的时间序列
 				if (dataNode.getUserObject() instanceof Monitor) {
 					Monitor mr = (Monitor) dataNode.getUserObject();
@@ -164,17 +190,17 @@ public class MonitorClientModel implements Runnable{
 					mr.setTitle(MonitorGui.CATEGORY[i]);
 					mr.setNumberAxis(MonitorGui.CATEGORY[i]);
 					mr.initSecondValueAxis(i);
-					
+
 					// 显示的指标
 					String tmp = chartName + "$$";
-					String[] fs=MonitorGui.ITEM[i];
-					for (int j = 0; j < fs.length; j++) {
+					String[] fs = MonitorGui.ITEM[i];
+					for (int j = 1; j < fs.length; j++) {
 						String name = tmp + fs[j];
-						System.out.println(fs[j]);
-						TimeSeries ts = new TimeSeries(fs[j],
-								org.jfree.data.time.Second.class);
-						ts.setMaximumItemAge(periods);
-						if (!fs[j].equals("time")) {
+						// System.out.println(fs[j]);
+						if(!MonitorGui.LINE_COLLECTION[i][j].equals("-")){
+							TimeSeries ts = new TimeSeries(fs[j],
+									org.jfree.data.time.Second.class);
+							ts.setMaximumItemAge(periods);
 							mr.addTimeSeries(name, ts);
 						}
 					}
@@ -183,35 +209,14 @@ public class MonitorClientModel implements Runnable{
 				}
 			}
 		}
+		return true;
 	}
 	private void addValuesToTimeSeries(MonitorData monitors, Monitor mr) {
-		createDoubleDateForTimeSeries(mr, monitors);
-//		String chart = mr.getCategory();
-//		if (chart.equals("file")) {
-//			// createLongDateForTimeSeries(fs,mr,monitors);
-//		} else if (chart.equals("jsat")) {
-//		} else if (chart.equals("memory")) {
-//			// createLongDateForTimeSeries(fs,mr,monitors);
-//		} else if (chart.equals("loadavg")) {
-//			createDoubleDateForTimeSeries(mr, monitors);
-//		} else if (chart.equals("pid_io")) {
-//			createDoubleDateForTimeSeries(mr, monitors);
-//		} else if (chart.equals("cpu")) {
-//			createDoubleDateForTimeSeries(mr, monitors);
-//		} else if (chart.equals("io")) {
-//		} else if (chart.equals("pid_cpu")) {
-//		} else if (chart.equals("net")) {
-//
-//		}
-	}
-	
-	private void createDoubleDateForTimeSeries(Monitor ts,
-			MonitorData monitors) {
 		String[] fs=monitors.getFields();
 		List<String[]> values = monitors.getValues();
 		for (String[] strings : values) {
 			// System.out.println(StringUtils.strip(strings[i]));
-			ts.updateGui(ts.getCategory(),fs, strings);
+			mr.updateGui(mr.getCategory(),fs, strings);
 		}
 	}
 	
@@ -276,5 +281,9 @@ public class MonitorClientModel implements Runnable{
         RemoteDataService remoteDataService = (RemoteDataService) factory.create(
                 RemoteDataService.class, url);
 		return remoteDataService.getProjects();
+	}
+	
+	public synchronized void disConnect(){
+		running=false;
 	}
 }

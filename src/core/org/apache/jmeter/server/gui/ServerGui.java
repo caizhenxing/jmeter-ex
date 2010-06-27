@@ -8,7 +8,6 @@ import java.awt.event.ItemEvent;
 import java.util.Collection;
 
 import javax.swing.Box;
-import javax.swing.JButton;
 import javax.swing.JDesktopPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -16,7 +15,6 @@ import javax.swing.JPopupMenu;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
-import org.apache.jmeter.jvm.JvmConsole;
 import org.apache.jmeter.server.Server;
 import org.apache.jmeter.testelement.TestElement;
 

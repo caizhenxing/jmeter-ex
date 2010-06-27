@@ -36,7 +36,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JComboBox com = new JComboBox();
 	private JTextField rangeField = new JTextField(58);
 	private JButton update = new JButton("update");
-	private JButton connect = new JButton("connect");
+	private JButton connect = new JButton("Connect");
+	private JButton disConnect = new JButton("disConnect");
 	private MonitorClientModel model = new MonitorClientModel();
 	
 	/**
@@ -131,7 +132,10 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		Box buttonPanel = Box.createHorizontalBox();
 		buttonPanel.add(Box.createHorizontalStrut(20));
 		buttonPanel.add(connect);
+		buttonPanel.add(Box.createHorizontalStrut(20));
+		buttonPanel.add(disConnect);
 		connect.addActionListener(this);
+		disConnect.addActionListener(this);
 		mainPanel.add(buttonPanel);
 		add(mainPanel);
 	}
@@ -152,11 +156,15 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			this.model.setServiceUrl(rangeField.getText());
         	try {
         		model.setProject((String)com.getSelectedItem());
-        		model.connect();
+        		if (model.connect()) {
+        			connect.setEnabled(false);
+				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
+		} else if (e.getSource() == disConnect) {
+			model.disConnect();
+			connect.setEnabled(true);
 		}
-		
 	}
 }

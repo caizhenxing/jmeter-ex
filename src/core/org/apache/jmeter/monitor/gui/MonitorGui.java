@@ -61,7 +61,7 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 		1,
 	};
 	
-	// 线与坐标轴的映射关系
+	// 线的显示设置、线和坐标轴的映射关系
 	public static final String[][] LINE_COLLECTION = {
 		{ "time", "1", "1", "1", },
 		{ "time", "1", "1", "1", "1", "1", },
@@ -72,7 +72,7 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 		{ "time", "1", "1", "1", "1","1","1",},
 		{ "time", "2", "2", "2", "1","1",},
 		{ "time", "1", "1", "1", "1",},
-		{ "time", "iface", "rxpck/s", "txpck/s", "rxkB/s","txkB/s","rxcmp/s","txcmp/s","rxmcst/s",},
+		{ "time", "-", "-", "-", "1","1","-","-","-",},
 	};
 	
 	// 线的种类
@@ -91,11 +91,11 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 	
 	// 线的颜色
 	public static final String[][] COLOR = {
-		{ "", "RED", "GREEN", "ORANGE", },
+		{ "", "RED", "GREEN", "BLUE", },
 		{ "", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA", },
-		{ "", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA", },
+		{ "", "RED", "GREEN", "ORANGE", "MAGENTA", "BLUE", },
 		{ "", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA", "YELLOW", "PINK",},
-		{ "", "RED", "GREEN", "ORANGE", },
+		{ "", "RED", "GREEN", "BLUE", },
 		{ "", "RED", "GREEN", "ORANGE", "BLUE",},
 		{ "", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA", "YELLOW",},
 		{ "", "RED", "GREEN", "ORANGE", "BLUE", "MAGENTA", },

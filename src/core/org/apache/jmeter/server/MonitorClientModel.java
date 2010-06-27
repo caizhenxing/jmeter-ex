@@ -61,6 +61,12 @@ public class MonitorClientModel implements Runnable{
 			dataFetcher=new Thread(this,"aliperClientModelThread");
 			dataFetcher.start();
 		}
+		// 等待数据加载
+		try {
+			Thread.sleep(3000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		return true;
 	}
 // 每个Monitor对应一个线程

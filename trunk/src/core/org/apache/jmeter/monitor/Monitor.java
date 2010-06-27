@@ -303,7 +303,6 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 		checkBox.setSelected(true);
 		checkBox.addItemListener(this);
 		checkBox.setForeground(color);
-		System.out.println(PRE_TK+category+"_"+labelResourceName);
 		checkBox.setToolTipText(JMeterUtils.getResString(PRE_TK+category+"_"+labelResourceName));
 		return checkBox;
 	}

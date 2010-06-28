@@ -281,8 +281,8 @@
   <!-- Compilation parameters -->
   <property name="optimize" value="on"/>
   <property name="deprecation" value="off"/>
-  <property name="target.java.version" value="1.6"/>
-  <property name="src.java.version" value="1.6"/>
+  <property name="target.java.version" value="1.5"/>
+  <property name="src.java.version" value="1.5"/>
   <property name="encoding" value="UTF-8"/>
 
   <!-- 3rd party libraries to be included in the binary distribution -->
@@ -331,6 +331,10 @@
     <include name="${xstream.jar}"/>
 	<include name="${jfreechart.jar}"/>
 	<include name="${jcommon.jar}"/>
+	<include name="${jfreechart.jar}"/>
+	<include name="${hessian.jar}"/>
+	<include name="${jxl.jar}"/>
+	<include name="${dom4j.jar}"/>
   </patternset>
 
   <!--
@@ -386,6 +390,10 @@
     <pathelement location="${xstream.jar}"/>
 	<pathelement location="${jfreechart.jar}"/>
 	<pathelement location="${jcommon.jar}"/>
+	<pathelement location="${jfreechart.jar}"/>
+	<pathelement location="${hessian.jar}"/>
+	<pathelement location="${jxl.jar}"/>
+	<pathelement location="${dom4j.jar}"/>
     <!-- Generated jars -->
     <fileset dir="${lib.dir}" includes="jorphan.jar"/>
     <!-- API-only jars-->
@@ -404,7 +412,6 @@
     <pathelement location="${commons-lang.jar}"/>
     <pathelement location="${logkit.jar}"/>
   </path>
-
 
   <target name="init-version">
     <tstamp/>
@@ -814,6 +821,8 @@ run JMeter unless all the JMeter jars are added.
       <fileset dir="${build.core}" includes="**/*.class"
         excludes="**/BeanShellClient*.class,**/NewDriver*,**/DynamicClassLoader*"/>
       <fileset dir="${src.core}" includes="org/apache/jmeter/images/**" 
+        excludes="**/*.properties"/>
+      <fileset dir="${src.core}" includes="sun/tools/jconsole/resources/**" 
         excludes="**/*.properties"/>
       <fileset dir="${src.core}" includes="**/*.properties">
         <exclude name="*eucJP*"/>

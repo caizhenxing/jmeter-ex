@@ -230,7 +230,6 @@ public class JvmConsoleGui extends AbstractJMeterGuiComponent implements ItemLis
 	 * @see javax.swing.JComponent#getPreferredSize()
 	 * 
 	 */
-	@Override
 	public Dimension getPreferredSize() {
 		return getMinimumSize();
 	}
@@ -239,7 +238,6 @@ public class JvmConsoleGui extends AbstractJMeterGuiComponent implements ItemLis
 	 * @see org.apache.jmeter.gui.JMeterGUIComponent#getLabelResource()
 	 * 
 	 */
-	@Override
 	public String getLabelResource() {
 		return "machine";
 	}
@@ -248,7 +246,6 @@ public class JvmConsoleGui extends AbstractJMeterGuiComponent implements ItemLis
 	 * @see ActionListener#actionPerformed(ActionEvent)
 	 * 
 	 */
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == start_btn) {
 			clearGui();

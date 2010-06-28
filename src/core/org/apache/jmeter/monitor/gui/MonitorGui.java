@@ -17,10 +17,10 @@ import javax.swing.table.TableCellRenderer;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
+import org.apache.jmeter.gui.util.YccCustomTable;
 import org.apache.jmeter.monitor.Monitor;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.Calculator;
-import org.apache.jmeter.visualizers.YccCustomTable;
 import org.apache.jorphan.gui.ObjectTableModel;
 import org.apache.jorphan.gui.RendererUtils;
 import org.apache.jorphan.reflect.Functor;
@@ -68,10 +68,10 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 		{ "time", "1", "2", "1", "2","2", },
 		{ "time", "1", "1", "1", "1", "1", "1","1",},
 		{ "time", "1", "1", "1", },
-		{ "time", "1", "1", "1", "1",},
+		{ "time", "-", "1", "1", "1",},
 		{ "time", "1", "1", "1", "1","1","1",},
 		{ "time", "2", "2", "2", "1","1",},
-		{ "time", "1", "1", "1", "1",},
+		{ "time", "-", "1", "1", "1",},
 		{ "time", "-", "-", "-", "1","1","-","-","-",},
 	};
 	
@@ -196,7 +196,6 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 	private void initGui() {
 	}
 
-	@Override
 	public JPopupMenu createPopupMenu() {
 		return null;
 	}
@@ -205,7 +204,6 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 	 * 
 	 * @see org.apache.jmeter.gui.JMeterGUIComponent#createTestElement()
 	 */
-	@Override
 	public TestElement createTestElement() {
 		Monitor monitor = new Monitor();
 		modifyTestElement(monitor);
@@ -214,7 +212,6 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 		return monitor;
 	}
 
-	@Override
 	public String getLabelResource() {
 		// TODO Auto-generated method stub
 		return null;
@@ -224,7 +221,6 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 	 * 
 	 * @see org.apache.jmeter.gui.JMeterGUIComponent#getMenuCategories()
 	 */
-	@Override
 	public Collection<String> getMenuCategories() {
 		return null;
 	}
@@ -239,7 +235,6 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 		}
 	}
 
-	@Override
 	public void modifyTestElement(TestElement element) {
 		super.configureTestElement(element);
 	}

@@ -50,11 +50,9 @@ public class JFreeChartGraph {
 
 	private void init() {
 		timeSeriesList = new LinkedList<TimeSeries>();
-		m_average = new TimeSeries(AVERANGE,
-				org.jfree.data.time.Millisecond.class);
-		m_tps = new TimeSeries(TPS, org.jfree.data.time.Millisecond.class);
-		m_deviation = new TimeSeries(DEVIATION,
-				org.jfree.data.time.Millisecond.class);
+		m_average = new TimeSeries(AVERANGE, Millisecond.class);
+		m_tps = new TimeSeries(TPS, Millisecond.class);
+		m_deviation = new TimeSeries(DEVIATION, Millisecond.class);
 		stateMap.put(AVERANGE, m_average);
 		stateMap.put(DEVIATION, m_deviation);
 		stateMap.put(TPS, m_tps);

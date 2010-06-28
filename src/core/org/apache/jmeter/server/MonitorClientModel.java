@@ -99,7 +99,6 @@ public class MonitorClientModel implements Runnable{
 			this.monitors=monitors;
 			this.mr=mr;
 		}
-		@Override
 		public void run(){
 			addValuesToTimeSeries(monitors,mr);
 		}
@@ -113,7 +112,6 @@ public class MonitorClientModel implements Runnable{
 		this.project=project;
 	}
 	
-	@Override
 	public void run() {
 		
 		try {

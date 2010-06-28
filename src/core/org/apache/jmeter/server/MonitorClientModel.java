@@ -180,6 +180,9 @@ public class MonitorClientModel implements Runnable{
 //					}
 //				}
 
+				if(!agentMap.keySet().contains(chartName)){
+					continue;
+				}
 				// 为每一个Agent的监控分类生成类别Gui
 				JMeterTreeNode dataNode = addAgentToTree(serverNode,
 						JMeterUtils.getResString(Monitor.PRE_TITLE + MonitorGui.CATEGORY[i]),
@@ -258,14 +261,17 @@ public class MonitorClientModel implements Runnable{
 			MonitorData monitors=null;
 			if (mor.isFirstFetch()) {
 				monitors = remoteDataService.getStartMonitorData(agent);
+				if (monitors == null) {
+					continue;
+				}
 				mor.setDataEndPosition(monitors.getDataEndPosition());
 				pos = mor.getDataEndPosition();
 				mor.setFirstFetch(false);
 			} else {
 				monitors = remoteDataService.getMonitorData(agent, pos);
-			}
-			if (monitors == null) {
-				continue;
+				if (monitors == null) {
+					continue;
+				}
 			}
 			// System.out.println("fetch data:"+agent.get("name"));
 			mor.setDataEndPosition(monitors.getDataEndPosition());

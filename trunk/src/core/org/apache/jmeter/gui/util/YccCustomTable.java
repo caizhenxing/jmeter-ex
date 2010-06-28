@@ -1,4 +1,4 @@
-package org.apache.jmeter.visualizers;
+package org.apache.jmeter.gui.util;
 
 import javax.swing.JTable;
 import javax.swing.table.TableModel;

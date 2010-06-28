@@ -360,7 +360,6 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 		ts.addOrUpdate(s, v);
 	}
 
-	@Override
 	public void itemStateChanged(ItemEvent e) {
 		String name = cbMap.get(e.getSource());
 		int len = localTimeSeriesCollectionL.getSeriesCount();
@@ -386,7 +385,6 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 		}
 	}
 
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		// TODO Auto-generated method stub
 		JFileChooser chooser = FileDialoger.promptToSaveFile(category+".png");

@@ -185,7 +185,6 @@ public class ServerGui  extends AbstractJMeterGuiComponent {
 	 * @see org.apache.jmeter.gui.JMeterGUIComponent#getLabelResource()
 	 * 
 	 */
-	@Override
 	public String getLabelResource() {
 		return "m_server";
 	}

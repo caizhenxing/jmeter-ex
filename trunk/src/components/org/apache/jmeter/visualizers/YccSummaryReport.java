@@ -48,6 +48,7 @@ import javax.swing.table.TableCellRenderer;
 
 import org.apache.jmeter.gui.util.FileDialoger;
 import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
+import org.apache.jmeter.gui.util.YccCustomTable;
 import org.apache.jmeter.samplers.Clearable;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.save.CSVSaveService;
@@ -299,7 +300,6 @@ public class YccSummaryReport extends AbstractVisualizer implements Clearable,
 		}
 	}
 
-	@Override
 	public void itemStateChanged(ItemEvent e) {
 		if (e.getItem() == average) {
 			m_jfGraph.setLineDisplay(JFreeChartGraph.AVERANGE, e

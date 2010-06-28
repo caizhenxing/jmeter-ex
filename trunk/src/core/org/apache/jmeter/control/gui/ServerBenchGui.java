@@ -140,7 +140,6 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		add(mainPanel);
 	}
 
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == update) {
 			List<String> lst = null;

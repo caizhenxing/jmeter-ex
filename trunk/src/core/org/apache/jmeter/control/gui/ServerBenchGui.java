@@ -3,6 +3,7 @@ package org.apache.jmeter.control.gui;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.List;
@@ -18,10 +19,12 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
+import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.server.MonitorClientModel;
 import org.apache.jmeter.testelement.ServerBench;
 import org.apache.jmeter.testelement.TestElement;
+import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
 
 /**
@@ -35,9 +38,9 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 
 	private JComboBox com = new JComboBox();
 	private JTextField rangeField = new JTextField(58);
-	private JButton update = new JButton("update");
-	private JButton connect = new JButton("Connect");
-	private JButton disConnect = new JButton("disConnect");
+	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
+	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
+	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
 	private MonitorClientModel model = new MonitorClientModel();
 	
 	/**
@@ -76,11 +79,6 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	 */
 	public JPopupMenu createPopupMenu() {
 		JPopupMenu menu = new JPopupMenu();
-//		JMenu addMenu = new JMenu(JMeterUtils.getResString("add"));
-//		addMenu.add(MenuFactory.makeMenuItem(JMeterUtils
-//				.getResString("monitor_server"), ServerGui.class.getName(),
-//				ActionNames.ADD));
-//		menu.add(addMenu);
 		return menu;
 	}
 
@@ -101,11 +99,11 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		VerticalPanel mainPanel = new VerticalPanel();
 
 		mainPanel.setLayout(new VerticalLayout(5, VerticalLayout.LEFT));
-		mainPanel.setBorder(BorderFactory.createTitledBorder("登陆服务器"));
+		mainPanel.setBorder(BorderFactory.createTitledBorder(JMeterUtils.getResString("server_bench_login")));
 
 		// project
 		Box urlsPanel = Box.createHorizontalBox();
-		JLabel urls=new JLabel("Server URL:");
+		JLabel urls=new JLabel(JMeterUtils.getResString("server_bench_url"));
 		urls.setPreferredSize(new Dimension(80,20));
 		urlsPanel.add(urls);
 
@@ -116,11 +114,11 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		mainPanel.add(urlsPanel);
 
 		Box projectPanel = Box.createHorizontalBox();
-		JLabel pro=new JLabel("Projects:");
+		JLabel pro=new JLabel(JMeterUtils.getResString("server_bench_projects"));
 		pro.setPreferredSize(new Dimension(80,20));
 		projectPanel.add(pro);
 
-		String s[]={"press the update button to get the info of projects'"};
+		String s[]={JMeterUtils.getResString("server_bench_getprojects")};
 		com.setModel(new DefaultComboBoxModel(s));
 		com.setPreferredSize(new Dimension(300, 20));
 		projectPanel.add(com);
@@ -147,11 +145,23 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 				lst = this.model.getProjects(rangeField.getText());
 				com.setModel(new DefaultComboBoxModel(lst.toArray()));
 			} catch (MalformedURLException e1) {
-				JOptionPane.showMessageDialog(this, "can not connect to "
-						+ rangeField.getText());
+				JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(),JMeterUtils.getResString("server_bench_failed")
+						+ rangeField.getText(), JMeterUtils.getResString("server_bench_error"),
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			} catch (UndeclaredThrowableException e1){
+				JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(),JMeterUtils.getResString("server_bench_failed")
+						+ rangeField.getText(), JMeterUtils.getResString("server_bench_error"),
+						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
 		} else if (e.getSource() == connect) {
+			if (JMeterUtils.getResString("server_bench_getprojects").equals(com.getSelectedItem())) {
+				JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(),JMeterUtils.getResString("server_bench_error_projects")
+						, JMeterUtils.getResString("server_bench_error"),
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
 			this.model.setServiceUrl(rangeField.getText());
         	try {
         		model.setProject((String)com.getSelectedItem());

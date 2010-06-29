@@ -47,12 +47,12 @@ public class MonitorClientModel implements Runnable{
 		remoteDataService = (RemoteDataService) factory.create(
                 RemoteDataService.class, this.serviceUrl);
 		if (this.remoteDataService == null) {
-			JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(), "未连接服务器", "出错了",
+			JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(),JMeterUtils.getResString("server_bench_connect_error"), JMeterUtils.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		if(!initCategoryGui()){
-			JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(), "错误的工程名", "出错了",
+			JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(), JMeterUtils.getResString("server_bench_error_projects"), JMeterUtils.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
 			return false;
 		}

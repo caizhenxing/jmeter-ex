@@ -47,6 +47,17 @@ public final class Resources {
         }
     }
 
+    /**
+     * set resource
+     * 
+     * @author chenchao.yecc
+     * @version jex002A
+     * @param resources
+     */
+    public static void setResource(JConsoleResources resources){
+    	Resources.resources=resources;
+    }
+    
     private Resources() { throw new AssertionError(); }
 
     /**

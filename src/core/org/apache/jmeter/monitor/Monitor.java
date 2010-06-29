@@ -24,6 +24,7 @@ import java.util.Map;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -93,6 +94,8 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 	private JPanel checkboxPanel = new JPanel();
 	
 	private JButton save = new JButton("Save Graph");
+	
+	private JLabel info = new JLabel();
 
 	public Monitor() {
 		DateAxis localDateAxis = new DateAxis(JMeterUtils
@@ -123,6 +126,7 @@ public class Monitor extends AbstractTestElement implements Serializable, ItemLi
 		localNumberAxisL.setStandardTickUnits(NumberAxis
 				.createIntegerTickUnits());
 		checkboxPanel.setLayout(new FlowLayout());
+		checkboxPanel.add(info);
 		checkboxPanel.add(save);
 		save.addActionListener(this);
 		localJFreeChart = new JFreeChart("", new Font("SansSerif", 1, 24),

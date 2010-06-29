@@ -59,6 +59,9 @@ import org.apache.oro.text.regex.Perl5Compiler;
 import org.apache.oro.text.regex.Perl5Matcher;
 import org.xml.sax.XMLReader;
 
+import sun.tools.jconsole.Resources;
+import sun.tools.jconsole.resources.JConsoleResources;
+
 /**
  * This class contains the static utility methods used by JMeter.
  *
@@ -323,6 +326,9 @@ public class JMeterUtils implements UnitTestManager {
         } else {
             ignoreResorces = false;
             ResourceBundle resBund = ResourceBundle.getBundle("org.apache.jmeter.resources.messages", loc); // $NON-NLS-1$
+			JConsoleResources jconsoleResources = (JConsoleResources) ResourceBundle	// jex002A
+					.getBundle("sun.tools.jconsole.resources.JConsoleResources", loc);	// jex002A
+			Resources.setResource(jconsoleResources);									// jex002A
             resources = resBund;
             locale = loc;
             final Locale resBundLocale = resBund.getLocale();

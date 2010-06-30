@@ -56,6 +56,7 @@ import org.apache.jmeter.gui.action.LoadRecentProject;
 import org.apache.jmeter.gui.tree.JMeterTreeListener;
 import org.apache.jmeter.gui.tree.JMeterTreeModel;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.apache.jmeter.jtlparse.JTLParser;
 import org.apache.jmeter.plugin.JMeterPlugin;
 import org.apache.jmeter.plugin.PluginManager;
 import org.apache.jmeter.reporters.ResultCollector;
@@ -113,6 +114,8 @@ public class JMeter implements JMeterPlugin {
     private static final int TESTFILE_OPT       = 't';// $NON-NLS-1$
     private static final int PROXY_USERNAME     = 'u';// $NON-NLS-1$
     private static final int VERSION_OPT        = 'v';// $NON-NLS-1$
+    private static final int PARSEFILE_OPT      = 'c';// jex002A
+    private static final int SAVERESULT_OPT     = 'd';// jex002A
 
     private static final int SYSTEM_PROPERTY    = 'D';// $NON-NLS-1$
     private static final int JMETER_GLOBAL_PROP = 'G';// $NON-NLS-1$
@@ -195,6 +198,10 @@ public class JMeter implements JMeterPlugin {
                     "the jmeter home directory to use"),
             new CLOptionDescriptor("remoteexit", CLOptionDescriptor.ARGUMENT_DISALLOWED, REMOTE_STOP,
             "Exit the remote servers at end of test (non-GUI)"),
+            new CLOptionDescriptor("parseresultfile", CLOptionDescriptor.ARGUMENT_REQUIRED, PARSEFILE_OPT,
+            "the path of jtl(txt) file"),
+            new CLOptionDescriptor("saveresultfile", CLOptionDescriptor.ARGUMENT_REQUIRED, SAVERESULT_OPT,
+            "the directory of saving the result file"),
                     };
 
     public JMeter() {
@@ -268,6 +275,39 @@ public class JMeter implements JMeterPlugin {
             System.out.println("Usage");
             System.out.println(CLUtil.describeOptions(options).toString());
             return;
+        }
+        
+        // 解析结果文件
+        if(parser.getArgumentById(PARSEFILE_OPT)!=null){
+        	SimpleDateFormat bartDateFormat = new SimpleDateFormat("MM-dd-hh-mm-ss");
+        	Date date = new Date();
+        	String srcPath=parser.getArgumentById(PARSEFILE_OPT).getArgument(0);
+        	String desPath;
+        	if(parser.getArgumentById(SAVERESULT_OPT)!=null){
+        		desPath=parser.getArgumentById(SAVERESULT_OPT).getArgument(0);
+        		File file=new File(desPath);
+        		if (!file.exists()) {
+        			file.mkdirs();
+				}
+        		desPath=desPath+File.separator+bartDateFormat.format(date)+" Result.txt";
+        		
+        	} else {
+        		File file=new File(srcPath);
+        		desPath=file.getParent()+File.separator+bartDateFormat.format(date)+"parsingResult.txt";
+        	}
+        	
+    		JTLParser jtlParser = new JTLParser();
+    		jtlParser.setJmeterLogFile(srcPath);
+    		jtlParser.setSaveFile(desPath);
+    		try {
+				jtlParser.parse();
+				System.out.println("Parsing finished!");
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+			
+			// 解析结束退出
+    		System.exit(1);
         }
         try {
             initializeProperties(parser); // Also initialises JMeter logging

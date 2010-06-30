@@ -19,6 +19,7 @@
 package org.apache.jmeter.save;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -155,6 +156,7 @@ public class SaveService {
     private static String fileVersion = ""; // read from properties file// $NON-NLS-1$
     private static final String FILEVERSION = "697317"; // Expected value $NON-NLS-1$
     private static String fileEncoding = ""; // read from properties file// $NON-NLS-1$
+    private static final String  SEPARATOR= "|"; // read from properties file// $NON-NLS-1$
 
     static {
         log.info("Testplan (JMX) version: "+TESTPLAN_FORMAT+". Testlog (JTL) version: "+TESTLOG_FORMAT);
@@ -327,6 +329,49 @@ public class SaveService {
         JTLSAVER.marshal(evt.getResult(), new XppDriver().createWriter(writer), dh);
         writer.write('\n');
     }
+    
+    /**
+     * Save a sampleResult to an common file
+     *
+     * @since jex002A
+     * @author chenchao.yecc
+     * @param evt sampleResult wrapped in a sampleEvent
+     * @param writer output stream which must be created using {@link #getFileEncoding(String)}
+     */
+    public synchronized static void saveSampleResultHex(SampleEvent evt, Writer writer) throws IOException {
+    	StringBuilder sb=new StringBuilder();
+        int    CURRENT_LONG_SIZE   = 13;
+        int    MIN_LONG_SIZE       = 8;
+    	sb.append(getFixSizeString(String.valueOf(evt.getResult().getTime()),MIN_LONG_SIZE)).append(SEPARATOR)
+    	.append(getFixSizeString(String.valueOf(evt.getResult().isSuccessful()),MIN_LONG_SIZE)).append(SEPARATOR)
+    	.append(getFixSizeString(String.valueOf(evt.getResult().getStartTime()),CURRENT_LONG_SIZE)).append(SEPARATOR)
+    	.append(getFixSizeString(String.valueOf(evt.getResult().getEndTime()),CURRENT_LONG_SIZE)).append('\n');
+    	writer.write(sb.toString());
+    }
+
+    /**
+     * 得到指定指定字节数的字符串
+     * 
+     * @since jex002A
+     * @author shenghua.nish
+     * @param num
+     * @param count
+     * @note 如果传入的字节算大于count,则从后开始截断
+     */
+    public static String getFixSizeString(Object obj, int count) {
+		String numStr = String.valueOf(obj);
+		if (numStr.length() > count) {
+			numStr = numStr.substring(0, count - 1);
+		} else if (numStr.length() < count) {
+			StringBuffer sb = new StringBuffer();
+			for (int i = 0; i < count - numStr.length(); i++) {
+				sb.append(" ");
+			}
+			sb.append(numStr);
+			return sb.toString();
+		}
+		return numStr;
+	};
 
     /**
      * @param elem test element

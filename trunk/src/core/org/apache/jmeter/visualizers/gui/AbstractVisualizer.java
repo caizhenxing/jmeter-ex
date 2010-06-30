@@ -122,6 +122,16 @@ public abstract class AbstractVisualizer
 
     protected boolean isStats = false;
 
+    /**
+     * get Config button
+     * @author chenchao.yecc
+     * @since jex002A
+     * @return
+     */
+    protected JButton getSaveConfigButton(){
+    	return saveConfigButton;
+    }
+    
     public AbstractVisualizer() {
         super();
 

@@ -22,6 +22,7 @@ import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.gui.util.MenuFactory;
 import org.apache.jmeter.jvm.JvmConsole;
 import org.apache.jmeter.testelement.TestElement;
+import org.apache.jmeter.util.JMeterUtils;
 
 import sun.tools.jconsole.JConsole;
 
@@ -39,7 +40,7 @@ public class JvmConsoleGui extends AbstractJMeterGuiComponent implements ItemLis
 	private JDesktopPane jvmPanel;
 	private JPanel mainPanel;
 	private JPanel controlPanel;
-	private JButton start_btn = new JButton("start");
+	private JButton start_btn = new JButton(JMeterUtils.getResString("jtl_parser_start"));
 	private JLabel info_lbl = new JLabel();
 	// current machine
 	private JvmConsole machine = null;
@@ -203,7 +204,7 @@ public class JvmConsoleGui extends AbstractJMeterGuiComponent implements ItemLis
 		jvmPanel.setBackground(new Color(235, 233, 237));
 		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		JPanel right = new JPanel();
-		info_lbl.setText("Click the right button to start jvm monitor");
+		info_lbl.setText(JMeterUtils.getResString("jc_info"));
 		left.add(info_lbl);
 		right.add(start_btn);
 		controlPanel.add(right, BorderLayout.EAST);

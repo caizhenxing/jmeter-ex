@@ -16,7 +16,7 @@ public class FileOnlyVisualizer extends AbstractVisualizer {
 
 	private static final long serialVersionUID = 1L;
 
-	public FileOnlyVisualizer(){
+	public FileOnlyVisualizer(){ 
 		super();
 		this.setLayout(new BorderLayout());
 		getSaveConfigButton().setVisible(false);

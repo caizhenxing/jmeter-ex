@@ -1,6 +1,6 @@
 package org.apache.jmeter.reporters;
 
-import java.io.BufferedInputStream;
+import java.io.BufferedInputStream; 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;

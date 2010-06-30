@@ -148,22 +148,22 @@ public class MonitorClientModel implements Runnable{
 				agentMap.put(chartName, chart);
 			}
 		}
-		// 初始化Gui
+		
+		// 为每一个Agent生成服务器Gui
+		GuiPackage guiPackage = GuiPackage.getInstance();
+		JMeterTreeNode benchNode = guiPackage.getCurrentNode();
+		
+		// 清空当前结点下的所有子节点
+		int count = benchNode.getChildCount();
+		for (int i = 0; i < count; i++) {
+			JMeterTreeNode tmpNode = (JMeterTreeNode) benchNode
+			.getChildAt(i);
+			TestElement testElement = tmpNode.getTestElement();
+			guiPackage.getTreeModel().removeNodeFromParent(tmpNode);
+			guiPackage.removeNode(testElement);
+		}
 		for (String agent : agents.keySet()) {
-
-			// 为每一个Agent生成服务器Gui
-			GuiPackage guiPackage = GuiPackage.getInstance();
-			JMeterTreeNode benchNode = guiPackage.getCurrentNode();
-
-			// 清空当前结点下的所有子节点
-			int count = benchNode.getChildCount();
-			for (int i = 0; i < count; i++) {
-				JMeterTreeNode tmpNode = (JMeterTreeNode) benchNode
-						.getChildAt(i);
-				TestElement testElement = tmpNode.getTestElement();
-				guiPackage.getTreeModel().removeNodeFromParent(tmpNode);
-				guiPackage.removeNode(testElement);
-			}
+			// 初始化Gui
 
 			// 新建结点
 			JMeterTreeNode serverNode = addAgentToTree(benchNode, agent,

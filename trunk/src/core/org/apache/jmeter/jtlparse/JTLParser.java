@@ -1,15 +1,21 @@
 package org.apache.jmeter.jtlparse;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import org.apache.commons.lang.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -23,6 +29,8 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 public class JTLParser extends DefaultHandler {
 
+	private int CURRENT_LONG_SIZE = 13;
+	private int MIN_LONG_SIZE = 8;
 	private long maxRsTime = Long.MIN_VALUE;
 	private long minRsTime = Long.MAX_VALUE;
 	private double sumRsTime = 0;
@@ -35,6 +43,7 @@ public class JTLParser extends DefaultHandler {
 	private File jtlFile = null;
 	private File saveFile = null;
 	boolean firstTimeInit = false;
+	private List<Long> tmpList=new LinkedList<Long>();
 
 	public void setJmeterLogFile(String path) {
 		this.jtlFile = new File(path);
@@ -42,26 +51,45 @@ public class JTLParser extends DefaultHandler {
 
 	public void setSaveFile(String path) {
 		this.saveFile = new File(path);
-		if(!saveFile.exists()){
-			saveFile.mkdirs();
+		File parent=saveFile.getParentFile();
+		if(!parent.exists()){
+			parent.mkdirs();
 		} 
-		if (!saveFile.isFile()) {
-			saveFile=new File(saveFile.getAbsolutePath()+File.separator+"result.txt");
+		if (!saveFile.exists()) {
+			saveFile=new File(path);
 		} 
 	}
 
 	public void parse() throws Exception {
-		SAXParserFactory sf = SAXParserFactory.newInstance();
-		try {
-			SAXParser sp = sf.newSAXParser();
-			sp.parse(new InputSource(jtlFile.getAbsolutePath()), this);
+		// 判断文件种类
+		FileReader fr=new FileReader(jtlFile.getAbsolutePath());
+		char[] buf=new char[5];
+		fr.read(buf);
+		String sb=new StringBuilder().append(buf).toString();
+		// line文件，则开始解析
+		if(!sb.toString().equals("<?xml")){
+			fr.close();
+			BufferedReader br=new BufferedReader(new FileReader(jtlFile.getAbsolutePath()));
+			String line=null;
+			while((line=br.readLine())!=null){
+				analyseJtlNode(createJtlNodeForLine(line));
+			}
 			writeResultToTemplate();
-		} catch (ParserConfigurationException e) {
-			e.printStackTrace();
-		} catch (SAXException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+		} else {
+
+			// xml文件，开始解析
+			SAXParserFactory sf = SAXParserFactory.newInstance();
+			try {
+				SAXParser sp = sf.newSAXParser();
+				sp.parse(new InputSource(jtlFile.getAbsolutePath()), this);
+				writeResultToTemplate();
+			} catch (ParserConfigurationException e) {
+				e.printStackTrace();
+			} catch (SAXException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 
@@ -76,6 +104,8 @@ public class JTLParser extends DefaultHandler {
 			pw.println("平均响应时间：" + sumRsTime / count);
 			pw.println("最大响应时间：" + maxRsTime);
 			pw.println("最小响应时间：" + minRsTime);
+			pw.println("50%响应时间：" + tmpList.get((int)(tmpList.size()*0.5)));
+			pw.println("90%响应时间：" + tmpList.get((int)(tmpList.size()*0.9)));
 			long howLongRunning = endTime - firstTime;
 			double throughput = ((double) (count) / (double) howLongRunning) * 1000.0;
 			pw.println("平均TPS：" + throughput);
@@ -125,6 +155,7 @@ public class JTLParser extends DefaultHandler {
 			count = count + 1;
 			minRsTime = Math.min(node.getAttTime(), minRsTime);
 			maxRsTime = Math.max(node.getAttTime(), maxRsTime);
+			addSortedValue(node.getAttTime());
 			sumRsTime = sumRsTime + (double) node.getAttTime();
 			if (howLongRunning != 0) {
 				double tps = ((double) count / (double) howLongRunning) * 1000.0;
@@ -136,6 +167,52 @@ public class JTLParser extends DefaultHandler {
 		}
 	}
 
+    private void addSortedValue(Long val) {
+        int index = Collections.binarySearch(tmpList, val);
+        if (index >= 0 && index < tmpList.size()) {
+        	tmpList.add(index, val);
+        } else if (index == tmpList.size() || tmpList.size() == 0) {
+        	tmpList.add(val);
+        } else {
+        	tmpList.add((index * (-1)) - 1, val);
+        }
+    }
+	private JtlNode createJtlNodeForLine(String line){
+		JtlNode node = new JtlNode();
+		String tmp=null;
+		int spos=0;
+		int epos=CURRENT_LONG_SIZE;
+		
+		// 时间戳
+		tmp=StringUtils.strip(line.substring(spos, epos));
+		node.setTimeStamp(Long.parseLong(tmp));
+		spos = epos+1;
+		epos = epos+MIN_LONG_SIZE+1;
+		
+		// 响应时间
+		tmp=StringUtils.strip(line.substring(spos, epos));
+		node.setAttTime(Long.parseLong(tmp));
+		spos = epos+1;
+		epos = epos+MIN_LONG_SIZE+1;
+		
+		// 执行结果
+		tmp=StringUtils.strip(line.substring(spos, epos));
+		node.setSuccess(Boolean.parseBoolean(tmp));
+		spos = epos+1;
+		epos = epos+CURRENT_LONG_SIZE+1;
+		
+		// 开始时间
+		tmp=StringUtils.strip(line.substring(spos, epos));
+		node.setStartTime(Long.parseLong(tmp));
+		spos = epos+1;
+		epos = epos+CURRENT_LONG_SIZE+1;
+		
+		// 结束时间
+		tmp=StringUtils.strip(line.substring(spos, epos));
+		node.setEndTime(Long.parseLong(tmp));
+		return node;
+	}
+	
 	private JtlNode createJtlNode(Attributes attrs) {
 		long newValue;
 		boolean newResult;
@@ -235,6 +312,26 @@ public class JTLParser extends DefaultHandler {
 		private String dataType;
 		// by BYTES
 		private long bytes;
+		
+		private long startTime;
+		
+		public long getStartTime() {
+			return startTime;
+		}
+
+		public void setStartTime(long startTime) {
+			this.startTime = startTime;
+		}
+
+		public long getEndTime() {
+			return endTime;
+		}
+
+		public void setEndTime(long endTime) {
+			this.endTime = endTime;
+		}
+
+		private long endTime;
 
 		// de ENCODING
 		// ec ERROR_COUNT
@@ -333,8 +430,13 @@ public class JTLParser extends DefaultHandler {
 	}
 
 	public static void main(String[] args) throws Exception {
+		Long start=System.currentTimeMillis();
 		final JTLParser parser = new JTLParser();
-		parser.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\q20.jtl");
+//		parser.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\q20.jtl");
+		parser.setJmeterLogFile("D:\\Project\\Project01\\Jmeter-Ex\\a.txt");
+		parser.setSaveFile("d:\\res.txt");
 		parser.parse();
+		System.out.println(System.currentTimeMillis()-start);
+		System.out.println("Over");
 	}
 }

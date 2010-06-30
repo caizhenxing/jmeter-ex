@@ -342,7 +342,8 @@ public class SaveService {
     	StringBuilder sb=new StringBuilder();
         int    CURRENT_LONG_SIZE   = 13;
         int    MIN_LONG_SIZE       = 8;
-    	sb.append(getFixSizeString(String.valueOf(evt.getResult().getTime()),MIN_LONG_SIZE)).append(SEPARATOR)
+    	sb.append(getFixSizeString(String.valueOf(evt.getResult().getTimeStamp()),CURRENT_LONG_SIZE)).append(SEPARATOR)
+    	.append(getFixSizeString(String.valueOf(evt.getResult().getTime()),MIN_LONG_SIZE)).append(SEPARATOR)
     	.append(getFixSizeString(String.valueOf(evt.getResult().isSuccessful()),MIN_LONG_SIZE)).append(SEPARATOR)
     	.append(getFixSizeString(String.valueOf(evt.getResult().getStartTime()),CURRENT_LONG_SIZE)).append(SEPARATOR)
     	.append(getFixSizeString(String.valueOf(evt.getResult().getEndTime()),CURRENT_LONG_SIZE)).append('\n');

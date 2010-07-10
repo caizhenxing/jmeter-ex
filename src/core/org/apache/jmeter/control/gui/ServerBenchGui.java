@@ -18,10 +18,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 
+import org.apache.jmeter.control.MonitorClientModel;
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.util.VerticalPanel;
-import org.apache.jmeter.server.MonitorClientModel;
 import org.apache.jmeter.testelement.ServerBench;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
@@ -41,6 +41,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
 	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
 	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
+	private JButton configure = new JButton("configure");
+	private ConfigurDialog confDialog = new ConfigurDialog();
 	private MonitorClientModel model = new MonitorClientModel();
 	
 	/**
@@ -108,7 +110,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		urlsPanel.add(urls);
 
 //		rangeField.setText("http://10.20.136.18:8080/aliper-server/AliperServlet");
-		rangeField.setText("http://10.249.129.159:8080/monitor.server/remote/remoteDataService");
+		rangeField.setText("http://10.249.129.159:8080/monitor/remote/remoteDataService");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);
@@ -132,8 +134,11 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		buttonPanel.add(connect);
 		buttonPanel.add(Box.createHorizontalStrut(20));
 		buttonPanel.add(disConnect);
+		buttonPanel.add(Box.createHorizontalStrut(20));
+		buttonPanel.add(configure);
 		connect.addActionListener(this);
 		disConnect.addActionListener(this);
+		configure.addActionListener(this);
 		mainPanel.add(buttonPanel);
 		add(mainPanel);
 	}
@@ -167,6 +172,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
         		model.setProject((String)com.getSelectedItem());
         		if (model.connect()) {
         			connect.setEnabled(false);
+        			configure.setEnabled(false);
 				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
@@ -174,6 +180,10 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		} else if (e.getSource() == disConnect) {
 			model.disConnect();
 			connect.setEnabled(true);
+			configure.setEnabled(true);
+		} else if (e.getSource() == configure){
+		
+			confDialog.setVisible(true);
 		}
 	}
 }

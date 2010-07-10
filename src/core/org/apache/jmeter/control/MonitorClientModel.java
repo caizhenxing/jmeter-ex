@@ -1,8 +1,9 @@
-package org.apache.jmeter.server;
+package org.apache.jmeter.control;
 
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JOptionPane;
@@ -16,6 +17,10 @@ import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
 import org.jfree.data.time.TimeSeries;
 
+import com.alibaba.b2b.qa.monitor.MonitorData;
+import com.alibaba.b2b.qa.monitor.RemoteAgent;
+import com.alibaba.b2b.qa.monitor.remote.RemoteControllerService;
+import com.alibaba.b2b.qa.monitor.remote.RemoteDataService;
 import com.caucho.hessian.client.HessianProxyFactory;
 
 /**
@@ -33,17 +38,34 @@ public class MonitorClientModel implements Runnable{
 		this.serviceUrl = serviceUrl;
 	}
 	private RemoteDataService remoteDataService = null;
+	private RemoteControllerService remoteControllerService = null;
 	private Map<String, ArrayList<HashMap<String,String>>> agents=null;
 	private boolean running;
 	private HashMap<String,Monitor> linespecMap = new HashMap<String, Monitor>();
 	private int periods=30000;
 	private Thread dataFetcher=null;
+	private List<RemoteAgent> agentList = null;
+	HessianProxyFactory factory=new HessianProxyFactory();
 
 	// 缓存agent，取数据时使用
 	private Map<String,Map<String,String>> agentMap=new HashMap<String,Map<String,String>>();
 	
+	public synchronized List<AgentServer> configure() throws MalformedURLException{
+		List<AgentServer> resList=new ArrayList<AgentServer>();
+		remoteControllerService = (RemoteControllerService) factory.create(
+				RemoteControllerService.class, "http://10.249.129.159:8080/monitor/remote/remoteControllerService");
+		// 获得所有的服务器
+		agentList=remoteControllerService.getAllAgents();
+		if (agentList!=null) {
+			for (Iterator<RemoteAgent> iterator = agentList.iterator(); iterator.hasNext();) {
+				RemoteAgent agentServer = iterator.next();
+				AgentServer s=new AgentServer();
+				s.setAddress(agentServer.getAddress());
+			}
+		}
+		return resList;
+	}
 	public synchronized boolean connect() throws MalformedURLException {
-		HessianProxyFactory factory = new HessianProxyFactory();
 		remoteDataService = (RemoteDataService) factory.create(
                 RemoteDataService.class, this.serviceUrl);
 		if (this.remoteDataService == null) {
@@ -51,6 +73,7 @@ public class MonitorClientModel implements Runnable{
 					JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
+		
 		if(!initCategoryGui()){
 			JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(), JMeterUtils.getResString("server_bench_error_projects"), JMeterUtils.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
@@ -63,7 +86,7 @@ public class MonitorClientModel implements Runnable{
 		}
 		// 等待数据加载
 		try {
-			Thread.sleep(3000);
+			Thread.sleep(2500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -149,15 +172,14 @@ public class MonitorClientModel implements Runnable{
 			}
 		}
 		
-		// 为每一个Agent生成服务器Gui
+		// 为每一个Agent生成ServerGui
 		GuiPackage guiPackage = GuiPackage.getInstance();
 		JMeterTreeNode benchNode = guiPackage.getCurrentNode();
 		
 		// 清空当前结点下的所有子节点
 		int count = benchNode.getChildCount();
 		for (int i = 0; i < count; i++) {
-			JMeterTreeNode tmpNode = (JMeterTreeNode) benchNode
-			.getChildAt(i);
+			JMeterTreeNode tmpNode = (JMeterTreeNode) benchNode.getChildAt(i);
 			TestElement testElement = tmpNode.getTestElement();
 			guiPackage.getTreeModel().removeNodeFromParent(tmpNode);
 			guiPackage.removeNode(testElement);
@@ -165,7 +187,7 @@ public class MonitorClientModel implements Runnable{
 		for (String agent : agents.keySet()) {
 			// 初始化Gui
 
-			// 新建结点
+			// 新建ServerGui
 			JMeterTreeNode serverNode = addAgentToTree(benchNode, agent,
 					"org.apache.jmeter.server.gui.ServerGui");
 			for (int i = 0; i < MonitorGui.CATEGORY.length; i++) {

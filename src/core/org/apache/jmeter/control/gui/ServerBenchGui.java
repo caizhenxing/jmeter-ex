@@ -1,12 +1,18 @@
 package org.apache.jmeter.control.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -15,17 +21,28 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.TableCellRenderer;
 
+import org.apache.jmeter.control.AgentServer;
 import org.apache.jmeter.control.MonitorClientModel;
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.GuiPackage;
+import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
 import org.apache.jmeter.gui.util.VerticalPanel;
+import org.apache.jmeter.gui.util.YccCustomTable;
 import org.apache.jmeter.testelement.ServerBench;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
+import org.apache.jorphan.gui.ObjectTableModel;
+import org.apache.jorphan.gui.RendererUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
+import org.apache.jorphan.reflect.Functor;
 
 /**
  * Server Bench
@@ -42,8 +59,22 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
 	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
 	private JButton configure = new JButton("configure");
+	private JButton active = new JButton("Active");
 	private ConfigurDialog confDialog = new ConfigurDialog();
 	private MonitorClientModel model = new MonitorClientModel();
+	private Map<Integer,AgentServer> agentSeverContainer = new HashMap<Integer,AgentServer>();
+	private transient ObjectTableModel omodel;
+	private JTable myJTable = null;
+	private static final String[] COLUMNS = { "con_ip", "con_port",
+		"con_project", "con_interal", "con_times", "con_monitor_item"};
+	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
+		null, // ip
+		null, // port
+		null, // project
+		null, // interal
+		null, // times
+		null, // monitor item
+	};
 	
 	/**
 	 * Create a new JVMbenchGui.
@@ -140,7 +171,41 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		disConnect.addActionListener(this);
 		configure.addActionListener(this);
 		mainPanel.add(buttonPanel);
+		
+		omodel = new ObjectTableModel(COLUMNS, AgentServer.class, new Functor[] {
+			new Functor("getAddress"), new Functor("getPort"),
+			new Functor("getProject"), new Functor("getInterval"),new Functor("getTimes"),
+			new Functor("getItems"), }, new Functor[] { null, null, null,
+			null, null, null }, new Class[] { String.class, String.class,
+			String.class, Integer.class, Integer.class , String.class});
+		myJTable = new YccCustomTable(omodel);
+		myJTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		myJTable.getTableHeader().setDefaultRenderer(
+				new HeaderAsPropertyRenderer());
+		myJTable.setPreferredScrollableViewportSize(new Dimension(500, 50));
+		RendererUtils.applyRenderers(myJTable, RENDERERS);
+		JScrollPane myScrollPane = new JScrollPane(myJTable);
+		myJTable.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                    if (evt.getClickCount() == 2) {
+                    	int rowI  = myJTable.rowAtPoint(evt.getPoint());
+                    	int colI  = myJTable.columnAtPoint(evt.getPoint());
+                    	AgentServer as=agentSeverContainer.get(rowI);
+                    	confDialog.showModifyValueDialog(as);
+                    }
+            }
+    });
+		myScrollPane.setPreferredSize(new Dimension(400,100));
+
+		
 		add(mainPanel);
+		add(new JLabel("Agent configuration:"));
+		add(myScrollPane);
+		
+		Box actPanel = Box.createHorizontalBox();
+		active.setPreferredSize(new Dimension(80,20));
+		actPanel.add(active);
+		add(actPanel);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -182,8 +247,19 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			connect.setEnabled(true);
 			configure.setEnabled(true);
 		} else if (e.getSource() == configure){
-		
-			confDialog.setVisible(true);
+			List<AgentServer> aglst=null;
+			try {
+				aglst=model.configure();
+			} catch (MalformedURLException e1) {
+				e1.printStackTrace();
+			}
+			if (aglst!=null) {
+				for (Iterator<AgentServer> iterator = aglst.iterator(); iterator.hasNext();) {
+					AgentServer as =iterator.next();
+					agentSeverContainer.put(omodel.getRowCount(), as);
+					omodel.insertRow(as, omodel.getRowCount());
+				}
+			}
 		}
 	}
 }

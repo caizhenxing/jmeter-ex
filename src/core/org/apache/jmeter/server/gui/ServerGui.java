@@ -251,7 +251,7 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		mainPanel.add(cfPanel, BorderLayout.CENTER);
 		this.add(mainPanel, BorderLayout.CENTER);
 	}
-
+	
 private JCheckBox createChooseCheckBox(String labelResourceName, Color color) {
 	JCheckBox checkBox = new JCheckBox(labelResourceName);
 	checkBox.setSelected(false);

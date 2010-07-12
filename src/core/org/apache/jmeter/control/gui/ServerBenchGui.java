@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -27,10 +28,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import org.apache.jmeter.control.AgentServer;
 import org.apache.jmeter.control.MonitorClientModel;
+import org.apache.jmeter.control.UserProcess;
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
@@ -43,6 +46,8 @@ import org.apache.jorphan.gui.ObjectTableModel;
 import org.apache.jorphan.gui.RendererUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
 import org.apache.jorphan.reflect.Functor;
+
+import com.alibaba.b2b.qa.monitor.RemoteAgent;
 
 /**
  * Server Bench
@@ -60,13 +65,20 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
 	private JButton configure = new JButton("configure");
 	private JButton active = new JButton("Active");
+	private JButton enter = new JButton("Enter");
 	private ConfigurDialog confDialog = new ConfigurDialog();
+	private ProcessListDialog proDialog=new ProcessListDialog();
 	private MonitorClientModel model = new MonitorClientModel();
 	private Map<Integer,AgentServer> agentSeverContainer = new HashMap<Integer,AgentServer>();
 	private transient ObjectTableModel omodel;
-	private JTable myJTable = null;
+	private transient ObjectTableModel pidmodel;
+	private JTable agentTable = null;
+	private JTable pidTable = null;
+	private AgentServer tmpAgent = null;
 	private static final String[] COLUMNS = { "con_ip", "con_port",
 		"con_project", "con_interal", "con_times", "con_monitor_item"};
+	private static final String[] PID_COLUMNS = { "uid", "pid",
+		"cmd"};
 	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
 		null, // ip
 		null, // port
@@ -74,6 +86,11 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		null, // interal
 		null, // times
 		null, // monitor item
+	};
+	private static final TableCellRenderer[] PID_RENDERERS = new TableCellRenderer[] {
+		null, // uid
+		null, // pid
+		null, // comd
 	};
 	
 	/**
@@ -172,31 +189,31 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		configure.addActionListener(this);
 		mainPanel.add(buttonPanel);
 		
+		// 配置Dialog
 		omodel = new ObjectTableModel(COLUMNS, AgentServer.class, new Functor[] {
 			new Functor("getAddress"), new Functor("getPort"),
 			new Functor("getProject"), new Functor("getInterval"),new Functor("getTimes"),
 			new Functor("getItems"), }, new Functor[] { null, null, null,
 			null, null, null }, new Class[] { String.class, String.class,
 			String.class, Integer.class, Integer.class , String.class});
-		myJTable = new YccCustomTable(omodel);
-		myJTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		myJTable.getTableHeader().setDefaultRenderer(
+		agentTable = new YccCustomTable(omodel);
+		agentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		agentTable.getTableHeader().setDefaultRenderer(
 				new HeaderAsPropertyRenderer());
-		myJTable.setPreferredScrollableViewportSize(new Dimension(500, 50));
-		RendererUtils.applyRenderers(myJTable, RENDERERS);
-		JScrollPane myScrollPane = new JScrollPane(myJTable);
-		myJTable.addMouseListener(new MouseAdapter() {
+		agentTable.setPreferredScrollableViewportSize(new Dimension(500, 250));
+		RendererUtils.applyRenderers(agentTable, RENDERERS);
+		JScrollPane myScrollPane = new JScrollPane(agentTable);
+		agentTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                     if (evt.getClickCount() == 2) {
-                    	int rowI  = myJTable.rowAtPoint(evt.getPoint());
-                    	int colI  = myJTable.columnAtPoint(evt.getPoint());
+                    	int rowI  = agentTable.rowAtPoint(evt.getPoint());
                     	AgentServer as=agentSeverContainer.get(rowI);
+                    	tmpAgent = as;
                     	confDialog.showModifyValueDialog(as);
                     }
             }
     });
-		myScrollPane.setPreferredSize(new Dimension(400,100));
-
+//		myScrollPane.setPreferredSize(new Dimension(400,100));
 		
 		add(mainPanel);
 		add(new JLabel("Agent configuration:"));
@@ -206,6 +223,30 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		active.setPreferredSize(new Dimension(80,20));
 		actPanel.add(active);
 		add(actPanel);
+		confDialog.addLiseners(this);
+		
+		// 所有进程Dialog
+		JPanel tp=new JPanel(new BorderLayout());
+		pidmodel = new ObjectTableModel(PID_COLUMNS, UserProcess.class,
+				new Functor[] { new Functor("getUid"), new Functor("getPid"),
+			new Functor("getCmd")}, new Functor[] { null, null, null, }, new Class[] { String.class, String.class,
+			String.class,});
+		pidTable = new YccCustomTable(pidmodel);
+		pidTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		pidTable.getTableHeader().setDefaultRenderer(
+				new HeaderAsPropertyRenderer());
+		pidTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+//		pidTable.setPreferredSize(new Dimension(500, 2400));
+//		pidTable.setPreferredScrollableViewportSize(new Dimension(900,600));
+		RendererUtils.applyRenderers(pidTable, PID_RENDERERS);
+		JScrollPane pidScrollPane = new JScrollPane(pidTable);
+		DefaultTableCellRenderer render =(DefaultTableCellRenderer)pidTable.getTableHeader().getDefaultRenderer();
+		render.setHorizontalAlignment(DefaultTableCellRenderer.LEFT);
+//		pidScrollPane.setPreferredSize(new Dimension(600,500));
+		tp.add(pidScrollPane,BorderLayout.CENTER);
+		tp.add(enter,BorderLayout.SOUTH);
+		enter.addActionListener(this);
+		proDialog.getContentPane().add(tp);
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -248,6 +289,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			configure.setEnabled(true);
 		} else if (e.getSource() == configure){
 			List<AgentServer> aglst=null;
+			omodel.clearData();
 			try {
 				aglst=model.configure();
 			} catch (MalformedURLException e1) {
@@ -260,6 +302,40 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 					omodel.insertRow(as, omodel.getRowCount());
 				}
 			}
+		} else if (e.getSource() == confDialog.getActiveButton()){
+			System.out.println("getActiveButton");
+		} else if (confDialog.getProcessButton().contains(e.getSource())){
+			List<String> lst=model.getAllProcess(tmpAgent);
+			int ind=lst.get(0).indexOf("CMD");
+			for (int i = 1; i < lst.size(); i++) {
+				String line = lst.get(i);
+				StringTokenizer tokens = new StringTokenizer(line);
+				UserProcess up=new UserProcess();
+				up.setUid(tokens.nextToken());
+				up.setPid(tokens.nextToken());
+				up.setPpid(tokens.nextToken());
+				up.setRunTime(tokens.nextToken());
+				up.setStartTime(tokens.nextToken());
+				up.setCmd(line.substring(ind,line.length()));
+				pidmodel.insertRow(up, pidmodel.getRowCount());
+			}
+			proDialog.setVisible(true);
+		} else if (e.getSource()==enter){
+			String pid=(String)pidTable.getValueAt(pidTable.getSelectedRow(),1);
+			List<JTextField> lst=confDialog.getProcessTextField();
+			for (Iterator<JTextField> iterator = lst.iterator(); iterator.hasNext();) {
+				 iterator.next().setText(pid);
+			}
+			proDialog.setVisible(false);
+		} else if (e.getSource()==confDialog.getActiveButton()){
+			List<String> lst=confDialog.getCheckBoxValue();
+			String pid=confDialog.getPid();
+			String inter=confDialog.getInterval();
+			String time=confDialog.getTimes();
+			String project=confDialog.getProject();
+			RemoteAgent ra=model.getRemoteAgentMap().get(tmpAgent);
+			ra.setRunProject(project);
+			ra.setRunAgents(lst);
 		}
 	}
 }

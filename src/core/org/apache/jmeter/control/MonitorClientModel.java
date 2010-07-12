@@ -21,6 +21,7 @@ import com.alibaba.b2b.qa.monitor.MonitorData;
 import com.alibaba.b2b.qa.monitor.RemoteAgent;
 import com.alibaba.b2b.qa.monitor.remote.RemoteControllerService;
 import com.alibaba.b2b.qa.monitor.remote.RemoteDataService;
+import com.alibaba.b2b.qa.monitor.remote.exception.AgentConnectionError;
 import com.caucho.hessian.client.HessianProxyFactory;
 
 /**
@@ -33,6 +34,7 @@ public class MonitorClientModel implements Runnable{
 
 	private String serviceUrl;
 	private String project;
+	List<String> projects=null;
 	private long interval = 2000;
 	public void setServiceUrl(String serviceUrl) {
 		this.serviceUrl = serviceUrl;
@@ -42,6 +44,8 @@ public class MonitorClientModel implements Runnable{
 	private Map<String, ArrayList<HashMap<String,String>>> agents=null;
 	private boolean running;
 	private HashMap<String,Monitor> linespecMap = new HashMap<String, Monitor>();
+	// 用于AgentServer和RemoteAgent得对应
+	private Map<AgentServer,RemoteAgent> remoteAgentMap = new HashMap<AgentServer,RemoteAgent>();
 	private int periods=30000;
 	private Thread dataFetcher=null;
 	private List<RemoteAgent> agentList = null;
@@ -49,6 +53,23 @@ public class MonitorClientModel implements Runnable{
 
 	// 缓存agent，取数据时使用
 	private Map<String,Map<String,String>> agentMap=new HashMap<String,Map<String,String>>();
+	
+	public Map<AgentServer,RemoteAgent> getRemoteAgentMap(){
+		return remoteAgentMap;
+	}
+	
+	public void startAgent(RemoteAgent agent, String agentName, long interval, long count,
+            String param){
+		
+		if (running) {
+			
+		}
+		try {
+			remoteControllerService.startAgent(agent, agentName, interval, count,param);
+		} catch (AgentConnectionError e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public synchronized List<AgentServer> configure() throws MalformedURLException{
 		List<AgentServer> resList=new ArrayList<AgentServer>();
@@ -65,10 +86,23 @@ public class MonitorClientModel implements Runnable{
 				s.setProject(agentServer.getRunProject());
 				s.setPassword(agentServer.getPassword());
 				resList.add(s);
+				remoteAgentMap.put(s, agentServer);
 			}
 		}
 		return resList;
 	}
+	
+	public List<String> getAllProcess(AgentServer tmpAgent){
+		List<String> lst=new ArrayList<String>();
+		try {
+			lst=remoteControllerService.getProcessList(remoteAgentMap.get(tmpAgent));
+			projects=lst;
+		} catch (AgentConnectionError e) {
+			e.printStackTrace();
+		}
+		return lst; 
+	}
+	
 	public synchronized boolean connect() throws MalformedURLException {
 		remoteDataService = (RemoteDataService) factory.create(
                 RemoteDataService.class, this.serviceUrl);

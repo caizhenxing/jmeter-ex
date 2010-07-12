@@ -1,6 +1,10 @@
 package org.apache.jmeter.control;
 
+import org.apache.jmeter.util.JMeterUtils;
+
 public class AgentServer {
+	private static final String RUN=JMeterUtils.getResString("as_run");
+	private static final String STOP=JMeterUtils.getResString("as_stop");
 	private String address;
 	private String port;
 	private String password;
@@ -9,6 +13,12 @@ public class AgentServer {
 	private int times;
 	private String items;
 	
+	public String getState() {
+		if (project==null || project.equals("")) {
+			return STOP;
+		}
+		return RUN;
+	}
 	public String getAddress() {
 		return address;
 	}

@@ -34,7 +34,6 @@ public class MonitorClientModel implements Runnable{
 
 	private String serviceUrl;
 	private String project;
-	List<String> projects=null;
 	private long interval = 2000;
 	public void setServiceUrl(String serviceUrl) {
 		this.serviceUrl = serviceUrl;
@@ -61,8 +60,19 @@ public class MonitorClientModel implements Runnable{
 	public void startAgent(RemoteAgent agent, String agentName, long interval, long count,
             String param){
 		
-		if (running) {
-			
+		List<String> lst=null;
+		try {
+			lst = getProjects("http://10.249.129.159:8080/monitor/remote/remoteDataService");
+		} catch (MalformedURLException e1) {
+			e1.printStackTrace();
+			return;
+		}
+		if (!lst.contains(agent.getRunProject())) {
+			try {
+				remoteControllerService.startProject(agent, agent.getRunProject());
+			} catch (AgentConnectionError e) {
+				e.printStackTrace();
+			}
 		}
 		try {
 			remoteControllerService.startAgent(agent, agentName, interval, count,param);
@@ -96,7 +106,6 @@ public class MonitorClientModel implements Runnable{
 		List<String> lst=new ArrayList<String>();
 		try {
 			lst=remoteControllerService.getProcessList(remoteAgentMap.get(tmpAgent));
-			projects=lst;
 		} catch (AgentConnectionError e) {
 			e.printStackTrace();
 		}

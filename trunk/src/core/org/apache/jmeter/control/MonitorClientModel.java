@@ -95,6 +95,8 @@ public class MonitorClientModel implements Runnable{
 				s.setPort(String.valueOf(agentServer.getPort()));
 				s.setProject(agentServer.getRunProject());
 				s.setPassword(agentServer.getPassword());
+				s.setInterval(agentServer.getInterval());
+				s.setTimes(agentServer.getCount());
 				resList.add(s);
 				remoteAgentMap.put(s, agentServer);
 			}

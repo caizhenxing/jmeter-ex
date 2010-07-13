@@ -80,7 +80,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		left.add(new JLabel("服务器配置信息："));
 		JPanel right = new JPanel();
-		active=new JButton("生效 ");
+		active=new JButton(JMeterUtils.getResString("confirm"));
 		right.add(active);
 		controlPanel.add(right, BorderLayout.EAST);
 		controlPanel.add(left, BorderLayout.CENTER);

@@ -94,6 +94,12 @@ public class MonitorClientModel implements Runnable{
 				s.setAddress(agentServer.getAddress());
 				s.setPort(String.valueOf(agentServer.getPort()));
 				s.setProject(agentServer.getRunProject());
+				// 判断Agent的运行状态
+				if (agentServer.getRunProject()==null||agentServer.getRunProject().equals("")) {
+					s.setState(AgentServer.STOP);
+				} else {
+					s.setState(AgentServer.RUN);
+				}
 				s.setPassword(agentServer.getPassword());
 				s.setInterval(agentServer.getInterval());
 				s.setTimes(agentServer.getCount());

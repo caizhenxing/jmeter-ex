@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -225,15 +226,39 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	}
 	
 	public void showModifyValueDialog(AgentServer as){
+		clearAgentValue();
 		setAgentValue(as);
 		this.setVisible(true);
 	}
 
+	private void clearAgentValue(){
+		portTF.setText("");
+		ipTF.setText("");
+		proTF.setText("");
+		pwdTF.setText("");
+		interTF.setText("");
+		timeTF.setText("");
+		for (int j = 0; j < AGENTS.length; j++) {
+			cbMap.get(AGENTS[j]).setSelected(false);
+		}
+		for (Iterator<JTextField> iterator = prossTx.iterator(); iterator.hasNext();) {
+			iterator.next().setText("");
+		}
+	}
+	
 	private void setAgentValue(AgentServer as){
 		portTF.setText(as.getPort());
 		ipTF.setText(as.getAddress());
 		proTF.setText(as.getProject());
 		pwdTF.setText(as.getPassword());
+		interTF.setText(String.valueOf(as.getInterval()));
+		timeTF.setText(String.valueOf(as.getTimes()));
+		List<String> lst = Arrays.asList(as.getItems().split(","));
+		for (int j = 0; j < AGENTS.length; j++) {
+			if (lst.contains(AGENTS[j])) {				
+				cbMap.get(AGENTS[j]).setSelected(true);
+			}
+		}
 	}
 	
 	public void itemStateChanged(ItemEvent e) {

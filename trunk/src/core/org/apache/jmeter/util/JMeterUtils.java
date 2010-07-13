@@ -1182,4 +1182,33 @@ public class JMeterUtils implements UnitTestManager {
         localHostName=localHost.getHostName();
         localHostFullName=localHost.getCanonicalHostName();
     }
+    
+    public static int StringToInt(String s){
+    	int num =0;
+    	if (s==null||s.equals("")) {
+			return num;
+		} else {
+			try {
+				num = Integer.parseInt(s);
+			} catch (NumberFormatException e) {
+				return num;
+			}
+		}
+    	return num;
+    }
+    
+    public static long StringToLong(String s){
+    	long num =0L;
+    	if (s==null||s.equals("")) {
+    		return num;
+    	} else {
+    		try {
+    			num = Long.parseLong(s);
+    		} catch (NumberFormatException e) {
+    			return num;
+    		}
+    	}
+    	return num;
+    }
+    
 }

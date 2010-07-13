@@ -1,10 +1,14 @@
 package org.apache.jmeter.control;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.jmeter.util.JMeterUtils;
 
 public class AgentServer {
-	private static final String RUN = JMeterUtils.getResString("as_run");
-	private static final String STOP = JMeterUtils.getResString("as_stop");
+	public static final String RUN = JMeterUtils.getResString("as_run");
+	public static final String STOP = JMeterUtils.getResString("as_stop");
+	public static final String READY = JMeterUtils.getResString("as_ready");
 	private String address = "";
 	private String port = "";
 	private String password = "";;
@@ -13,6 +17,7 @@ public class AgentServer {
 	private Long times = Long.valueOf(0L);
 	private String items = "";
 	private String pid = "";
+	private String state;
 
 	public String getPid() {
 		return pid;
@@ -22,11 +27,12 @@ public class AgentServer {
 		this.pid = pid;
 	}
 
+	public void setState(String s){
+		state=s;
+	}
+	
 	public String getState() {
-		if (project == null || project.equals("")) {
-			return STOP;
-		}
-		return RUN;
+		return state;
 	}
 
 	public String getAddress() {
@@ -70,7 +76,11 @@ public class AgentServer {
 	}
 
 	public int getInterval() {
-		return interval==null? 0:interval;
+		if (project==null ||project.equals("")) {			
+			return 0;
+		} else {
+			return interval==null? 0:interval;
+		}
 	}
 
 	public void setInterval(Integer interval) {
@@ -78,10 +88,18 @@ public class AgentServer {
 	}
 
 	public Long getTimes() {
-		return times;
+		if (project==null ||project.equals("")) {			
+			return 0L;
+		} else {
+			return times;
+		}
 	}
 
 	public void setTimes(Long times) {
 		this.times = times;
+	}
+	
+	public List<String> getItemAsList(){
+		return Arrays.asList(items.split(","));
 	}
 }

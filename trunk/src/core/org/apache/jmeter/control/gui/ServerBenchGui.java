@@ -7,7 +7,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -61,15 +60,15 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
 	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
 	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
-	private JButton configure = new JButton("configure");
-	private JButton startBT = new JButton("启动监控");
+	private JButton configure = new JButton(JMeterUtils.getResString("server_bench_configure"));
+	private JButton edit = new JButton(JMeterUtils.getResString("server_bench_edit"));
+	private JButton startBT = new JButton(JMeterUtils.getResString("server_bench_start"));
 	private ConfigurDialog confDialog = new ConfigurDialog();
 	private ProcessListDialog proDialog=new ProcessListDialog();
 	private MonitorClientModel model = new MonitorClientModel();
 	private Map<Integer,AgentServer> agentSeverContainer = new HashMap<Integer,AgentServer>();
 	private transient ObjectTableModel omodel;
 	private JTable agentTable = null;
-	private Map<AgentServer,Integer> editAgent = new HashMap<AgentServer,Integer>();;
 	private AgentServer tmpAgent = null;
 	private static final String[] COLUMNS = { "con_state", "con_ip", "con_port",
 		"con_project", "con_interal", "con_times", "con_monitor_item"};
@@ -173,10 +172,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		buttonPanel.add(Box.createHorizontalStrut(20));
 		buttonPanel.add(disConnect);
 		buttonPanel.add(Box.createHorizontalStrut(20));
-		buttonPanel.add(configure);
 		connect.addActionListener(this);
 		disConnect.addActionListener(this);
-		configure.addActionListener(this);
 		mainPanel.add(buttonPanel);
 		
 		// 配置Dialog
@@ -196,10 +193,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		agentTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                     if (evt.getClickCount() == 2) {
-                    	int rowI  = agentTable.rowAtPoint(evt.getPoint());
-                    	AgentServer as=agentSeverContainer.get(rowI);
-                    	tmpAgent=as;
-                    	confDialog.showModifyValueDialog(as);
+                    	openModifyDialog();
                     }
             }
     });
@@ -212,12 +206,21 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		Box actPanel = Box.createHorizontalBox();
 		startBT.setPreferredSize(new Dimension(80,30));
 		startBT.addActionListener(this);
+		actPanel.add(configure);
+		actPanel.add(Box.createHorizontalStrut(20));
+		actPanel.add(edit);
+		actPanel.add(Box.createHorizontalStrut(20));
 		actPanel.add(startBT);
 		add(actPanel);
+		
+		configure.addActionListener(this);
+		edit.addActionListener(this);
 		confDialog.addLiseners(this);
 	}
 
 	public void actionPerformed(ActionEvent e) {
+		
+		// 更新
 		if (e.getSource() == update) {
 			List<String> lst = null;
 			try {
@@ -234,6 +237,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
+		// 连接
 		} else if (e.getSource() == connect) {
 			if (JMeterUtils.getResString("server_bench_getprojects").equals(com.getSelectedItem())) {
 				JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(),JMeterUtils.getResString("server_bench_error_projects")
@@ -251,10 +255,12 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
+		// 断开连接
 		} else if (e.getSource() == disConnect) {
 			model.disConnect();
 			connect.setEnabled(true);
 			configure.setEnabled(true);
+		// 获取Agent
 		} else if (e.getSource() == configure){
 			updateAgentList();
 		} else if (confDialog.getProcessButton().contains(e.getSource())){
@@ -274,6 +280,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 				pidModel.insertRow(up, pidModel.getRowCount());
 			}
 			proDialog.setVisible(true);
+		// 选中线程
 		} else if (e.getSource()==proDialog.getEnter()){
 			JTable jt=proDialog.getTable();
 			if (jt.getSelectedRow()!=-1) {
@@ -284,6 +291,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 				}
 			}
 			proDialog.setVisible(false);
+		// 配置Agent
 		} else if (e.getSource()==confDialog.getActiveButton()){
 			String pid=confDialog.getPid();
 			String inter=confDialog.getInterval();
@@ -298,27 +306,45 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 				}
 			}
 			tmpAgent.setItems(sb.toString());
-			tmpAgent.setInterval(Integer.parseInt(inter));
-			tmpAgent.setTimes(Long.parseLong(time));
+			tmpAgent.setInterval(JMeterUtils.StringToInt(inter));
+			tmpAgent.setTimes(JMeterUtils.StringToLong(time));
 			tmpAgent.setProject(project);
 			tmpAgent.setPid(pid);
-			List editlst = new ArrayList(agentSeverContainer.values());
-			int num=editlst.indexOf(tmpAgent);
-			omodel.insertRow(tmpAgent, num);
-		} else if(e.getSource()==startBT){
-//			RemoteAgent ra=model.getRemoteAgentMap().get(tmpAgent);
-//			ra.setRunProject(project);
-////			ra.setRunAgents(lst);
-//			
-//			for (Iterator<String> iterator = lst.iterator(); iterator.hasNext();) {
-//				model.startAgent(ra, iterator.next(), Long.parseLong(inter), Long.parseLong(time), pid);
-//			}
-			updateAgentList();
+			tmpAgent.setState(AgentServer.READY);
+			agentTable.repaint();
 			confDialog.setVisible(false);
+		// 应用配置后的Agent
+		} else if(e.getSource()==startBT){
+			for (Iterator<Integer> iterator = agentSeverContainer.keySet().iterator(); iterator.hasNext();) {
+				AgentServer as = agentSeverContainer.get(iterator.next());
+				if (as.getState().equals(AgentServer.READY)) {
+					RemoteAgent ra =model.getRemoteAgentMap().get(as);
+					ra.setRunProject(as.getProject());
+					ra.setCount(as.getTimes());
+					ra.setInterval(as.getInterval());
+					ra.setRunAgents(as.getItemAsList());
+					for (Iterator<String> iterator1 = as.getItemAsList().iterator(); iterator1.hasNext();) {
+						model.startAgent(ra, iterator1.next(), ra.getInterval(), ra.getCount(), "");
+					}
+				} else {
+					continue;
+				}
+			}
+			updateAgentList();
 			
+		} else if (e.getSource()==edit){
+			openModifyDialog();
 		}
 	}
 	
+	private void openModifyDialog(){
+    	int rowI  = agentTable.getSelectedRow();
+    	if (rowI!=-1) {				
+    		AgentServer as=agentSeverContainer.get(rowI);
+    		tmpAgent=as;
+    		confDialog.showModifyValueDialog(as);
+		}
+	}
 	private void updateAgentList(){
 		List<AgentServer> aglst=null;
 		agentSeverContainer.clear();

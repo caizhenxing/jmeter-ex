@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -102,6 +103,8 @@ public class JMeterUtils implements UnitTestManager {
         }
     };
 
+    private static final SimpleDateFormat dateFormater =new SimpleDateFormat("MM-dd hh:mm:ss");
+    
     // Provide Random numbers to whomever wants one
     private static final Random rand = new Random();
 
@@ -1211,4 +1214,11 @@ public class JMeterUtils implements UnitTestManager {
     	return num;
     }
     
+    public static String LongToDate(Long d){
+    	if (d==null||d<=0) {
+			return "";
+		} else {
+			return dateFormater.format(d);
+		}
+    }
 }

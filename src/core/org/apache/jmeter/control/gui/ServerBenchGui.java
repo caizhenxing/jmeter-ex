@@ -1,6 +1,7 @@
 package org.apache.jmeter.control.gui;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -61,6 +62,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
 	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
 	private JButton configure = new JButton(JMeterUtils.getResString("server_bench_configure"));
+	private JButton show = new JButton(JMeterUtils.getResString("server_bench_watch"));
 	private JButton edit = new JButton(JMeterUtils.getResString("server_bench_edit"));
 	private JButton startBT = new JButton(JMeterUtils.getResString("server_bench_start"));
 	private ConfigurDialog confDialog = new ConfigurDialog();
@@ -71,14 +73,16 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JTable agentTable = null;
 	private AgentServer tmpAgent = null;
 	private static final String[] COLUMNS = { "con_state", "con_ip", "con_port",
-		"con_project", "con_interal", "con_times", "con_monitor_item"};
+		"con_project", "con_interal", "con_times", "con_start","con_end","con_monitor_item"};
 	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
 		null, // state
 		null, // ip
 		null, // port
 		null, // project
 		null, // interal
-		null, // times
+		null, // count
+		null, // start time
+		null, // end time
 		null, // monitor item
 	};
 	
@@ -180,9 +184,10 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		omodel = new ObjectTableModel(COLUMNS, AgentServer.class, new Functor[] {
 			new Functor("getState"), new Functor("getAddress"), new Functor("getPort"),
 			new Functor("getProject"), new Functor("getInterval"),new Functor("getTimes"),
+			new Functor("getStartTime"),new Functor("getEndTime"),
 			new Functor("getItems"), }, new Functor[] { null, null, null, null,
-			null, null, null }, new Class[] { String.class, String.class, String.class,
-			String.class, Integer.class, Long.class , String.class});
+			null, null, null,null,null }, new Class[] { String.class, String.class, String.class,
+			String.class, Integer.class, Long.class , String.class, String.class, String.class});
 		agentTable = new YccCustomTable(omodel);
 		agentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		agentTable.getTableHeader().setDefaultRenderer(
@@ -193,14 +198,17 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		agentTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                     if (evt.getClickCount() == 2) {
-                    	openModifyDialog();
+                    	openModifyDialog(false);
                     }
             }
     });
 		proDialog.setListener(this);
 		
 		add(mainPanel);
-		add(new JLabel("Agent configuration:"));
+		JLabel lb = new JLabel(JMeterUtils.getResString("agent_configuration"));
+        Font curFont = lb.getFont();
+        lb.setFont(curFont.deriveFont((float) curFont.getSize() + 1));
+		add(lb);
 		add(myScrollPane);
 		
 		Box actPanel = Box.createHorizontalBox();
@@ -208,12 +216,15 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		startBT.addActionListener(this);
 		actPanel.add(configure);
 		actPanel.add(Box.createHorizontalStrut(20));
+		actPanel.add(show);
+		actPanel.add(Box.createHorizontalStrut(20));
 		actPanel.add(edit);
 		actPanel.add(Box.createHorizontalStrut(20));
 		actPanel.add(startBT);
 		add(actPanel);
 		
 		configure.addActionListener(this);
+		show.addActionListener(this);
 		edit.addActionListener(this);
 		confDialog.addLiseners(this);
 	}
@@ -251,15 +262,22 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
         		if (model.connect()) {
         			connect.setEnabled(false);
         			configure.setEnabled(false);
+        			edit.setEnabled(false);
+        			startBT.setEnabled(false);
 				}
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
 		// 断开连接
 		} else if (e.getSource() == disConnect) {
+			if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_info_disconnect"),JMeterUtils.getResString("confirm_title_disconnect"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
+				return;
+			}
 			model.disConnect();
 			connect.setEnabled(true);
 			configure.setEnabled(true);
+			edit.setEnabled(true);
+			startBT.setEnabled(true);
 		// 获取Agent
 		} else if (e.getSource() == configure){
 			updateAgentList();
@@ -285,7 +303,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			JTable jt=proDialog.getTable();
 			if (jt.getSelectedRow()!=-1) {
 				String pid=(String)jt.getValueAt(jt.getSelectedRow(),1);
-				List<JTextField> lst=confDialog.getProcessTextField();
+				Collection<JTextField> lst=confDialog.getProcessTextField();
 				for (Iterator<JTextField> iterator = lst.iterator(); iterator.hasNext();) {
 					iterator.next().setText(pid);
 				}
@@ -293,10 +311,15 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			proDialog.setVisible(false);
 		// 配置Agent
 		} else if (e.getSource()==confDialog.getActiveButton()){
+			if(!confDialog.checkInput()){
+				return;
+			}
 			String pid=confDialog.getPid();
 			String inter=confDialog.getInterval();
 			String time=confDialog.getTimes();
 			String project=confDialog.getProject();
+			int interval =JMeterUtils.StringToInt(inter);
+			long times=JMeterUtils.StringToInt(time);
 			List<String> lst=confDialog.getCheckBoxValue();
 			StringBuilder sb = new StringBuilder();
 			for (Iterator<String> iterator = lst.iterator(); iterator.hasNext();) {
@@ -306,8 +329,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 				}
 			}
 			tmpAgent.setItems(sb.toString());
-			tmpAgent.setInterval(JMeterUtils.StringToInt(inter));
-			tmpAgent.setTimes(JMeterUtils.StringToLong(time));
+			tmpAgent.setInterval(interval);
+			tmpAgent.setTimes(times);
 			tmpAgent.setProject(project);
 			tmpAgent.setPid(pid);
 			tmpAgent.setState(AgentServer.READY);
@@ -315,6 +338,23 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			confDialog.setVisible(false);
 		// 应用配置后的Agent
 		} else if(e.getSource()==startBT){
+			boolean res=false;
+			for (Iterator<Integer> iterator = agentSeverContainer.keySet().iterator(); iterator.hasNext();) {
+				AgentServer as = agentSeverContainer.get(iterator.next());
+				if (as.getState().equals(AgentServer.READY)) {
+					res=true;
+					break;
+				}
+			}
+			if (!res) {
+				JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_agent_error"), JMeterUtils.getResString("server_bench_error"),
+						JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_start_monitor"),JMeterUtils.getResString("confirm_title_start"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
+				return;
+			}
+			boolean done = false;
 			for (Iterator<Integer> iterator = agentSeverContainer.keySet().iterator(); iterator.hasNext();) {
 				AgentServer as = agentSeverContainer.get(iterator.next());
 				if (as.getState().equals(AgentServer.READY)) {
@@ -324,23 +364,39 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 					ra.setInterval(as.getInterval());
 					ra.setRunAgents(as.getItemAsList());
 					model.startAgent(ra, as.getItemAsList(),"");
+					done = true;
 				} else {
 					continue;
 				}
 			}
-			updateAgentList();
-			
-		} else if (e.getSource()==edit){
-			openModifyDialog();
+			if (done) {
+				updateAgentList();
+			}
+		// 编辑Agent
+		} else if (e.getSource() == edit) {
+			int rowI = agentTable.getSelectedRow();
+			if (rowI != -1) {
+				AgentServer as = agentSeverContainer.get(rowI);
+				if (as.getState().equals(AgentServer.RUN)) {
+					JOptionPane.showMessageDialog(null, JMeterUtils
+							.getResString("error_running_agent"), JMeterUtils
+							.getResString("server_bench_error"),
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				openModifyDialog(true);
+			}
+		} else if (e.getSource() == show){
+			openModifyDialog(false);
 		}
 	}
 	
-	private void openModifyDialog(){
+	private void openModifyDialog(boolean editable){
     	int rowI  = agentTable.getSelectedRow();
     	if (rowI!=-1) {				
     		AgentServer as=agentSeverContainer.get(rowI);
     		tmpAgent=as;
-    		confDialog.showModifyValueDialog(as);
+    		confDialog.showModifyValueDialog(as,editable);
 		}
 	}
 	private void updateAgentList(){

@@ -1,7 +1,9 @@
 package org.apache.jmeter.control;
 
 import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -99,6 +101,18 @@ public class MonitorClientModel implements Runnable{
 				s.setPassword(agentServer.getPassword());
 				s.setInterval(agentServer.getInterval());
 				s.setTimes(agentServer.getCount());
+				s.setStartTime(agentServer.getProjectStartTime());
+				s.setEndTime(agentServer.getProjectStartTime());
+				if (agentServer.getRunAgents().size()!=0) {
+					StringBuilder sb = new StringBuilder();
+					for (Iterator<String> itr = agentServer.getRunAgents().iterator(); itr.hasNext();) {
+						sb.append(itr.next());
+						if (itr.hasNext()) {
+							sb.append(",");
+						}
+					}
+					s.setItems(sb.toString());
+				}
 				resList.add(s);
 				remoteAgentMap.put(s, agentServer);
 			}

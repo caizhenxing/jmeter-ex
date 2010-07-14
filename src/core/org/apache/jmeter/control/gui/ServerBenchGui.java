@@ -323,9 +323,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 					ra.setCount(as.getTimes());
 					ra.setInterval(as.getInterval());
 					ra.setRunAgents(as.getItemAsList());
-					for (Iterator<String> iterator1 = as.getItemAsList().iterator(); iterator1.hasNext();) {
-						model.startAgent(ra, iterator1.next(), ra.getInterval(), ra.getCount(), "");
-					}
+					model.startAgent(ra, as.getItemAsList(),"");
 				} else {
 					continue;
 				}

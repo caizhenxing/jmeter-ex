@@ -18,6 +18,28 @@ public class AgentServer {
 	private String items = "";
 	private String pid = "";
 	private String state;
+	private String startTime= "";
+	private String endTime= "";
+
+	public String getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(Long startTime) {
+		this.startTime = JMeterUtils.LongToDate(startTime);
+	}
+
+	public String getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(Long startTime) {
+		if (startTime!=null && startTime!=0 &&interval!=null && times!=null && startTime!=null) {
+			this.endTime = JMeterUtils.LongToDate(startTime+interval*times*1000);
+		} else {
+			this.endTime="";
+		}
+	}
 
 	public String getPid() {
 		return pid;

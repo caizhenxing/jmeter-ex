@@ -1,7 +1,6 @@
 package org.apache.jmeter.control.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;

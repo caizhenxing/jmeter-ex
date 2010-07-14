@@ -57,31 +57,27 @@ public class MonitorClientModel implements Runnable{
 		return remoteAgentMap;
 	}
 	
-	public void startAgent(RemoteAgent agent, String agentName, long interval, long count,
-            String param){
-		
-		List<String> lst=null;
+	public void startAgent(RemoteAgent agent, List<String> items,String param) {
+		// 启动工程
 		try {
-			lst = getProjects("http://10.249.129.159:8080/monitor/remote/remoteDataService");
-		} catch (MalformedURLException e1) {
-			e1.printStackTrace();
-			return;
+			remoteControllerService.startProject(agent, agent.getRunProject());
+		} catch (AgentConnectionError e) {
+			e.printStackTrace();
 		}
-		if (!lst.contains(agent.getRunProject())) {
+		// 启动Agent
+		for (Iterator<String> iterator = items.iterator(); iterator
+				.hasNext();) {
 			try {
-				remoteControllerService.startProject(agent, agent.getRunProject());
+				remoteControllerService.startAgent(agent, iterator.next(), agent.getInterval(),
+						agent.getCount(), param);
 			} catch (AgentConnectionError e) {
 				e.printStackTrace();
 			}
 		}
-		try {
-			remoteControllerService.startAgent(agent, agentName, interval, count,param);
-		} catch (AgentConnectionError e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public synchronized List<AgentServer> configure() throws MalformedURLException{
+		remoteAgentMap.clear();
 		List<AgentServer> resList=new ArrayList<AgentServer>();
 		remoteControllerService = (RemoteControllerService) factory.create(
 				RemoteControllerService.class, "http://10.249.129.159:8080/monitor/remote/remoteControllerService");

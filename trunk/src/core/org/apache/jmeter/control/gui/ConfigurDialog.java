@@ -314,6 +314,20 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 			timeTF.requestFocus();
 			return false;
 		}
+		// 没有选择任何Agent
+		boolean select = false;
+		for (int j = 0; j < AGENTS.length; j++) {
+			if (cbMap.get(AGENTS[j]).isSelected()) {
+				select=true;
+				break;
+			}
+		}
+		if (!select) {
+			JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_noitem_error"), JMeterUtils.getResString("server_bench_error"),
+					JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		// 选择了PID但为输入PID进程号
 		if (cbMap.get(AgentCommand.AGENT_PIDIO).isSelected()){
 			if (JMeterUtils.StringToLong(prossTxMap.get(AgentCommand.AGENT_PIDIO).getText())==0) {
 				JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_pid_error"), JMeterUtils.getResString("server_bench_error"),
@@ -323,6 +337,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 				return false;
 			}
 		}
+		
 		if (cbMap.get(AgentCommand.AGENT_PIDCPU).isSelected()){
 			if (JMeterUtils.StringToLong(prossTxMap.get(AgentCommand.AGENT_PIDCPU).getText())==0) {
 				JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_pid_error"), JMeterUtils.getResString("server_bench_error"),

@@ -59,22 +59,41 @@ public class MonitorClientModel implements Runnable{
 		return remoteAgentMap;
 	}
 	
+	public void stopAgent(RemoteAgent agent){
+		try {
+			String[] items=new String[agent.getRunAgents().size()];
+			for (int i = 0; i < agent.getRunAgents().size(); i++) {
+				items[i]=agent.getRunAgents().get(i);
+			}
+			remoteControllerService.stopAgents(agent, items);
+			Thread.sleep(3000);
+		} catch (AgentConnectionError e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public void startAgent(RemoteAgent agent, List<String> items,String param) {
 		// 启动工程
 		try {
 			remoteControllerService.startProject(agent, agent.getRunProject());
+			Thread.sleep(1000);
+			// 启动Agent
+			for (Iterator<String> iterator = items.iterator(); iterator
+			.hasNext();) {
+				try {
+					remoteControllerService.startAgent(agent, iterator.next(), agent.getInterval(),
+							agent.getCount(), param);
+				} catch (AgentConnectionError e) {
+					e.printStackTrace();
+				}
+			}
+			Thread.sleep(3000);
 		} catch (AgentConnectionError e) {
 			e.printStackTrace();
-		}
-		// 启动Agent
-		for (Iterator<String> iterator = items.iterator(); iterator
-				.hasNext();) {
-			try {
-				remoteControllerService.startAgent(agent, iterator.next(), agent.getInterval(),
-						agent.getCount(), param);
-			} catch (AgentConnectionError e) {
-				e.printStackTrace();
-			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	

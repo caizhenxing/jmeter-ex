@@ -28,6 +28,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableRowSorter;
 
 import org.apache.jmeter.control.AgentServer;
 import org.apache.jmeter.control.MonitorClientModel;
@@ -44,6 +45,8 @@ import org.apache.jorphan.gui.ObjectTableModel;
 import org.apache.jorphan.gui.RendererUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
 import org.apache.jorphan.reflect.Functor;
+
+import sun.tools.jconsole.inspector.TableSorter;
 
 import com.alibaba.b2b.qa.monitor.RemoteAgent;
 
@@ -64,6 +67,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton configure = new JButton(JMeterUtils.getResString("server_bench_configure"));
 	private JButton show = new JButton(JMeterUtils.getResString("server_bench_watch"));
 	private JButton edit = new JButton(JMeterUtils.getResString("server_bench_edit"));
+	private JButton stop = new JButton(JMeterUtils.getResString("server_bench_stop"));
 	private JButton startBT = new JButton(JMeterUtils.getResString("server_bench_start"));
 	private ConfigurDialog confDialog = new ConfigurDialog();
 	private ProcessListDialog proDialog=new ProcessListDialog();
@@ -190,6 +194,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			String.class, Integer.class, Long.class , String.class, String.class, String.class});
 		agentTable = new YccCustomTable(omodel);
 		agentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
 		agentTable.getTableHeader().setDefaultRenderer(
 				new HeaderAsPropertyRenderer());
 		agentTable.setPreferredScrollableViewportSize(new Dimension(500, 250));
@@ -221,11 +226,14 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		actPanel.add(edit);
 		actPanel.add(Box.createHorizontalStrut(20));
 		actPanel.add(startBT);
+		actPanel.add(Box.createHorizontalStrut(20));
+		actPanel.add(stop);
 		add(actPanel);
 		
 		configure.addActionListener(this);
 		show.addActionListener(this);
 		edit.addActionListener(this);
+		stop.addActionListener(this);
 		confDialog.addLiseners(this);
 	}
 
@@ -388,6 +396,21 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			}
 		} else if (e.getSource() == show){
 			openModifyDialog(false);
+		} else if (e.getSource() == stop){
+			int rowI = agentTable.getSelectedRow();
+			if (rowI != -1) {
+				AgentServer as = agentSeverContainer.get(rowI);
+				if (!as.getState().equals(AgentServer.RUN)) {
+					JOptionPane.showMessageDialog(null, JMeterUtils
+							.getResString("error_stop_agent"), JMeterUtils
+							.getResString("server_bench_error"),
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				RemoteAgent ra =model.getRemoteAgentMap().get(as);
+				model.stopAgent(ra);
+				updateAgentList();
+			}
 		}
 	}
 	

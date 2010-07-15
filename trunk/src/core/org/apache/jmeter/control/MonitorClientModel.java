@@ -1,15 +1,15 @@
 package org.apache.jmeter.control;
 
+import java.awt.Frame;
 import java.net.MalformedURLException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import javax.swing.JOptionPane;
 
+import org.apache.jmeter.control.gui.ProgressSample;
 import org.apache.jmeter.exceptions.IllegalUserActionException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
@@ -76,6 +76,22 @@ public class MonitorClientModel implements Runnable{
 	
 	public void startAgent(RemoteAgent agent, List<String> items,String param) {
 		// 启动工程
+		Thread thread = new Thread() {
+			public void run() {
+				int index = 0;
+
+				while (index < 5) {
+					try {
+						sleep(1000);
+						System.out.println(++index);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		};
+
+		ProgressSample.show((Frame) null, thread, "Agent启动中", "成功", "启动成功");
 		try {
 			remoteControllerService.startProject(agent, agent.getRunProject());
 			Thread.sleep(1000);

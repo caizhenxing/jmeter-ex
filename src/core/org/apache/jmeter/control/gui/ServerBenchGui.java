@@ -317,6 +317,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			stopProject.setEnabled(true);
 		// 获取Agent
 		} else if (e.getSource() == configure){
+			model.setServiceUrl(rangeField.getText());
 			updateAgentList();
 		// 获取线程
 		} else if (confDialog.getProcessButton().contains(e.getSource())){

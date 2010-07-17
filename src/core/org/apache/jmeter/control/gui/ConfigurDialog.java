@@ -66,6 +66,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	public ConfigurDialog(){
 		init();
 		this.setModal(true);
+		this.setResizable(false);
 		this.setTitle("Title Dialog");
 		System.out.println(SwingUtilities.getRoot(this).getWidth());
 		System.out.println(SwingUtilities.getRoot(this).getHeight());

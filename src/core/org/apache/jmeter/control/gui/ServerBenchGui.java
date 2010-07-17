@@ -28,7 +28,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableRowSorter;
 
 import org.apache.jmeter.control.AgentServer;
 import org.apache.jmeter.control.MonitorClientModel;
@@ -46,8 +45,6 @@ import org.apache.jorphan.gui.RendererUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
 import org.apache.jorphan.reflect.Functor;
 
-import sun.tools.jconsole.inspector.TableSorter;
-
 import com.alibaba.b2b.qa.monitor.RemoteAgent;
 
 /**
@@ -58,7 +55,6 @@ import com.alibaba.b2b.qa.monitor.RemoteAgent;
  */
 public class ServerBenchGui extends AbstractJMeterGuiComponent implements ActionListener{
 	private static final long serialVersionUID = 1L;
-
 	private JComboBox com = new JComboBox();
 	private JTextField rangeField = new JTextField(58);
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
@@ -68,6 +64,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton show = new JButton(JMeterUtils.getResString("server_bench_watch"));
 	private JButton edit = new JButton(JMeterUtils.getResString("server_bench_edit"));
 	private JButton stop = new JButton(JMeterUtils.getResString("server_bench_stop"));
+	private JButton stopProject = new JButton(JMeterUtils.getResString("server_bench_stop_pro"));
 	private JButton startBT = new JButton(JMeterUtils.getResString("server_bench_start"));
 	private ConfigurDialog confDialog = new ConfigurDialog();
 	private ProcessListDialog proDialog=new ProcessListDialog();
@@ -89,6 +86,14 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		null, // end time
 		null, // monitor item
 	};
+//	
+//	JProgressBar dpb = new JProgressBar(0, 500);
+//	JDialog dlg = null;
+//	Thread t = new Thread(new Runnable() {
+//		public void run() {
+//			dlg.setVisible(true);
+//		}
+//	});
 	
 	/**
 	 * Create a new JVMbenchGui.
@@ -155,7 +160,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		urlsPanel.add(urls);
 
 //		rangeField.setText("http://10.20.136.18:8080/aliper-server/AliperServlet");
-		rangeField.setText("http://10.249.129.159:8080/monitor/remote/remoteDataService");
+		rangeField.setText("10.249.129.159:8080");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);
@@ -228,21 +233,41 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		actPanel.add(startBT);
 		actPanel.add(Box.createHorizontalStrut(20));
 		actPanel.add(stop);
+		actPanel.add(Box.createHorizontalStrut(20));
+		actPanel.add(stopProject);
 		add(actPanel);
 		
 		configure.addActionListener(this);
 		show.addActionListener(this);
 		edit.addActionListener(this);
 		stop.addActionListener(this);
+		stopProject.addActionListener(this);
 		confDialog.addLiseners(this);
+		
+//		dlg=new JDialog((JFrame)null, "", true);
+//		dpb.setIndeterminate(true);
+//		dlg.setUndecorated(true);
+//		dlg.add(BorderLayout.NORTH, dpb);
+//		dlg.add(BorderLayout.CENTER, new JLabel("Progress..."));
+//		dlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+//		dlg.setSize(300, 50);
 	}
 
+//	private void showProcess(){
+//		dlg.setLocationRelativeTo(GuiPackage.getInstance().getMainFrame());
+//		t.start();
+//	}
+//	
+//	private void hideProcess(){
+//		dlg.setVisible(false);
+//	}
 	public void actionPerformed(ActionEvent e) {
 		
 		// 更新
 		if (e.getSource() == update) {
 			List<String> lst = null;
 			try {
+				model.setServiceUrl(rangeField.getText());
 				lst = this.model.getProjects(rangeField.getText());
 				com.setModel(new DefaultComboBoxModel(lst.toArray()));
 			} catch (MalformedURLException e1) {
@@ -264,13 +289,15 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 						JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			this.model.setServiceUrl(rangeField.getText());
+			model.setServiceUrl(rangeField.getText());
         	try {
         		model.setProject((String)com.getSelectedItem());
         		if (model.connect()) {
         			connect.setEnabled(false);
-        			configure.setEnabled(false);
+//        			configure.setEnabled(false);
         			edit.setEnabled(false);
+        			stop.setEnabled(false);
+        			stopProject.setEnabled(false);
         			startBT.setEnabled(false);
 				}
 			} catch (Exception ex) {
@@ -283,12 +310,15 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			}
 			model.disConnect();
 			connect.setEnabled(true);
-			configure.setEnabled(true);
+//			configure.setEnabled(true);
 			edit.setEnabled(true);
 			startBT.setEnabled(true);
+			stop.setEnabled(true);
+			stopProject.setEnabled(true);
 		// 获取Agent
 		} else if (e.getSource() == configure){
 			updateAgentList();
+		// 获取线程
 		} else if (confDialog.getProcessButton().contains(e.getSource())){
 			List<String> lst=model.getAllProcess(tmpAgent);
 			int ind=lst.get(0).indexOf("CMD");
@@ -379,6 +409,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			}
 			if (done) {
 				updateAgentList();
+				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("start_agent"),JMeterUtils.getResString("info_success"), JOptionPane.INFORMATION_MESSAGE);
 			}
 		// 编辑Agent
 		} else if (e.getSource() == edit) {
@@ -407,9 +438,32 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 							JOptionPane.ERROR_MESSAGE);
 					return;
 				}
+				if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_stop_monitor"),JMeterUtils.getResString("confirm_title_stop"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
+					return;
+				}
 				RemoteAgent ra =model.getRemoteAgentMap().get(as);
 				model.stopAgent(ra);
 				updateAgentList();
+				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("stop_agent"),JMeterUtils.getResString("info_success"), JOptionPane.INFORMATION_MESSAGE);
+			}
+		} else if (e.getSource() == stopProject){
+			int rowI = agentTable.getSelectedRow();
+			if (rowI != -1) {
+				if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_stop_project"),JMeterUtils.getResString("confirm_title_stop"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
+					return;
+				}
+				AgentServer as = agentSeverContainer.get(rowI);
+				if (!as.getState().equals(AgentServer.RUN)||(as.getProject()==null||as.getProject().equals(""))) {
+					JOptionPane.showMessageDialog(null, JMeterUtils
+							.getResString("error_no_project"), JMeterUtils
+							.getResString("server_bench_error"),
+							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				RemoteAgent ra =model.getRemoteAgentMap().get(as);
+				model.stopProject(ra);
+				updateAgentList();
+				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("stop_project"),JMeterUtils.getResString("info_success"), JOptionPane.INFORMATION_MESSAGE);
 			}
 		}
 	}

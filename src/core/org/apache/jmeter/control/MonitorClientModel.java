@@ -1,15 +1,20 @@
 package org.apache.jmeter.control;
 
-import java.awt.Frame;
+import java.awt.BorderLayout;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import javax.swing.JOptionPane;
 
-import org.apache.jmeter.control.gui.ProgressSample;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JProgressBar;
+
+import org.apache.jmeter.control.gui.Main;
 import org.apache.jmeter.exceptions.IllegalUserActionException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
@@ -34,12 +39,12 @@ import com.caucho.hessian.client.HessianProxyFactory;
  */
 public class MonitorClientModel implements Runnable{
 
+	public static final String HTTP_HEADER="http://";
+	public static final String DATA_SERVER="/monitor/remote/remoteDataService";
+	public static final String CONTROL_SERVER="/monitor/remote/remoteControllerService";
 	private String serviceUrl;
 	private String project;
 	private long interval = 2000;
-	public void setServiceUrl(String serviceUrl) {
-		this.serviceUrl = serviceUrl;
-	}
 	private RemoteDataService remoteDataService = null;
 	private RemoteControllerService remoteControllerService = null;
 	private Map<String, ArrayList<HashMap<String,String>>> agents=null;
@@ -50,13 +55,28 @@ public class MonitorClientModel implements Runnable{
 	private int periods=30000;
 	private Thread dataFetcher=null;
 	private List<RemoteAgent> agentList = null;
-	HessianProxyFactory factory=new HessianProxyFactory();
-
+	private HessianProxyFactory factory=new HessianProxyFactory();
+	
 	// 缓存agent，取数据时使用
 	private Map<String,Map<String,String>> agentMap=new HashMap<String,Map<String,String>>();
 	
 	public Map<AgentServer,RemoteAgent> getRemoteAgentMap(){
 		return remoteAgentMap;
+	}
+	
+	public void setServiceUrl(String serviceUrl) {
+		this.serviceUrl = serviceUrl;
+	}
+
+	public void stopProject(RemoteAgent agent){
+		try {
+			remoteControllerService.stopProject(agent, agent.getRunProject());
+			Thread.sleep(3000);
+		} catch (AgentConnectionError e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void stopAgent(RemoteAgent agent){
@@ -76,22 +96,6 @@ public class MonitorClientModel implements Runnable{
 	
 	public void startAgent(RemoteAgent agent, List<String> items,String param) {
 		// 启动工程
-		Thread thread = new Thread() {
-			public void run() {
-				int index = 0;
-
-				while (index < 5) {
-					try {
-						sleep(1000);
-						System.out.println(++index);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-			}
-		};
-
-		ProgressSample.show((Frame) null, thread, "Agent启动中", "成功", "启动成功");
 		try {
 			remoteControllerService.startProject(agent, agent.getRunProject());
 			Thread.sleep(1000);
@@ -117,7 +121,7 @@ public class MonitorClientModel implements Runnable{
 		remoteAgentMap.clear();
 		List<AgentServer> resList=new ArrayList<AgentServer>();
 		remoteControllerService = (RemoteControllerService) factory.create(
-				RemoteControllerService.class, "http://10.249.129.159:8080/monitor/remote/remoteControllerService");
+				RemoteControllerService.class, HTTP_HEADER+serviceUrl+CONTROL_SERVER);
 		// 获得所有的服务器
 		agentList=remoteControllerService.getAllAgents();
 		if (agentList!=null) {
@@ -167,7 +171,7 @@ public class MonitorClientModel implements Runnable{
 	
 	public synchronized boolean connect() throws MalformedURLException {
 		remoteDataService = (RemoteDataService) factory.create(
-                RemoteDataService.class, this.serviceUrl);
+                RemoteDataService.class, HTTP_HEADER+serviceUrl+DATA_SERVER);
 		if (this.remoteDataService == null) {
 			JOptionPane.showMessageDialog(GuiPackage.getInstance().getMainFrame(),JMeterUtils.getResString("server_bench_connect_error"), JMeterUtils.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
@@ -411,7 +415,7 @@ public class MonitorClientModel implements Runnable{
 	public List<String> getProjects(String url) throws MalformedURLException {
 		HessianProxyFactory factory = new HessianProxyFactory();
         RemoteDataService remoteDataService = (RemoteDataService) factory.create(
-                RemoteDataService.class, url);
+                RemoteDataService.class, HTTP_HEADER+serviceUrl+DATA_SERVER);
 		return remoteDataService.getProjects();
 	}
 	

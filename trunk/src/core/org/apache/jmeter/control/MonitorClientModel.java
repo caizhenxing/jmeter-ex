@@ -1,6 +1,5 @@
 package org.apache.jmeter.control;
 
-import java.awt.BorderLayout;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,17 +7,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
 
-import org.apache.jmeter.control.gui.Main;
 import org.apache.jmeter.exceptions.IllegalUserActionException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.monitor.Monitor;
+import org.apache.jmeter.monitor.MonitorModel;
+import org.apache.jmeter.monitor.MonitorModelFactory;
 import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
@@ -55,13 +51,23 @@ public class MonitorClientModel implements Runnable{
 	private int periods=30000;
 	private Thread dataFetcher=null;
 	private List<RemoteAgent> agentList = null;
+	private List<MonitorGui> guiList = new ArrayList<MonitorGui>();
 	private HessianProxyFactory factory=new HessianProxyFactory();
+	private String pid="";
 	
 	// 缓存agent，取数据时使用
 	private Map<String,Map<String,String>> agentMap=new HashMap<String,Map<String,String>>();
 	
 	public Map<AgentServer,RemoteAgent> getRemoteAgentMap(){
 		return remoteAgentMap;
+	}
+	
+	public void setPid(String pid){
+		this.pid=pid;
+	}
+	
+	public String getPid(){
+		return pid;
 	}
 	
 	public void setServiceUrl(String serviceUrl) {
@@ -261,6 +267,12 @@ public class MonitorClientModel implements Runnable{
 		// 清空原数据
 		agentMap.clear();
 		linespecMap.clear();
+		for (Iterator<MonitorGui> iterator = guiList.iterator(); iterator.hasNext();) {
+			MonitorGui m = iterator.next();
+			m.getMainPanel().removeAll();
+			m.getCheckBoxPanel().removeAll();
+		}
+		guiList.clear();
 
 		// 初始化Agent组
 		agents= remoteDataService.getProjectAgents(project);
@@ -311,18 +323,20 @@ public class MonitorClientModel implements Runnable{
 				}
 				// 为每一个Agent的监控分类生成类别Gui
 				JMeterTreeNode dataNode = addAgentToTree(serverNode,
-						JMeterUtils.getResString(Monitor.PRE_TITLE + MonitorGui.CATEGORY[i]),
+						JMeterUtils.getResString(MonitorModel.PRE_TITLE + MonitorGui.CATEGORY[i]),
 						"org.apache.jmeter.monitor.gui.MonitorGui");
 
 				// 初始化每一个monitor的时间序列
 				if (dataNode.getUserObject() instanceof Monitor) {
+					MonitorModel model =MonitorModelFactory.getMonitorModel(MonitorGui.CATEGORY[i]);
 					Monitor mr = (Monitor) dataNode.getUserObject();
-					mr.setPathName(chartName);
-					mr.setHost(agent);
-					mr.setCategory(MonitorGui.CATEGORY[i]);
-					mr.setTitle(MonitorGui.CATEGORY[i]);
-					mr.setNumberAxis(MonitorGui.CATEGORY[i]);
-					mr.initSecondValueAxis(i);
+					mr.setMonitorModel(model);
+					model.setPathName(chartName);
+					model.setHost(agent);
+					model.setCategory(MonitorGui.CATEGORY[i]);
+					model.setTitle(MonitorGui.CATEGORY[i]);
+					model.setNumberAxis(MonitorGui.CATEGORY[i]);
+					model.initSecondValueAxis(i);
 
 					// 显示的指标
 					String tmp = chartName + "$$";
@@ -334,22 +348,31 @@ public class MonitorClientModel implements Runnable{
 							TimeSeries ts = new TimeSeries(fs[j],
 									org.jfree.data.time.Second.class);
 							ts.setMaximumItemAge(periods);
-							mr.addTimeSeries(name, ts);
+							model.addTimeSeries(name, ts);
 						}
 					}
-					mr.setLineColor();
+					model.setLineColor();
+					
+					// 将model的组件追加到Gui上
+					MonitorGui com=(MonitorGui)GuiPackage.getInstance().getGui(dataNode.getTestElement());
+					com.getMainPanel().add(mr.toString(), model.getChartPanel());
+					com.getCheckBoxPanel().add(mr.toString(), model.getCheckBoxPanel());
+					
+					// 缓存Monitor与MonitorGui
 					this.linespecMap.put(chartName, mr);
+					guiList.add(com);
 				}
 			}
 		}
 		return true;
 	}
+	
 	private void addValuesToTimeSeries(MonitorData monitors, Monitor mr) {
 		String[] fs=monitors.getFields();
 		List<String[]> values = monitors.getValues();
 		for (String[] strings : values) {
 			// System.out.println(StringUtils.strip(strings[i]));
-			mr.updateGui(mr.getCategory(),fs, strings);
+			mr.getMonitorModel().updateGui(mr.getMonitorModel().getCategory(),fs, strings);
 		}
 	}
 	
@@ -382,17 +405,17 @@ public class MonitorClientModel implements Runnable{
 			return;
 		for (String element : this.linespecMap.keySet()) {
 			Monitor mor = linespecMap.get(element);
-			long pos = mor.getDataEndPosition();
+			long pos = mor.getMonitorModel().getDataEndPosition();
 			Map<String, String> agent = agentMap.get(element);
 			MonitorData monitors=null;
-			if (mor.isFirstFetch()) {
+			if (mor.getMonitorModel().isFirstFetch()) {
 				monitors = remoteDataService.getStartMonitorData(agent);
 				if (monitors == null) {
 					continue;
 				}
-				mor.setDataEndPosition(monitors.getDataEndPosition());
-				pos = mor.getDataEndPosition();
-				mor.setFirstFetch(false);
+				mor.getMonitorModel().setDataEndPosition(monitors.getDataEndPosition());
+				pos = mor.getMonitorModel().getDataEndPosition();
+				mor.getMonitorModel().setFirstFetch(false);
 			} else {
 				monitors = remoteDataService.getMonitorData(agent, pos);
 				if (monitors == null) {
@@ -400,7 +423,7 @@ public class MonitorClientModel implements Runnable{
 				}
 			}
 			// System.out.println("fetch data:"+agent.get("name"));
-			mor.setDataEndPosition(monitors.getDataEndPosition());
+			mor.getMonitorModel().setDataEndPosition(monitors.getDataEndPosition());
 			if (monitors.getDataEndPosition() - pos > 10000) {
 				// 使用多线程
 				new Thread(new DataListDrawer(monitors, mor)).start();

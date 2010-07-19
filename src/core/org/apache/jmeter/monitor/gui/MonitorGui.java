@@ -207,11 +207,17 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 	public TestElement createTestElement() {
 		Monitor monitor = new Monitor();
 		modifyTestElement(monitor);
-		mainPanel.add(monitor.toString(), monitor.getChartPanel());
-		upPanel.add(monitor.toString(), monitor.getCheckBoxPanel());
 		return monitor;
 	}
 
+	public JPanel getMainPanel(){
+		return mainPanel;
+	}
+	
+	public JPanel getCheckBoxPanel(){
+		return upPanel;
+	}
+	
 	public String getLabelResource() {
 		// TODO Auto-generated method stub
 		return null;

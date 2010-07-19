@@ -402,7 +402,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 					ra.setCount(as.getTimes());
 					ra.setInterval(as.getInterval());
 					ra.setRunAgents(as.getItemAsList());
-					model.startAgent(ra, as.getItemAsList(),"");
+					model.startAgent(ra, as.getItemAsList(),as.getPid());
 					done = true;
 				} else {
 					continue;

@@ -66,7 +66,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		init();
 		this.setModal(true);
 		this.setResizable(false);
-		this.setTitle("Title Dialog");
+		this.setTitle(JMeterUtils.getResString("agent_configure_dialog"));
 		this.setSize(500, 550);
 		this.setLocation(400, 200);
 	}
@@ -251,13 +251,13 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	
 	private void setAgentValue(AgentServer as,boolean editable){
 		portTF.setText(as.getPort());
-		portTF.setEditable(editable);
+		portTF.setEditable(false);
 		ipTF.setText(as.getAddress());
-		ipTF.setEditable(editable);
+		ipTF.setEditable(false);
 		proTF.setText(as.getProject());
 		proTF.setEditable(editable);
 		pwdTF.setText(as.getPassword());
-		pwdTF.setEditable(editable);
+		pwdTF.setEditable(false);
 		interTF.setText(String.valueOf(as.getInterval()));
 		interTF.setEditable(editable);
 		timeTF.setText(String.valueOf(as.getTimes()));

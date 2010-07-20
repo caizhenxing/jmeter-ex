@@ -58,6 +58,10 @@ public class MonitorClientModel implements Runnable{
 	// 缓存agent，取数据时使用
 	private Map<String,Map<String,String>> agentMap=new HashMap<String,Map<String,String>>();
 	
+	public MonitorClientModel(){
+		
+	}
+	
 	public Map<AgentServer,RemoteAgent> getRemoteAgentMap(){
 		return remoteAgentMap;
 	}
@@ -137,6 +141,7 @@ public class MonitorClientModel implements Runnable{
 				s.setAddress(agentServer.getAddress());
 				s.setPort(String.valueOf(agentServer.getPort()));
 				s.setProject(agentServer.getRunProject());
+				s.setPid(agentServer.getPid());
 				// 判断Agent的运行状态
 				if (agentServer.getRunProject()==null||agentServer.getRunProject().equals("")) {
 					s.setState(AgentServer.STOP);
@@ -436,8 +441,7 @@ public class MonitorClientModel implements Runnable{
 	}
 	
 	public List<String> getProjects(String url) throws MalformedURLException {
-		HessianProxyFactory factory = new HessianProxyFactory();
-        RemoteDataService remoteDataService = (RemoteDataService) factory.create(
+        remoteDataService = (RemoteDataService) factory.create(
                 RemoteDataService.class, HTTP_HEADER+serviceUrl+DATA_SERVER);
 		return remoteDataService.getProjects();
 	}

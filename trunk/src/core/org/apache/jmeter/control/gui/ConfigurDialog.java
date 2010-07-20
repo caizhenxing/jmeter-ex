@@ -26,7 +26,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import org.apache.jmeter.control.AgentServer;
 import org.apache.jmeter.util.JMeterUtils;
@@ -68,8 +67,6 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		this.setModal(true);
 		this.setResizable(false);
 		this.setTitle("Title Dialog");
-		System.out.println(SwingUtilities.getRoot(this).getWidth());
-		System.out.println(SwingUtilities.getRoot(this).getHeight());
 		this.setSize(500, 550);
 		this.setLocation(400, 200);
 	}
@@ -83,7 +80,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		controlPanel = new JPanel();
 		controlPanel.setLayout(new BorderLayout());
 		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		JLabel jl=new JLabel("Agent信息：");
+		JLabel jl=new JLabel(JMeterUtils.getResString("agent_info"));
 	    Font curFont = jl.getFont();
 	    jl.setFont(curFont.deriveFont((float) curFont.getSize() + 1));
 		left.add(jl);
@@ -97,7 +94,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		// 监控选项配置
 		JPanel cfPanel = new JPanel();
 		cfPanel.setLayout(new VerticalLayout(5, VerticalLayout.LEFT));
-		cfPanel.setBorder(BorderFactory.createTitledBorder("配置项目"));
+		cfPanel.setBorder(BorderFactory.createTitledBorder(JMeterUtils.getResString("configure_item")));
 		// port
 		Box tmpPanel = Box.createHorizontalBox();
 		tmpPanel.add(new JLabel(JMeterUtils.getResString("item_port")));
@@ -116,41 +113,39 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		
 		// Project
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel("工程名字："));
+		tmpPanel.add(new JLabel(JMeterUtils.getResString("project_name")));
 		proTF=new JTextField(10);
-//		proTF.setEditable(false);
 		tmpPanel.add(proTF);
 		cfPanel.add(tmpPanel);
 		
 		// Password
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel("密　　码："));
+		tmpPanel.add(new JLabel(JMeterUtils.getResString("password_item")));
 		pwdTF=new JTextField(10);
-//		pwdTF.setEditable(false);
 		tmpPanel.add(pwdTF);
 		cfPanel.add(tmpPanel);
 		
 		// interval
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel("间隔时间："));
+		tmpPanel.add(new JLabel(JMeterUtils.getResString("interval")));
 		interTF=new JTextField(10);
 		tmpPanel.add(interTF);
-		tmpPanel.add(new JLabel("秒"));
+		tmpPanel.add(new JLabel(JMeterUtils.getResString("second")));
 		cfPanel.add(tmpPanel);
 		
 		// time
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel("取样次数："));
+		tmpPanel.add(new JLabel(JMeterUtils.getResString("monitor_count")));
 		timeTF=new JTextField(10);
 		tmpPanel.add(timeTF);
-		tmpPanel.add(new JLabel("次"));
+		tmpPanel.add(new JLabel(JMeterUtils.getResString("count")));
 		cfPanel.add(tmpPanel);
 		
 		
 		// 其他选项
 		JPanel cbPanel = new JPanel();
 		cbPanel.setLayout(new VerticalLayout(5, VerticalLayout.LEFT));
-		cfPanel.add(new JLabel("以下选项用来配置服务器监控项目"));
+		cfPanel.add(new JLabel(JMeterUtils.getResString("configure_monitor_item")));
 		for (int i = 0; i < AGENTS.length; i++) {
 			JCheckBox jb = createChooseCheckBox(JMeterUtils.getResString("server_"+AGENTS[i]), Color.BLACK);
 			cbMap.put(AGENTS[i], jb);
@@ -158,12 +153,12 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 				Box projectPanel = Box.createHorizontalBox();
 				projectPanel.add(jb);
 				projectPanel.add(Box.createHorizontalStrut(10));
-				projectPanel.add(new JLabel("进程ID: "));
+				projectPanel.add(new JLabel(JMeterUtils.getResString("process_id")));
 				JTextField tmpTx=new JTextField(10);
 				projectPanel.add(tmpTx);
 				prossTxMap.put(AGENTS[i], tmpTx);
 				projectPanel.add(Box.createHorizontalStrut(10));
-				JButton tmpBT=new JButton("获取进程ID");
+				JButton tmpBT=new JButton(JMeterUtils.getResString("get_process_id"));
 				prossBT.add(tmpBT);
 				projectPanel.add(tmpBT);
 				cbPanel.add(projectPanel);
@@ -272,6 +267,9 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 			cbMap.get(AGENTS[j]).setEnabled(editable);
 			if (lst.contains(AGENTS[j])) {				
 				cbMap.get(AGENTS[j]).setSelected(true);
+				if (as.getPid()!=null) {
+					prossTxMap.get(AGENTS[j]).setText(as.getPid());
+				}
 			}
 		}
 		for (Iterator<JButton> iterator = prossBT.iterator(); iterator.hasNext();) {

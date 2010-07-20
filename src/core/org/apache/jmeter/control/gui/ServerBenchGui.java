@@ -319,13 +319,17 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		} else if (e.getSource() == configure){
 			model.setServiceUrl(rangeField.getText());
 			updateAgentList();
-		// 获取线程
+		// 获取进程
 		} else if (confDialog.getProcessButton().contains(e.getSource())){
 			List<String> lst=model.getAllProcess(tmpAgent);
 			int ind=lst.get(0).indexOf("CMD");
 			ObjectTableModel pidModel=proDialog.getTableModel();
+			pidModel.clearData();
 			for (int i = 1; i < lst.size(); i++) {
 				String line = lst.get(i);
+				if (!checkProcess(line)) {
+					continue;
+				}
 				StringTokenizer tokens = new StringTokenizer(line);
 				UserProcess up=new UserProcess();
 				up.setUid(tokens.nextToken());
@@ -467,6 +471,13 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("stop_project"),JMeterUtils.getResString("info_success"), JOptionPane.INFORMATION_MESSAGE);
 			}
 		}
+	}
+	
+	private boolean checkProcess(String line){
+		if (line.contains("java")) {
+			return true;
+		}
+		return false;
 	}
 	
 	private void openModifyDialog(boolean editable){

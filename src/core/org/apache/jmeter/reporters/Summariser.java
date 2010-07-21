@@ -88,10 +88,10 @@ public class Summariser extends AbstractTestElement
      * This map allows summarisers with the same name to contribute to the same totals.
      */
     //@GuardedBy("accumulators")
-    private static final Hashtable accumulators = new Hashtable();
+    protected static final Hashtable accumulators = new Hashtable();	// jex002C
     
     //@GuardedBy("accumulators")
-    private static int instanceCount; // number of active tests
+    protected static int instanceCount; // number of active tests	// jex002C
 
     /*
      * Cached copy of Totals for this instance.
@@ -100,10 +100,10 @@ public class Summariser extends AbstractTestElement
      * However the contents do need to be synchronized.
      */
     //@GuardedBy("myTotals")
-    private transient Totals myTotals = null;
+    protected transient Totals myTotals = null;	// jex002C
 
     // Name of the accumulator. Set up by testStarted().
-    private transient String myName;
+    protected transient String myName;	// jex002C
 
     /*
      * Constructor is initially called once for each occurrence in the test plan.
@@ -134,19 +134,19 @@ public class Summariser extends AbstractTestElement
      * Contains the items needed to collect stats for a summariser
      *
      */
-    private static class Totals {
+    protected static class Totals {	// jex002C
 
         /** Time of last summary (to prevent double reporting) */
-        private long last = 0;
+        long last = 0;	// jex002C
 
-        private final RunningSample delta = new RunningSample("DELTA",0);
+        final RunningSample delta = new RunningSample("DELTA",0);	// jex002C
 
-        private final RunningSample total = new RunningSample("TOTAL",0);
+        final RunningSample total = new RunningSample("TOTAL",0);	// jex002C
 
         /**
          * Add the delta values to the total values and clear the delta
          */
-        private void moveDelta() {
+        void moveDelta() {	// jex002C
             total.addSample(delta);
             delta.clear();
         }
@@ -232,7 +232,7 @@ public class Summariser extends AbstractTestElement
      * @param string
      * @return
      */
-    private String format(String name, RunningSample s, String type) {
+    protected String format(String name, RunningSample s, String type) {	// jex002C
         StringBuffer tmp = new StringBuffer(20); // for intermediate use
         StringBuffer sb = new StringBuffer(100); // output line buffer
         sb.append(name);

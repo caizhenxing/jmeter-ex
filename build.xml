@@ -331,7 +331,7 @@
     <include name="${xstream.jar}"/>
 	<include name="${jfreechart.jar}"/>
 	<include name="${jcommon.jar}"/>
-	<include name="${jfreechart.jar}"/>
+	<include name="${monitor.jar}"/>
 	<include name="${hessian.jar}"/>
 	<include name="${jxl.jar}"/>
 	<include name="${dom4j.jar}"/>
@@ -390,7 +390,7 @@
     <pathelement location="${xstream.jar}"/>
 	<pathelement location="${jfreechart.jar}"/>
 	<pathelement location="${jcommon.jar}"/>
-	<pathelement location="${jfreechart.jar}"/>
+	<pathelement location="${monitor.jar}"/>
 	<pathelement location="${hessian.jar}"/>
 	<pathelement location="${jxl.jar}"/>
 	<pathelement location="${dom4j.jar}"/>

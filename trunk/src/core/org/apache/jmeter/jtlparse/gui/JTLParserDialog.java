@@ -61,16 +61,16 @@ public class JTLParserDialog extends JDialog  implements ActionListener {
 
 	private void parseJTLFile(String openPath,String savePath) {
 		if (openPath.equals("")) {
-			JOptionPane.showMessageDialog(null, "请填写JTL文件路径", "错误", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, JMeterUtils.getResString("jtlparser_path"),JMeterUtils.getResString("Error"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		if (savePath.equals("")) {
-			JOptionPane.showMessageDialog(null, "请填写结果文件路径", "错误", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, JMeterUtils.getResString("jtlparser_res_path"), JMeterUtils.getResString("Error"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		File open=new File(openPath);
 		if (!open.exists()) {
-			JOptionPane.showMessageDialog(null, "JTL文件不存在", "错误", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, JMeterUtils.getResString("jtlparser_no_jtl"), JMeterUtils.getResString("Error"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		JTLParser jtlParser =new JTLParser();
@@ -78,7 +78,7 @@ public class JTLParserDialog extends JDialog  implements ActionListener {
 		jtlParser.setSaveFile(savePath);
 		try {
 			jtlParser.parse();
-			JOptionPane.showMessageDialog(null, "解析成功", "解析成功", JOptionPane.CLOSED_OPTION);
+			JOptionPane.showMessageDialog(null, JMeterUtils.getResString("jtlparser_succed"), JMeterUtils.getResString("table_visualizer_success"), JOptionPane.CLOSED_OPTION);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

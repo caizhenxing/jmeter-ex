@@ -211,7 +211,7 @@ public class Summariser extends AbstractTestElement
         }
     }
 
-    private static StringBuffer longToSb(StringBuffer sb, long l, int len) {
+    protected static StringBuffer longToSb(StringBuffer sb, long l, int len) {	// jex002C
         sb.setLength(0);
         sb.append(l);
         return JOrphanUtils.rightAlign(sb, len);
@@ -219,7 +219,7 @@ public class Summariser extends AbstractTestElement
 
     private static final DecimalFormat dfDouble = new DecimalFormat("#0.0"); // $NON-NLS-1$
 
-    private static StringBuffer doubleToSb(StringBuffer sb, double d, int len, int frac) {
+    protected static StringBuffer doubleToSb(StringBuffer sb, double d, int len, int frac) {	// jex002C
         sb.setLength(0);
         dfDouble.setMinimumFractionDigits(frac);
         dfDouble.setMaximumFractionDigits(frac);

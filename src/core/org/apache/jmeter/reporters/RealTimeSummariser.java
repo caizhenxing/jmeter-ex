@@ -106,4 +106,35 @@ public class RealTimeSummariser extends Summariser {
         }
         writer.close();
     }
+    
+    protected String format(String name, RunningSample s, String type) {	// jex002C
+        StringBuffer tmp = new StringBuffer(20); // for intermediate use
+        StringBuffer sb = new StringBuffer(100); // output line buffer
+        sb.append(name);
+        sb.append(" ");
+        sb.append(type);
+        sb.append(" ");
+        sb.append(longToSb(tmp, s.getNumSamples(), 5));
+        sb.append(" in ");
+        long elapsed = s.getElapsed();
+        sb.append(doubleToSb(tmp, elapsed / 1000.0, 5, 1));
+        sb.append("s = ");
+        if (elapsed > 0) {
+            sb.append(doubleToSb(tmp, s.getRate(), 6, 1));
+        } else {
+            sb.append("******");// Rate is effectively infinite
+        }
+        sb.append("/s Avg: ");
+        sb.append(longToSb(tmp, s.getAverage(), 5));
+        sb.append(" Min: ");
+        sb.append(longToSb(tmp, s.getMin(), 5));
+        sb.append(" Max: ");
+        sb.append(longToSb(tmp, s.getMax(), 5));
+        sb.append(" Err: ");
+        sb.append(longToSb(tmp, s.getErrorCount(), 5));
+        sb.append(" (");
+        sb.append(s.getErrorPercentageString());
+        sb.append(")");
+        return sb.toString();
+    }
 }

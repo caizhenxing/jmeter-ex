@@ -26,6 +26,7 @@ import com.alibaba.b2b.qa.monitor.remote.RemoteControllerService;
 import com.alibaba.b2b.qa.monitor.remote.RemoteDataService;
 import com.alibaba.b2b.qa.monitor.remote.exception.AgentConnectionError;
 import com.caucho.hessian.client.HessianProxyFactory;
+import com.caucho.hessian.io.HessianProtocolException;
 
 /**
  * Monitor Client Model
@@ -59,7 +60,7 @@ public class MonitorClientModel implements Runnable{
 	private Map<String,Map<String,String>> agentMap=new HashMap<String,Map<String,String>>();
 	
 	public MonitorClientModel(){
-		
+		// TODO 从配置文件中读取monitor.interval的配置
 	}
 	
 	public Map<AgentServer,RemoteAgent> getRemoteAgentMap(){
@@ -196,7 +197,7 @@ public class MonitorClientModel implements Runnable{
 		}
 		if(!this.running){
 			this.running = true;
-			dataFetcher=new Thread(this,"aliperClientModelThread");
+			dataFetcher=new Thread(this,"MonitorThread");
 			dataFetcher.start();
 		}
 		// 等待数据加载
@@ -264,7 +265,11 @@ public class MonitorClientModel implements Runnable{
 				e.printStackTrace();
 			}
 			// 指定间隔获取数据
-			this.fetchChartData();
+			try{
+				this.fetchChartData();
+			}catch (HessianProtocolException e){
+				System.out.println("Over");
+			}
 		}
 	}
 	
@@ -307,7 +312,6 @@ public class MonitorClientModel implements Runnable{
 		}
 		for (String agent : agents.keySet()) {
 			// 初始化Gui
-
 			// 新建ServerGui
 			JMeterTreeNode serverNode = addAgentToTree(benchNode, agent,
 					"org.apache.jmeter.server.gui.ServerGui");
@@ -404,10 +408,11 @@ public class MonitorClientModel implements Runnable{
         }
         return null;
     }
-
-	private synchronized void fetchChartData() {
-		if (!this.running)
+	
+	private synchronized void fetchChartData() throws HessianProtocolException {
+		if (!this.running){
 			return;
+		}
 		for (String element : this.linespecMap.keySet()) {
 			Monitor mor = linespecMap.get(element);
 			long pos = mor.getMonitorModel().getDataEndPosition();
@@ -427,7 +432,6 @@ public class MonitorClientModel implements Runnable{
 					continue;
 				}
 			}
-			// System.out.println("fetch data:"+agent.get("name"));
 			mor.getMonitorModel().setDataEndPosition(monitors.getDataEndPosition());
 			if (monitors.getDataEndPosition() - pos > 10000) {
 				// 使用多线程
@@ -436,7 +440,6 @@ public class MonitorClientModel implements Runnable{
 				// 不使用多线程
 				addValuesToTimeSeries(monitors, mor);
 			}
-//			System.out.println(mor.getCategory()+" Line:"+monitors.getValues().size()+":Overed!");
 		}
 	}
 	

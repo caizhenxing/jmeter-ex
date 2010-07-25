@@ -7,11 +7,15 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
@@ -33,9 +37,9 @@ public class JTLParser extends DefaultHandler {
 	private String SPLIT = ",";
 	private long maxRsTime = Long.MIN_VALUE;
 	private long minRsTime = Long.MAX_VALUE;
-	private double sumRsTime = 0;
 	private double maxTps = Double.MIN_VALUE;
 	private double minTps = Double.MAX_VALUE;
+	private double sumRsTime = 0;
 	private long firstTime = 0;
 	private long endTime = 0;
 	private long error = 0;
@@ -45,9 +49,12 @@ public class JTLParser extends DefaultHandler {
 	boolean firstTimeInit = false;
 	private List<Long> tmpList=new LinkedList<Long>();
 	private Map<String,Integer> header=new HashMap<String,Integer>();
-	private int tsPos=-1;
-	private int rtPos=-1;
-	private int resPos=-1;
+	private int tsPos=0;
+	private int rtPos=1;
+	private int resPos=7;
+	private int lbPos=2;
+	private Set<String> labels =new HashSet<String>();
+	private Map<String, SampleResult> samples =new HashMap<String, SampleResult>();
 
 	public void setJmeterLogFile(String path) {
 		this.jtlFile = new File(path);
@@ -85,6 +92,7 @@ public class JTLParser extends DefaultHandler {
 			tsPos=header.get("timeStamp");
 			rtPos=header.get("elapsed");
 			resPos=header.get("success");
+			lbPos=header.get("label");
 			
 			while((line=br.readLine())!=null){
 				analyseJtlNode(createJtlNodeForLine(line));
@@ -112,10 +120,39 @@ public class JTLParser extends DefaultHandler {
 		BufferedWriter bw = null;
 		FileWriter fw = null;
 		PrintWriter pw = null;
+		java.text.DecimalFormat df = new java.text.DecimalFormat(
+				"#0.0000000000");
 		try {
 			fw = new FileWriter(saveFile);
 			bw = new BufferedWriter(fw);
 			pw = new PrintWriter(bw);
+			
+			// 先输出子Sample
+			for (Iterator<String> iterator = labels.iterator(); iterator.hasNext();) {
+				String lb = iterator.next();
+				SampleResult sr= samples.get(lb);
+				pw.println("标签名字：" + lb);
+				pw.println("采样次数：" + sr.count);
+				pw.println("平均响应时间：" + sr.sumRsTime / sr.count);
+				pw.println("最大响应时间：" + sr.maxRsTime);
+				pw.println("最小响应时间：" + sr.minRsTime);
+				Collections.sort(sr.tmpList);
+				pw.println("50%响应时间：" + sr.tmpList.get((int)(sr.tmpList.size()*0.5)));
+				pw.println("90%响应时间：" + sr.tmpList.get((int)(sr.tmpList.size()*0.9)));
+				long howLongRunning = sr.endTime - sr.firstTime;
+				double throughput = ((double) (sr.count) / (double) howLongRunning) * 1000.0;
+				pw.println("平均TPS：" + throughput);
+				pw.println("最大TPS：" + sr.maxTps);
+				if (sr.minTps < 0) {
+					sr.minTps = 0;
+				}
+				pw.println("最小TPS：" + sr.minTps);
+				double rate = ((double) sr.error / (double) sr.count) * 100;
+				pw.println("失败率：" + df.format(rate) + "%");
+				pw.println();
+			}
+			
+			pw.println("标签名字：总数");
 			pw.println("采样次数：" + count);
 			pw.println("平均响应时间：" + sumRsTime / count);
 			pw.println("最大响应时间：" + maxRsTime);
@@ -131,8 +168,6 @@ public class JTLParser extends DefaultHandler {
 				minTps = 0;
 			}
 			pw.println("最小TPS：" + minTps);
-			java.text.DecimalFormat df = new java.text.DecimalFormat(
-					"#0.0000000000");
 			double rate = ((double) error / (double) count) * 100;
 			pw.println("失败率：" + df.format(rate) + "%");
 		} catch (IOException e) {
@@ -165,6 +200,12 @@ public class JTLParser extends DefaultHandler {
 		if (node.getState() == JtlNode.UNAVAILABLE) {
 			return;
 		}
+		// 对node进行分类
+		if (labels.add(node.getLabel())) {
+			samples.put(node.getLabel(), new SampleResult());
+		}
+		samples.get(node.getLabel()).analyse(node);
+		
 		endTime = node.getTimeStamp();
 		if (!firstTimeInit) {
 			firstTime = endTime;
@@ -174,7 +215,7 @@ public class JTLParser extends DefaultHandler {
 		count = count + 1;
 		minRsTime = Math.min(node.getAttTime(), minRsTime);
 		maxRsTime = Math.max(node.getAttTime(), maxRsTime);
-		addSortedValue(node.getAttTime());
+		tmpList.add(node.getAttTime());
 		sumRsTime = sumRsTime + (double) node.getAttTime();
 		if (howLongRunning != 0) {
 			double tps = ((double) count / (double) howLongRunning) * 1000.0;
@@ -185,13 +226,9 @@ public class JTLParser extends DefaultHandler {
 			error = error + 1;
 		}
 	}
-
-    private void addSortedValue(Long val) {
-        	tmpList.add(val);
-    }
     
 	private JtlNode createJtlNodeForLine(String line) {
-		String[] tmp = line.split(SPLIT);
+		String[] tmp = splitLine(line);
 		JtlNode node = new JtlNode();
 
 		// 时间戳
@@ -202,9 +239,27 @@ public class JTLParser extends DefaultHandler {
 
 		// 执行结果
 		node.setSuccess((Boolean.parseBoolean(tmp[resPos])));
+		
+		// 标签
+		node.setLabel(tmp[lbPos]);
 		return node;
 	}
 	
+	private String[] splitLine(String line){
+		String[] res=new String[header.keySet().size()];
+		String[] sp=line.split(SPLIT);
+//		"Number of samples in transaction : 2, number of failing samples : 0"
+//		private int resPos=7;
+		res[tsPos]=sp[tsPos];
+		res[rtPos]=sp[rtPos];
+		res[lbPos]=sp[lbPos];
+		if (line.contains("\"")) {
+			res[resPos]=sp[resPos+1];
+		} else {
+			res[resPos]=sp[resPos];
+		}
+		return res;
+	}
 	private JtlNode createJtlNode(Attributes attrs) {
 		long newValue;
 		boolean newResult;
@@ -293,7 +348,7 @@ public class JTLParser extends DefaultHandler {
 		// s SUCCESS
 		private boolean success = false;
 		// lb LABEL
-//		private String label;
+		private String label;
 //		// rc RESPONSE_CODE
 //		private String responseCode;
 //		// rm RESPONSE_MESSAGE
@@ -373,13 +428,13 @@ public class JTLParser extends DefaultHandler {
 			this.success = success;
 		}
 
-//		public String getLabel() {
-//			return label;
-//		}
-//
-//		public void setLabel(String label) {
-//			this.label = label;
-//		}
+		public String getLabel() {
+			return label;
+		}
+
+		public void setLabel(String label) {
+			this.label = label;
+		}
 //
 //		public String getResponseCode() {
 //			return responseCode;
@@ -422,11 +477,46 @@ public class JTLParser extends DefaultHandler {
 //		}
 	}
 
+	private static class SampleResult{
+		double sumRsTime = 0;
+		long firstTime = 0;
+		long endTime = 0;
+		long error = 0;
+		long count = 0;
+		private double maxTps = Double.MIN_VALUE;
+		private double minTps = Double.MAX_VALUE;
+		private long maxRsTime = Long.MIN_VALUE;
+		private long minRsTime = Long.MAX_VALUE;
+		boolean firstTimeInit = false;
+		List<Long> tmpList=new LinkedList<Long>();
+		void analyse(JtlNode node) {
+			endTime = node.getTimeStamp();
+			if (!firstTimeInit) {
+				firstTime = endTime;
+				firstTimeInit = true;
+			}
+			long howLongRunning = endTime - firstTime;
+			count = count + 1;
+			minRsTime = Math.min(node.getAttTime(), minRsTime);
+			maxRsTime = Math.max(node.getAttTime(), maxRsTime);
+			tmpList.add(node.getAttTime());
+			sumRsTime = sumRsTime + (double) node.getAttTime();
+			if (howLongRunning != 0) {
+				double tps = ((double) count / (double) howLongRunning) * 1000.0;
+				minTps = Math.min(tps, minTps);
+				maxTps = Math.max(tps, maxTps);
+			}
+			if (!node.isSuccess()) {
+				error = error + 1;
+			}
+		}
+	}
+	
 	public static void main(String[] args) throws Exception {
 		Long start=System.currentTimeMillis();
 		final JTLParser parser = new JTLParser();
 //		parser.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\q20.jtl");
-		parser.setJmeterLogFile("D:\\Project\\Jmeter-Ex\\res.xml");
+		parser.setJmeterLogFile("D:\\Project\\Jmeter-Ex\\res.csv");
 		parser.setSaveFile("d:\\res.txt");
 		parser.parse();
 		System.out.println(System.currentTimeMillis()-start);

@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -289,6 +288,8 @@ public class JTLParser extends DefaultHandler {
 				break;
 			// lb LABEL
 			case 3446:
+				String lb=attrs.getValue(i);
+				node.setLabel(lb);
 				break;
 			// rc RESPONSE_CODE
 			case 3633:
@@ -516,8 +517,8 @@ public class JTLParser extends DefaultHandler {
 		Long start=System.currentTimeMillis();
 		final JTLParser parser = new JTLParser();
 //		parser.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\q20.jtl");
-		parser.setJmeterLogFile("D:\\Project\\Jmeter-Ex\\res.csv");
-		parser.setSaveFile("d:\\res.txt");
+		parser.setJmeterLogFile("D:\\Project\\Jmeter-Ex\\res.jtl");
+		parser.setSaveFile("d:\\res-xml.txt");
 		parser.parse();
 		System.out.println(System.currentTimeMillis()-start);
 		System.out.println("Over");

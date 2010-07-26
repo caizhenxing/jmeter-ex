@@ -294,7 +294,7 @@ public class JMeter implements JMeterPlugin {
         		
         	} else {
         		File file=new File(srcPath);
-        		desPath=file.getParent()+File.separator+bartDateFormat.format(date)+"parsingResult.txt";
+        		desPath=file.getAbsoluteFile().getParent()+File.separator+bartDateFormat.format(date)+" Result.txt";
         	}
         	
     		JTLParser jtlParser = new JTLParser();
@@ -308,7 +308,7 @@ public class JMeter implements JMeterPlugin {
 			}
 			
 			// 解析结束退出
-    		System.exit(1);
+    		System.exit(0);
         }
         try {
             initializeProperties(parser); // Also initialises JMeter logging

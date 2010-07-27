@@ -186,7 +186,8 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 		upPanel.setLayout(checkboxPanelCard);
 		this.add(upPanel, BorderLayout.NORTH);
 		this.add(mainPanel, BorderLayout.CENTER);
-		this.add(myScrollPane, BorderLayout.SOUTH);
+		// 暂时不添加列表
+//		this.add(myScrollPane, BorderLayout.SOUTH);
 	}
 
 	/**

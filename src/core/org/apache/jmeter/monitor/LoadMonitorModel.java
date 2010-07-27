@@ -1,12 +1,12 @@
 package org.apache.jmeter.monitor;
 
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
+import org.jfree.chart.axis.NumberTickUnit;
 
 public class LoadMonitorModel extends MonitorModel{
 	public LoadMonitorModel(){
 		super();
-		NumberFormat nf22 = new DecimalFormat("00.00"); 
-		super.localNumberAxisL.setNumberFormatOverride(nf22);
+		double   rangetick = 0.1D;
+		//y轴单位间隔为0.1
+		super.localNumberAxisL.setTickUnit(new NumberTickUnit(rangetick));
 	}
 }

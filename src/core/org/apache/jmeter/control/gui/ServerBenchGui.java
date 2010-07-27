@@ -57,9 +57,12 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private static final long serialVersionUID = 1L;
 	private JComboBox com = new JComboBox();
 	private JTextField rangeField = new JTextField(58);
+//	private JTextField startField = new JTextField(1);
+//	private JTextField endField = new JTextField(1);
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
 	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
 	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
+//	private JButton view = new JButton("All");
 	private JButton configure = new JButton(JMeterUtils.getResString("server_bench_configure"));
 	private JButton show = new JButton(JMeterUtils.getResString("server_bench_watch"));
 	private JButton edit = new JButton(JMeterUtils.getResString("server_bench_edit"));
@@ -70,7 +73,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private ProcessListDialog proDialog=new ProcessListDialog();
 	private MonitorClientModel model = new MonitorClientModel();
 	private Map<Integer,AgentServer> agentSeverContainer = new HashMap<Integer,AgentServer>();
-	private transient ObjectTableModel omodel;
+	private transient ObjectTableModel tableModel;
 	private JTable agentTable = null;
 	private AgentServer tmpAgent = null;
 	private static final String[] COLUMNS = { "con_state", "con_ip", "con_port",
@@ -185,19 +188,27 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		buttonPanel.add(Box.createHorizontalStrut(20));
 		buttonPanel.add(disConnect);
 		buttonPanel.add(Box.createHorizontalStrut(20));
+//		buttonPanel.add(view);
+//		buttonPanel.add(Box.createHorizontalStrut(20));
+//		buttonPanel.add(new JLabel("时间段："));
+//		buttonPanel.add(startField);
+//		buttonPanel.add(new JLabel("--"));
+//		buttonPanel.add(endField);
+//		buttonPanel.add(Box.createHorizontalStrut(20));
 		connect.addActionListener(this);
+//		view.addActionListener(this);
 		disConnect.addActionListener(this);
 		mainPanel.add(buttonPanel);
 		
 		// 配置Dialog
-		omodel = new ObjectTableModel(COLUMNS, AgentServer.class, new Functor[] {
+		tableModel = new ObjectTableModel(COLUMNS, AgentServer.class, new Functor[] {
 			new Functor("getState"), new Functor("getAddress"), new Functor("getPort"),
 			new Functor("getProject"), new Functor("getInterval"),new Functor("getTimes"),
 			new Functor("getStartTime"),new Functor("getEndTime"),
 			new Functor("getItems"), }, new Functor[] { null, null, null, null,
 			null, null, null,null,null }, new Class[] { String.class, String.class, String.class,
 			String.class, Integer.class, Long.class , String.class, String.class, String.class});
-		agentTable = new YccCustomTable(omodel);
+		agentTable = new YccCustomTable(tableModel);
 		agentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
 		agentTable.getTableHeader().setDefaultRenderer(
@@ -470,6 +481,11 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 				updateAgentList();
 				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("stop_project"),JMeterUtils.getResString("info_success"), JOptionPane.INFORMATION_MESSAGE);
 			}
+//		} else if (e.getSource() == view){
+//			model.getAllDataForProject(agent, startTime, stopTime);
+//			startField.getText();
+//			endField.getText();
+//			model.view();
 		}
 	}
 	
@@ -482,7 +498,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	
 	private void openModifyDialog(boolean editable){
     	int rowI  = agentTable.getSelectedRow();
-    	if (rowI!=-1) {				
+    	if (rowI!=-1) {
     		AgentServer as=agentSeverContainer.get(rowI);
     		tmpAgent=as;
     		confDialog.showModifyValueDialog(as,editable);
@@ -491,7 +507,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private void updateAgentList(){
 		List<AgentServer> aglst=null;
 		agentSeverContainer.clear();
-		omodel.clearData();
+		tableModel.clearData();
 		try {
 			aglst=model.configure();
 		} catch (MalformedURLException e1) {
@@ -500,8 +516,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		if (aglst!=null) {
 			for (Iterator<AgentServer> iterator = aglst.iterator(); iterator.hasNext();) {
 				AgentServer as =iterator.next();
-				agentSeverContainer.put(omodel.getRowCount(), as);
-				omodel.insertRow(as, omodel.getRowCount());
+				agentSeverContainer.put(tableModel.getRowCount(), as);
+				tableModel.insertRow(as, tableModel.getRowCount());
 			}
 		}
 	}

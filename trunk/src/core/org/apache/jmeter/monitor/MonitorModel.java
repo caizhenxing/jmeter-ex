@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,7 +80,6 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 
 	protected Map<JCheckBox, String> cbMap = new HashMap<JCheckBox, String>();
 	
-	
 	private long dataEndPosition = 0;
 
 	private boolean firstFetch = true;
@@ -101,6 +101,8 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 
 		localDateAxis.setTickLabelFont(new Font("SansSerif", 0, 12));
 		localDateAxis.setLabelFont(new Font("SansSerif", 0, 14));
+		// TODO 显示格式加入配置
+		localDateAxis.setDateFormatOverride(new SimpleDateFormat("MM-dd hh:mm:ss"));
 
 		localXYLineAndShapeRendererL = new XYLineAndShapeRenderer(true, false);
 		localXYLineAndShapeRendererL.setSeriesStroke(0, new BasicStroke(1.0F,
@@ -345,7 +347,6 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 				Long v = Long.parseLong(StringUtils.strip(strings[j]));
 				updateGui(ts, new Second(time), v);
 			} else if (type.equals(MonitorModel.TYPE_DOUBLE)) {
-				// TODO 把Monitor根据category进行抽象，将net的判断加至子类
 				Double v = null;
 				if (category.equals("net")) {
 					v = Double.parseDouble(StringUtils.strip(strings[j + 9]));
@@ -356,8 +357,6 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 			}
 		}
 	}
-	
-//	protected abstract Number getMonitorValue(String value);
 	
 	protected synchronized void updateGui(TimeSeries ts, Second s, Number v) {
 		ts.addOrUpdate(s, v);
@@ -389,7 +388,6 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
 		JFileChooser chooser = FileDialoger.promptToSaveFile(category+".png");
 		if (chooser == null) {
 			return;

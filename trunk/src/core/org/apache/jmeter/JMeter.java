@@ -279,37 +279,44 @@ public class JMeter implements JMeterPlugin {
         }
         
         // 解析结果文件
-        if(parser.getArgumentById(PARSEFILE_OPT)!=null){
-        	SimpleDateFormat bartDateFormat = new SimpleDateFormat("MM-dd-hh-mm-ss");
-        	Date date = new Date();
-        	String srcPath=parser.getArgumentById(PARSEFILE_OPT).getArgument(0);
-        	String desPath;
-        	if(parser.getArgumentById(SAVERESULT_OPT)!=null){
-        		desPath=parser.getArgumentById(SAVERESULT_OPT).getArgument(0);
-        		File file=new File(desPath);
-        		if (!file.exists()) {
-        			file.mkdirs();
+        // jex002A begin
+		if (parser.getArgumentById(PARSEFILE_OPT) != null) {
+			SimpleDateFormat bartDateFormat = new SimpleDateFormat(
+					"MM-dd-hh-mm-ss");
+			Date date = new Date();
+			String srcPath = parser.getArgumentById(PARSEFILE_OPT).getArgument(
+					0);
+			String desPath = null;
+			if (parser.getArgumentById(SAVERESULT_OPT) != null) {
+				desPath = parser.getArgumentById(SAVERESULT_OPT).getArgument(0);
+				File file = new File(desPath);
+				if (!file.exists()) {
+					file.mkdirs();
 				}
-        		desPath=desPath+File.separator+bartDateFormat.format(date)+" Result.txt";
-        		
-        	} else {
-        		File file=new File(srcPath);
-        		desPath=file.getAbsoluteFile().getParent()+File.separator+bartDateFormat.format(date)+" Result.txt";
-        	}
-        	
-    		JTLParser jtlParser = new JTLParser();
-    		jtlParser.setJmeterLogFile(srcPath);
-    		jtlParser.setSaveFile(desPath);
-    		try {
+				desPath = desPath + File.separator
+						+ bartDateFormat.format(date) + " Result.txt";
+
+			} else {
+				File file = new File(srcPath);
+				desPath = file.getAbsoluteFile().getParent() + File.separator
+						+ bartDateFormat.format(date) + " Result.txt";
+			}
+
+			JTLParser jtlParser = new JTLParser();
+			jtlParser.setJmeterLogFile(srcPath);
+			jtlParser.setSaveFile(desPath);
+			try {
 				jtlParser.parse();
-				System.out.println("Parsing finished!");
+				System.out.println("Parsing Finished!");
 			} catch (Exception e) {
 				System.out.println(e.getMessage());
+				System.out.println("Parsing Failed!");
 			}
-			
+
 			// 解析结束退出
-    		System.exit(0);
-        }
+			System.exit(0);
+		}
+		// jex002A end
         try {
             initializeProperties(parser); // Also initialises JMeter logging
 

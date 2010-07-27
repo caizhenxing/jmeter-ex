@@ -4,6 +4,8 @@ import java.awt.CardLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -59,26 +61,43 @@ public class JTLParserDialog extends JDialog  implements ActionListener {
 		parseJTLFile(openPath.getText(),savePath.getText());
 	}
 
-	private void parseJTLFile(String openPath,String savePath) {
+	private void parseJTLFile(String openPath, String savePath) {
+		SimpleDateFormat bartDateFormat = new SimpleDateFormat("MM-dd-hh-mm-ss");
 		if (openPath.equals("")) {
-			JOptionPane.showMessageDialog(null, JMeterUtils.getResString("jtlparser_path"),JMeterUtils.getResString("Error"), JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, JMeterUtils
+					.getResString("jtlparser_path"), JMeterUtils
+					.getResString("Error"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		if (savePath.equals("")) {
-			JOptionPane.showMessageDialog(null, JMeterUtils.getResString("jtlparser_res_path"), JMeterUtils.getResString("Error"), JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, JMeterUtils
+					.getResString("jtlparser_res_path"), JMeterUtils
+					.getResString("Error"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		File open=new File(openPath);
+		File open = new File(openPath);
 		if (!open.exists()) {
-			JOptionPane.showMessageDialog(null, JMeterUtils.getResString("jtlparser_no_jtl"), JMeterUtils.getResString("Error"), JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, JMeterUtils
+					.getResString("jtlparser_no_jtl"), JMeterUtils
+					.getResString("Error"), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JTLParser jtlParser =new JTLParser();
+		JTLParser jtlParser = new JTLParser();
 		jtlParser.setJmeterLogFile(openPath);
-		jtlParser.setSaveFile(savePath);
+		File file = new File(savePath);
+		if (!file.isDirectory() || !file.exists()) {
+			file.mkdirs();
+		}
+		Date date = new Date();
+		String desPath = savePath + File.separator
+				+ bartDateFormat.format(date) + " Result.txt";
+		jtlParser.setSaveFile(desPath);
 		try {
 			jtlParser.parse();
-			JOptionPane.showMessageDialog(null, JMeterUtils.getResString("jtlparser_succed"), JMeterUtils.getResString("table_visualizer_success"), JOptionPane.CLOSED_OPTION);
+			JOptionPane.showMessageDialog(null, JMeterUtils
+					.getResString("jtlparser_succed"), JMeterUtils
+					.getResString("table_visualizer_success"),
+					JOptionPane.CLOSED_OPTION);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

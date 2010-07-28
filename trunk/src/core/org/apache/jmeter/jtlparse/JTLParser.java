@@ -46,7 +46,7 @@ public class JTLParser extends DefaultHandler {
 	private File jtlFile = null;
 	private File saveFile = null;
 	boolean firstTimeInit = false;
-	private List<Long> tmpList=new LinkedList<Long>();
+//	private List<Long> tmpList=new LinkedList<Long>();
 	private Map<String,Integer> header=new HashMap<String,Integer>();
 	private int tsPos=0;
 	private int rtPos=1;
@@ -135,9 +135,9 @@ public class JTLParser extends DefaultHandler {
 				pw.println("平均响应时间：" + sr.sumRsTime / sr.count);
 				pw.println("最大响应时间：" + sr.maxRsTime);
 				pw.println("最小响应时间：" + sr.minRsTime);
-				Collections.sort(sr.tmpList);
-				pw.println("50%响应时间：" + sr.tmpList.get((int)(sr.tmpList.size()*0.5)));
-				pw.println("90%响应时间：" + sr.tmpList.get((int)(sr.tmpList.size()*0.9)));
+//				Collections.sort(sr.tmpList);
+//				pw.println("50%响应时间：" + sr.tmpList.get((int)(sr.tmpList.size()*0.5)));
+//				pw.println("90%响应时间：" + sr.tmpList.get((int)(sr.tmpList.size()*0.9)));
 				long howLongRunning = sr.endTime - sr.firstTime;
 				double throughput = ((double) (sr.count) / (double) howLongRunning) * 1000.0;
 				pw.println("平均TPS：" + throughput);
@@ -156,9 +156,9 @@ public class JTLParser extends DefaultHandler {
 			pw.println("平均响应时间：" + sumRsTime / count);
 			pw.println("最大响应时间：" + maxRsTime);
 			pw.println("最小响应时间：" + minRsTime);
-			Collections.sort(tmpList);
-			pw.println("50%响应时间：" + tmpList.get((int)(tmpList.size()*0.5)));
-			pw.println("90%响应时间：" + tmpList.get((int)(tmpList.size()*0.9)));
+//			Collections.sort(tmpList);
+//			pw.println("50%响应时间：" + tmpList.get((int)(tmpList.size()*0.5)));
+//			pw.println("90%响应时间：" + tmpList.get((int)(tmpList.size()*0.9)));
 			long howLongRunning = endTime - firstTime;
 			double throughput = ((double) (count) / (double) howLongRunning) * 1000.0;
 			pw.println("平均TPS：" + throughput);
@@ -214,7 +214,7 @@ public class JTLParser extends DefaultHandler {
 		count = count + 1;
 		minRsTime = Math.min(node.getAttTime(), minRsTime);
 		maxRsTime = Math.max(node.getAttTime(), maxRsTime);
-		tmpList.add(node.getAttTime());
+//		tmpList.add(node.getAttTime());
 		sumRsTime = sumRsTime + (double) node.getAttTime();
 		if (howLongRunning != 0) {
 			double tps = ((double) count / (double) howLongRunning) * 1000.0;
@@ -489,7 +489,7 @@ public class JTLParser extends DefaultHandler {
 		private long maxRsTime = Long.MIN_VALUE;
 		private long minRsTime = Long.MAX_VALUE;
 		boolean firstTimeInit = false;
-		List<Long> tmpList=new LinkedList<Long>();
+//		List<Long> tmpList=new LinkedList<Long>();
 		void analyse(JtlNode node) {
 			endTime = node.getTimeStamp();
 			if (!firstTimeInit) {
@@ -500,7 +500,7 @@ public class JTLParser extends DefaultHandler {
 			count = count + 1;
 			minRsTime = Math.min(node.getAttTime(), minRsTime);
 			maxRsTime = Math.max(node.getAttTime(), maxRsTime);
-			tmpList.add(node.getAttTime());
+//			tmpList.add(node.getAttTime());
 			sumRsTime = sumRsTime + (double) node.getAttTime();
 			if (howLongRunning != 0) {
 				double tps = ((double) count / (double) howLongRunning) * 1000.0;

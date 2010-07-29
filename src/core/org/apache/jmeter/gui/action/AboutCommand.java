@@ -82,7 +82,7 @@ public class AboutCommand implements Command {
     void about() {
         JFrame mainFrame = GuiPackage.getInstance().getMainFrame();
         if (about == null) {
-            about = new JDialog(mainFrame, "About Apache JMeter...", false);
+            about = new JDialog(mainFrame, "About JMeterEx ...", false);	// jex002C
             about.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     about.setVisible(false);
@@ -91,8 +91,8 @@ public class AboutCommand implements Command {
 
             JLabel jmeter = new JLabel(JMeterUtils.getImage("jmeter.jpg"));
             JLabel copyright = new JLabel(JMeterUtils.getJMeterCopyright(), JLabel.CENTER);
-            JLabel rights = new JLabel("All Rights Reserved.", JLabel.CENTER);
-            JLabel version = new JLabel("Apache JMeter Version " + JMeterUtils.getJMeterVersion(), JLabel.CENTER);
+            JLabel rights = new JLabel("chenchao.yecc@alibaba-inc.com", JLabel.CENTER);	// jex002C
+            JLabel version = new JLabel("JMeterEx Version " + JMeterUtils.getJMeterVersion(), JLabel.CENTER);	// jex002C
             JPanel infos = new JPanel();
             infos.setOpaque(false);
             infos.setLayout(new GridLayout(0, 1));

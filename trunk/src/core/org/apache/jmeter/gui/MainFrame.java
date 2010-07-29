@@ -80,7 +80,7 @@ public class MainFrame extends JFrame implements TestListener, Remoteable {
 
     // The default title for the Menu bar
     private static final String DEFAULT_TITLE =
-        "Apache JMeter ("+JMeterUtils.getJMeterVersion()+")"; // $NON-NLS-1$ $NON-NLS-2$
+        "JMeterEx ("+JMeterUtils.getJMeterVersion()+")"; // $NON-NLS-1$ $NON-NLS-2$	// jex002C
 
     /** The menu bar. */
     private JMeterMenuBar menuBar;

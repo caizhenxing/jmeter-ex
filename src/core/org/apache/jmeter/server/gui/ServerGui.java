@@ -1,21 +1,29 @@
 package org.apache.jmeter.server.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.server.Server;
 import org.apache.jmeter.testelement.TestElement;
-import com.alibaba.b2b.qa.monitor.RemoteAgent;
+import org.apache.jorphan.gui.layout.VerticalLayout;
+
 
 /**
  * Server Gui
@@ -27,7 +35,14 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	private static final long serialVersionUID = 1L;
 
 	public static final String STATIC_LABEL = "server";
-	
+	public static final String CPU_INFO = "cpu_info";
+	public static final String MEMORY_INFO = "mem_info";
+	public static final String DISK_INFO = "disk_info";
+	public static final String NET_INFO = "net_info";
+	public Map<String,JTextArea> tamap=new HashMap<String,JTextArea>();
+	public static final int WEITH = 400;
+	public static final int HIGHT = 120;
+	private Color c=new Color(235, 233, 237);
 	private Server server =null;
 	/**
 	 * construct method
@@ -74,10 +89,11 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	public void configure(TestElement tg) {
 		super.configure(tg);
 		if (tg instanceof Server) {
-			server = (Server) tg;
-			RemoteAgent ra=server.getRemoteAgent();
-			if (ra != null) {
-			}
+			Server s = (Server) tg;
+			setHardDriveInfo(CPU_INFO, s.getCpuInfo());
+			setHardDriveInfo(MEMORY_INFO, s.getCpuInfo());
+			setHardDriveInfo(DISK_INFO, s.getCpuInfo());
+			setHardDriveInfo(NET_INFO, s.getCpuInfo());
 		}
 	}
 
@@ -111,8 +127,30 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	 * 
 	 */
 	private void initGui() {
+		JPanel mainPanel=new JPanel();
+		mainPanel.setLayout(new VerticalLayout(5, VerticalLayout.LEFT));
+		mainPanel.add(getItemPanel(CPU_INFO));
+		mainPanel.add(getItemPanel(MEMORY_INFO));
+		mainPanel.add(getItemPanel(DISK_INFO));
+		mainPanel.add(getItemPanel(NET_INFO));
+		add(mainPanel);
 	}
 
+	private JPanel getItemPanel(String item) {
+		JPanel tmpPanel = new JPanel();
+		tmpPanel.setBorder(BorderFactory.createTitledBorder(item));
+		JTextArea ta = new JTextArea();
+		JScrollPane sc = new JScrollPane(ta);
+		ta.setEditable(false);
+		ta.setBackground(c);
+		sc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		sc.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		tamap.put(item, ta);
+		sc.setPreferredSize(new Dimension(WEITH, HIGHT));
+		tmpPanel.add(sc);
+		return tmpPanel;
+	}
+	
 	/**
 	 * init gui
 	 * 
@@ -124,7 +162,13 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		Box box = Box.createVerticalBox();
 		box.add(makeTitlePanel());
 		add(box, BorderLayout.NORTH);
-
+	}
+	
+	public void setHardDriveInfo(String type,String Info){
+		JTextArea ta=this.tamap.get(type);
+		if (ta!=null) {
+			ta.setText(Info);
+		}
 	}
 	
 	/**

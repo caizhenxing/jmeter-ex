@@ -299,7 +299,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 			proTF.requestFocus();
 			return false;
 		}
-		if (interval==0) {
+		if (interval<=0) {
 			JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_interval_error"), JMeterUtils.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
 			interTF.selectAll();

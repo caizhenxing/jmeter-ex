@@ -6,12 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.TextEvent;
-import java.awt.event.TextListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import java.awt.event.WindowEvent;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Random;
@@ -23,10 +18,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jmeter.control.MonitorClientModel;
+import org.apache.jmeter.control.gui.ServerBenchGui;
+import org.apache.jmeter.util.JMeterUtils;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -49,11 +45,40 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 	private YccTab tab=new YccTab();
 	private JButton savegraph=new JButton("保存当前图片");
 	private JButton saveall = new JButton("保存所有图片");
+	private ServerBenchGui benchgui=null;
+	private MonitorClientModel model = new MonitorClientModel();
+	
+	public void setServerBenchGui(ServerBenchGui benchgui){
+		this.benchgui=benchgui;
+	}
+	
+	public void setMonitorClientModel(MonitorClientModel model){
+		this.model=model;
+	}
+	
+	public void showFrame() {
+		this.pack();
+		this.clearAll();
+		JMeterUtils.centerWindow(this);
+	}
+	
+	private void clearAll(){
+		
+	}
+	
+	protected void processWindowEvent(WindowEvent e) {
+		if (e.getID() == WindowEvent.WINDOW_CLOSING) {
+			benchgui.setHistoryButtonEnable(true);
+		}
+		super.processWindowEvent(e);
+	}
+
 	public ResultViewFrame() {
 		update.addActionListener(this);
 		view.addActionListener(this);
 		savegraph.addActionListener(this);
 		saveall.addActionListener(this);
+		this.setDefaultCloseOperation(HIDE_ON_CLOSE);
 		initGui();
 	}
 	
@@ -176,7 +201,10 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 		if(e.getSource()==update){
 			System.out.println("update");
 		} else if(e.getSource()==view){
-			System.out.println("view");
+//			model.getAllDataForProject(agent, startTime, stopTime);
+//			startField.getText();
+//			endField.getText();
+//			model.view();
 			
 		} else if(e.getSource()==savegraph){
 			System.out.println("savegraph");

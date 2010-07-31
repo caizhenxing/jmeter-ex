@@ -34,6 +34,7 @@ import org.apache.jmeter.control.MonitorClientModel;
 import org.apache.jmeter.control.UserProcess;
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.GuiPackage;
+import org.apache.jmeter.gui.ResultViewFrame;
 import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.gui.util.YccCustomTable;
@@ -59,10 +60,11 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JTextField rangeField = new JTextField(58);
 //	private JTextField startField = new JTextField(1);
 //	private JTextField endField = new JTextField(1);
+	private ResultViewFrame resultFrame=new ResultViewFrame();
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
 	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
 	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
-//	private JButton view = new JButton("All");
+	private JButton view = new JButton("查看历史");
 	private JButton configure = new JButton(JMeterUtils.getResString("server_bench_configure"));
 	private JButton show = new JButton(JMeterUtils.getResString("server_bench_watch"));
 	private JButton edit = new JButton(JMeterUtils.getResString("server_bench_edit"));
@@ -97,7 +99,9 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 //			dlg.setVisible(true);
 //		}
 //	});
-	
+	public void setHistoryButtonEnable(boolean enable){
+		this.view.setEnabled(enable);
+	}
 	/**
 	 * Create a new JVMbenchGui.
 	 */
@@ -149,6 +153,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		setBorder(makeBorder());
 
 		add(makeTitlePanel());
+		resultFrame.setServerBenchGui(this);
 
 		// URL
 		VerticalPanel mainPanel = new VerticalPanel();
@@ -188,7 +193,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		buttonPanel.add(Box.createHorizontalStrut(20));
 		buttonPanel.add(disConnect);
 		buttonPanel.add(Box.createHorizontalStrut(20));
-//		buttonPanel.add(view);
+		buttonPanel.add(view);
 //		buttonPanel.add(Box.createHorizontalStrut(20));
 //		buttonPanel.add(new JLabel("时间段："));
 //		buttonPanel.add(startField);
@@ -196,7 +201,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 //		buttonPanel.add(endField);
 //		buttonPanel.add(Box.createHorizontalStrut(20));
 		connect.addActionListener(this);
-//		view.addActionListener(this);
+		view.addActionListener(this);
 		disConnect.addActionListener(this);
 		mainPanel.add(buttonPanel);
 		
@@ -481,11 +486,9 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 				updateAgentList();
 				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("stop_project"),JMeterUtils.getResString("info_success"), JOptionPane.INFORMATION_MESSAGE);
 			}
-//		} else if (e.getSource() == view){
-//			model.getAllDataForProject(agent, startTime, stopTime);
-//			startField.getText();
-//			endField.getText();
-//			model.view();
+		} else if (e.getSource() == view){
+			setHistoryButtonEnable(false);
+			resultFrame.showFrame();
 		}
 	}
 	

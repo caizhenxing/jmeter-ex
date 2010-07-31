@@ -18,8 +18,10 @@
 
 package org.apache.jmeter.util;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
+import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
@@ -1221,4 +1223,19 @@ public class JMeterUtils implements UnitTestManager {
 			return dateFormater.format(d);
 		}
     }
+    
+	public static void centerWindow(Component component) {
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		Dimension componentSize = component.getSize();
+		if (componentSize.height > screenSize.height) {
+			componentSize.height = screenSize.height;
+		}
+		if (componentSize.width > screenSize.width) {
+			componentSize.width = screenSize.width;
+		}
+		component.setLocation((screenSize.width - componentSize.width) / 2,
+				(screenSize.height - componentSize.height) / 2);
+		component.setVisible(true);
+	}
+    
 }

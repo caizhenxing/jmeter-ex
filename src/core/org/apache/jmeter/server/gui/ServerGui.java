@@ -22,6 +22,7 @@ import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.server.Server;
 import org.apache.jmeter.testelement.TestElement;
+import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
 
 
@@ -40,7 +41,7 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	public static final String DISK_INFO = "disk_info";
 	public static final String NET_INFO = "net_info";
 	public Map<String,JTextArea> tamap=new HashMap<String,JTextArea>();
-	public static final int WEITH = 400;
+	public static final int WEITH = 600;
 	public static final int HIGHT = 120;
 	private Color c=new Color(235, 233, 237);
 	private Server server =null;
@@ -133,12 +134,12 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		mainPanel.add(getItemPanel(MEMORY_INFO));
 		mainPanel.add(getItemPanel(DISK_INFO));
 		mainPanel.add(getItemPanel(NET_INFO));
-		add(mainPanel);
+		add(mainPanel,BorderLayout.CENTER);
 	}
 
 	private JPanel getItemPanel(String item) {
 		JPanel tmpPanel = new JPanel();
-		tmpPanel.setBorder(BorderFactory.createTitledBorder(item));
+		tmpPanel.setBorder(BorderFactory.createTitledBorder(JMeterUtils.getResString(item)));
 		JTextArea ta = new JTextArea();
 		JScrollPane sc = new JScrollPane(ta);
 		ta.setEditable(false);

@@ -92,6 +92,7 @@ public class MonitorClientModel implements Runnable {
 		MonitorData monitors = remoteDataService.getMonitorDataByDuration(agent, startTime, stopTime);
 		return monitors;
 	}
+	
 	public void stopProject(RemoteAgent agent) {
 		try {
 			remoteControllerService.stopProject(agent, agent.getRunProject());

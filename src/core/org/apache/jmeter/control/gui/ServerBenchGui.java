@@ -99,6 +99,10 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 //			dlg.setVisible(true);
 //		}
 //	});
+	
+	public String getCurrentServerUrl(){
+		return rangeField.getText();
+	}
 	public void setHistoryButtonEnable(boolean enable){
 		this.view.setEnabled(enable);
 	}

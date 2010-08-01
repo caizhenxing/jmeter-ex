@@ -1,5 +1,7 @@
 package org.apache.jmeter.control;
 
+import java.awt.BasicStroke;
+import java.awt.Font;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -21,7 +23,14 @@ import org.apache.jmeter.monitor.MonitorModelFactory;
 import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.DateAxis;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.TimeSeries;
+import org.jfree.data.time.TimeSeriesCollection;
 
 import com.alibaba.b2b.qa.monitor.MonitorData;
 import com.alibaba.b2b.qa.monitor.RemoteAgent;
@@ -30,6 +39,7 @@ import com.alibaba.b2b.qa.monitor.remote.RemoteDataService;
 import com.alibaba.b2b.qa.monitor.remote.exception.AgentConnectionError;
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.io.HessianProtocolException;
+import com.sun.tools.apt.Main;
 
 /**
  * Monitor Client Model
@@ -88,6 +98,10 @@ public class MonitorClientModel implements Runnable {
 		this.serviceUrl = serviceUrl;
 	}
 
+	public String getServiceUrl(){
+		return serviceUrl;
+	}
+	
 	public MonitorData getAllDataForProject(Map<String,String> agent,long startTime,long stopTime){
 		MonitorData monitors = remoteDataService.getMonitorDataByDuration(agent, startTime, stopTime);
 		return monitors;
@@ -504,13 +518,83 @@ public class MonitorClientModel implements Runnable {
 	}
 
 	public List<String> getProjects(String url) throws MalformedURLException {
-		remoteDataService = (RemoteDataService) factory
-				.create(RemoteDataService.class, HTTP_HEADER + serviceUrl
-						+ DATA_SERVER);
+		remoteDataService = (RemoteDataService) factory.create(
+				RemoteDataService.class, HTTP_HEADER + url + DATA_SERVER);
 		return remoteDataService.getProjects();
 	}
 
+	public Map<String,ChartPanel> getChartPanel(String serverUrl,String project,long start,long end){
+		Map<String,ChartPanel> map=new HashMap<String,ChartPanel>();
+		Map<String, ArrayList<HashMap<String, String>>> servers = remoteDataService.getProjectAgents(project);
+		if (servers == null) {
+			return map;
+		}
+		for (String agentIp : servers.keySet()) {
+			ArrayList<HashMap<String, String>> lst=servers.get(agentIp);
+			for (Iterator<HashMap<String, String>> iterator = lst.iterator(); iterator.hasNext();) {
+				HashMap<String, String> agent = iterator.next();
+				MonitorData data=this.remoteDataService.getStartMonitorData(agent);
+				System.out.println(agentIp+":name="+agent.get("name"));
+				data = remoteDataService.getMonitorDataByDuration(agent, start, end);
+				System.out.println(agentIp + data.getValues().size());
+//				long num=data.getDataEndPosition();
+//				int el=(int)num%10000;
+//				int time=(int)num/10000;
+//				for (int i = 0; i< time; i++) {
+//					System.out.println("get date from "+(1+i*10000)+" to "+((i+1)*10000));
+//				}
+//				System.out.println("get date from "+(1+time*10000)+" to "+(time*10000+el));
+			}
+			
+		}
+		
+		DateAxis localDateAxis = new DateAxis("TT");
+
+		// 设置左侧主轴
+		NumberAxis localNumberAxisL = new NumberAxis("");
+		localNumberAxisL.setTickLabelFont(new Font("SansSerif", 0, 12));
+		localNumberAxisL.setLabelFont(new Font("SansSerif", 0, 14));
+
+		localDateAxis.setTickLabelFont(new Font("SansSerif", 0, 12));
+		localDateAxis.setLabelFont(new Font("SansSerif", 0, 14));
+		localDateAxis.setDateFormatOverride(new SimpleDateFormat("mm:ss:SSS"));
+
+		XYLineAndShapeRenderer localXYLineAndShapeRendererL = new XYLineAndShapeRenderer(true, false);
+		localXYLineAndShapeRendererL.setSeriesStroke(0, new BasicStroke(1.0F,
+				0, 2));
+		// XYPlot localXYPlot = new XYPlot(localTimeSeriesCollectionL,
+		// localDateAxis, localNumberAxisL, localXYLineAndShapeRendererL);
+		XYPlot localXYPlot = new XYPlot();
+		TimeSeriesCollection localTimeSeriesCollectionL = new TimeSeriesCollection();
+
+		localXYPlot.setDataset(0, localTimeSeriesCollectionL);
+		localXYPlot.setRenderer(0, localXYLineAndShapeRendererL);
+		localXYPlot.setDomainAxis(localDateAxis);
+		localXYPlot.setRangeAxis(0, localNumberAxisL);
+		localDateAxis.setAutoRange(true);
+		localDateAxis.setLowerMargin(0.0D);
+		localDateAxis.setUpperMargin(0.0D);
+		localDateAxis.setTickLabelsVisible(true);
+		localNumberAxisL.setStandardTickUnits(NumberAxis
+				.createIntegerTickUnits());
+		JFreeChart localJFreeChart = new JFreeChart("", new Font("SansSerif", 1, 24),
+				localXYPlot, true);
+		ChartPanel chartPanel = new ChartPanel(localJFreeChart, true);
+	
+//		addTimeSeries(localTimeSeriesCollectionL);
+		return map;
+	}
+	
 	public synchronized void disConnect() {
 		running = false;
+	}
+	public static void main(String[] args) {
+		long num=33289;
+		int el=(int)num%10000;
+		int time=(int)num/10000;
+		for (int i = 0; i< time; i++) {
+			System.out.println("get date from "+(1+i*10000)+" to "+((i+1)*10000));
+		}
+		System.out.println("get date from "+(1+time*10000)+" to "+(time*10000+el));
 	}
 }

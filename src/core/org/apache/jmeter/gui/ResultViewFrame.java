@@ -7,14 +7,23 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.UndeclaredThrowableException;
+import java.net.MalformedURLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
@@ -40,11 +49,16 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 	private JComboBox projects=new JComboBox();
 	private JTextField fromTf = new JTextField(12);
 	private JTextField toTf = new JTextField(12);
+	private JTextField url = new JTextField(12);
 	private JButton update = new JButton("更新工程");
 	private JButton view = new JButton("开始查看");
-	private YccTab tab=new YccTab();
+	private SimpleDateFormat format= new  SimpleDateFormat("mm-dd hh:MM");
+	private Map<Integer,YccTab> tabMap=new HashMap<Integer,YccTab>();
 	private JButton savegraph=new JButton("保存当前图片");
 	private JButton saveall = new JButton("保存所有图片");
+	private long beginTime=0;
+	private long endTime=0;
+	// 用于查看历史按钮活性设置的回调
 	private ServerBenchGui benchgui=null;
 	private MonitorClientModel model = new MonitorClientModel();
 	
@@ -57,13 +71,45 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 	}
 	
 	public void showFrame() {
+		// 取最新的工程列表
+		List<String> lst = null;
+		try {
+			lst = model.getProjects(benchgui.getCurrentServerUrl());
+			projects.setModel(new DefaultComboBoxModel(lst.toArray()));
+		} catch (MalformedURLException e1) {
+			JOptionPane.showMessageDialog(GuiPackage.getInstance()
+					.getMainFrame(), JMeterUtils
+					.getResString("server_bench_failed")
+					+ model.getServiceUrl(), JMeterUtils
+					.getResString("server_bench_error"),
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		} catch (UndeclaredThrowableException e1) {
+			JOptionPane.showMessageDialog(GuiPackage.getInstance()
+					.getMainFrame(), JMeterUtils
+					.getResString("server_bench_failed")
+					+ model.getServiceUrl(), JMeterUtils
+					.getResString("server_bench_error"),
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		this.pack();
+		// 初始化控件
 		this.clearAll();
+		// 只在第一次显示的时候清空日期
+		fromTf.setText("");
+		toTf.setText("");
+		url.setText(benchgui.getCurrentServerUrl());
 		JMeterUtils.centerWindow(this);
 	}
 	
-	private void clearAll(){
-		
+	private void clearAll() {
+		for (Iterator<Integer> iterator = tabMap.keySet().iterator(); iterator
+				.hasNext();) {
+			int index = iterator.next();
+			YccTab tab = tabMap.get(index);
+			tab.removeAllSubTabPanel();
+		}
 	}
 	
 	protected void processWindowEvent(WindowEvent e) {
@@ -78,6 +124,7 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 		view.addActionListener(this);
 		savegraph.addActionListener(this);
 		saveall.addActionListener(this);
+		this.setTitle("历史数据查看器");
 		this.setDefaultCloseOperation(HIDE_ON_CLOSE);
 		initGui();
 	}
@@ -101,56 +148,18 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 		downPanel.add(savegraph);
 		downPanel.add(saveall);
 	
-		tab.add("Cpu",getChartPanel());
-		tab.add("Memory",getChartPanel());
-		tab.add("Net",getChartPanel());
-		tab.add("IO",getChartPanel());
-		midPanel.add(tab,BorderLayout.CENTER);
+//		tab.add("Cpu",getChartPanel());
+//		tab.add("Memory",getChartPanel());
+//		tab.add("Net",getChartPanel());
+//		tab.add("IO",getChartPanel());
+//		midPanel.add(tab,BorderLayout.CENTER);?
 		
 		this.getContentPane().add(upPanel,BorderLayout.NORTH);
 		this.getContentPane().add(midPanel,BorderLayout.CENTER);
 		this.getContentPane().add(downPanel,BorderLayout.SOUTH);
 	}
 	
-	private ChartPanel getChartPanel(){
-		DateAxis localDateAxis = new DateAxis("TT");
-
-		// 设置左侧主轴
-		NumberAxis localNumberAxisL = new NumberAxis("");
-		localNumberAxisL.setTickLabelFont(new Font("SansSerif", 0, 12));
-		localNumberAxisL.setLabelFont(new Font("SansSerif", 0, 14));
-
-		localDateAxis.setTickLabelFont(new Font("SansSerif", 0, 12));
-		localDateAxis.setLabelFont(new Font("SansSerif", 0, 14));
-		// TODO 显示格式加入配置
-		localDateAxis.setDateFormatOverride(new SimpleDateFormat("mm:ss:SSS"));
-
-		XYLineAndShapeRenderer localXYLineAndShapeRendererL = new XYLineAndShapeRenderer(true, false);
-		localXYLineAndShapeRendererL.setSeriesStroke(0, new BasicStroke(1.0F,
-				0, 2));
-		// XYPlot localXYPlot = new XYPlot(localTimeSeriesCollectionL,
-		// localDateAxis, localNumberAxisL, localXYLineAndShapeRendererL);
-		XYPlot localXYPlot = new XYPlot();
-		TimeSeriesCollection localTimeSeriesCollectionL = new TimeSeriesCollection();
-
-		localXYPlot.setDataset(0, localTimeSeriesCollectionL);
-		localXYPlot.setRenderer(0, localXYLineAndShapeRendererL);
-		localXYPlot.setDomainAxis(localDateAxis);
-		localXYPlot.setRangeAxis(0, localNumberAxisL);
-		localDateAxis.setAutoRange(true);
-		localDateAxis.setLowerMargin(0.0D);
-		localDateAxis.setUpperMargin(0.0D);
-		localDateAxis.setTickLabelsVisible(true);
-		localNumberAxisL.setStandardTickUnits(NumberAxis
-				.createIntegerTickUnits());
-		localJFreeChart = new JFreeChart("", new Font("SansSerif", 1, 24),
-				localXYPlot, true);
-		ChartPanel chartPanel = new ChartPanel(localJFreeChart, true);
-	
-		addTimeSeries(localTimeSeriesCollectionL);
-		return chartPanel;
-	}
-	public void addTimeSeries(TimeSeriesCollection localTimeSeriesCollectionL) {
+	private void addTimeSeries(TimeSeriesCollection localTimeSeriesCollectionL) {
 		Random r= new Random();
 		TimeSeries ts = new TimeSeries("T",Millisecond.class);
 				localTimeSeriesCollectionL.addSeries(ts);
@@ -165,9 +174,20 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 				}
 	}
 	
-	public void addListToTimeSeries() {
+	private void addListToTimeSeries() {
 		TimeSeries ts = new TimeSeries("T",
 				org.jfree.data.time.Second.class);
+	}
+	
+	class YccTab extends JTabbedPane{
+		JTabbedPane subTab = new JTabbedPane();
+		public void addSubTabPanel(String title,ChartPanel chart){
+			super.addTab(title, chart);
+		}
+		
+		public void removeAllSubTabPanel(){
+			super.removeAll();
+		}
 	}
 	
 	public static void main(String[] args) {
@@ -178,22 +198,35 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 		r.setVisible(true);
 		System.out.println(System.currentTimeMillis()-i);
 	}
-	
-	private class YccTab extends JTabbedPane{
-		
-	}
 
-	private void checkDate(){
-		String from=fromTf.getText();
-		String to=toTf.getText();
+	private boolean checkDate() {
+		String from = fromTf.getText();
+		String to = toTf.getText();
 		// null验证
 		if (StringUtils.isEmpty(from)) {
 			// 开始日期为空
+			return false;
 		}
-		if (StringUtils.isEmpty(to)){
+		if (StringUtils.isEmpty(to)) {
 			// 结束日期为空
+			return false;
 		}
-		
+
+		try {
+			Date fromtime = format.parse(from);
+			beginTime = fromtime.getTime();
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return false;
+		}
+		try {
+			Date totime = format.parse(to);
+			endTime = totime.getTime();
+		} catch (ParseException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
 	
 	@Override
@@ -201,11 +234,14 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 		if(e.getSource()==update){
 			System.out.println("update");
 		} else if(e.getSource()==view){
+			if (checkDate()) {
+				// TODO 生成Tab页面代码
+				Map<String,ChartPanel> chartMap = model.getChartPanel(benchgui.getCurrentServerUrl(),(String)this.projects.getSelectedItem(),beginTime,endTime);
+			}
 //			model.getAllDataForProject(agent, startTime, stopTime);
 //			startField.getText();
 //			endField.getText();
 //			model.view();
-			
 		} else if(e.getSource()==savegraph){
 			System.out.println("savegraph");
 		} else if(e.getSource()==saveall){

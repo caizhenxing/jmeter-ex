@@ -1,5 +1,7 @@
 package org.apache.jmeter.control.gui;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -27,6 +29,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import org.apache.jmeter.control.AgentServer;
@@ -80,8 +83,12 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private AgentServer tmpAgent = null;
 	private static final String[] COLUMNS = { "con_state", "con_ip", "con_port",
 		"con_project", "con_interal", "con_times", "con_start","con_end","con_monitor_item"};
+	static TableCellRenderer render = new ColorTableCellRenderer();
+	private static Color RUN_COLOR=new Color(102,255,102);
+	private static Color READY_COLOR=new Color(255,255,153);
+	private static Color STOP_COLOR=new Color(204,204,221);
 	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
-		null, // state
+		render, // state
 		null, // ip
 		null, // port
 		null, // project
@@ -526,6 +533,25 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 				agentSeverContainer.put(tableModel.getRowCount(), as);
 				tableModel.insertRow(as, tableModel.getRowCount());
 			}
+		}
+	}
+
+	private static class ColorTableCellRenderer extends DefaultTableCellRenderer {
+		private static final long serialVersionUID = 1L;
+
+		public Component getTableCellRendererComponent(JTable table,
+				Object value, boolean isSelected, boolean hasFocus, int row,
+				int column) {
+			Component cell = super.getTableCellRendererComponent(table, value,
+					isSelected, hasFocus, row, column);
+			if (value.equals(AgentServer.RUN)) {
+				cell.setBackground(RUN_COLOR);
+			}else if (value.equals(AgentServer.READY)){
+				cell.setBackground(READY_COLOR);
+			}else if (value.equals(AgentServer.STOP)){
+				cell.setBackground(STOP_COLOR);
+			}
+			return cell;
 		}
 	}
 }

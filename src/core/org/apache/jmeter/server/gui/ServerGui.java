@@ -43,8 +43,8 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	public Map<String,JTextArea> tamap=new HashMap<String,JTextArea>();
 	public static final int WEITH = 600;
 	public static final int HIGHT = 120;
-	private Color c=new Color(235, 233, 237);
-	private Server server =null;
+	private Color c=new Color(238, 238, 238);
+//	private Server server =null;
 	/**
 	 * construct method
 	 * 
@@ -120,7 +120,6 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	 */
 	public void clearGui() {
 		super.clearGui();
-		initGui();
 	}
 
 	/**
@@ -128,17 +127,15 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	 * 
 	 */
 	private void initGui() {
-		JPanel mainPanel=new JPanel();
-		mainPanel.setLayout(new VerticalLayout(5, VerticalLayout.LEFT));
-		mainPanel.add(getItemPanel(CPU_INFO));
-		mainPanel.add(getItemPanel(MEMORY_INFO));
-		mainPanel.add(getItemPanel(DISK_INFO));
-		mainPanel.add(getItemPanel(NET_INFO));
-		add(mainPanel,BorderLayout.CENTER);
+		setLayout(new VerticalLayout(5, VerticalLayout.BOTH));
+		add(getItemPanel(CPU_INFO));
+		add(getItemPanel(MEMORY_INFO));
+		add(getItemPanel(DISK_INFO));
+		add(getItemPanel(NET_INFO));
 	}
 
 	private JPanel getItemPanel(String item) {
-		JPanel tmpPanel = new JPanel();
+		JPanel tmpPanel = new JPanel(new BorderLayout());
 		tmpPanel.setBorder(BorderFactory.createTitledBorder(JMeterUtils.getResString(item)));
 		JTextArea ta = new JTextArea();
 		JScrollPane sc = new JScrollPane(ta);
@@ -148,7 +145,7 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		sc.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		tamap.put(item, ta);
 		sc.setPreferredSize(new Dimension(WEITH, HIGHT));
-		tmpPanel.add(sc);
+		tmpPanel.add(sc,BorderLayout.CENTER);
 		return tmpPanel;
 	}
 	

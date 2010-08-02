@@ -39,7 +39,6 @@ import com.alibaba.b2b.qa.monitor.remote.RemoteDataService;
 import com.alibaba.b2b.qa.monitor.remote.exception.AgentConnectionError;
 import com.caucho.hessian.client.HessianProxyFactory;
 import com.caucho.hessian.io.HessianProtocolException;
-import com.sun.tools.apt.Main;
 
 /**
  * Monitor Client Model
@@ -74,7 +73,6 @@ public class MonitorClientModel implements Runnable {
 	private Map<String, Map<String, String>> agentMap = new HashMap<String, Map<String, String>>();
 
 	public MonitorClientModel() {
-		// TODO 从配置文件中读取monitor.interval的配置
 		String value=JMeterUtils.getProperty("monitor.interval");
 		int interval=JMeterUtils.StringToInt(value);
 		if (interval != 0 && interval >= 2) {
@@ -340,16 +338,11 @@ public class MonitorClientModel implements Runnable {
 				e.printStackTrace();
 			}
 			// 指定间隔获取数据
-//			try {
-				try {
+			try {
 					this.fetchChartData();
-				} catch (HessianProtocolException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-//			} catch (Exception e) {
-//				System.out.println("Over");
-//			}
+			} catch (Exception e) {
+				System.out.println("Can't get data from remote machine!");
+			}
 		}
 	}
 
@@ -459,7 +452,6 @@ public class MonitorClientModel implements Runnable {
 		String[] fs = monitors.getFields();
 		List<String[]> values = monitors.getValues();
 		for (String[] strings : values) {
-			// System.out.println(StringUtils.strip(strings[i]));
 			mr.getMonitorModel().updateGui(mr.getMonitorModel().getCategory(),
 					fs, strings);
 		}

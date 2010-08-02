@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,8 +108,8 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	
 	private JTable myJTable = null;
 	
-	private static final String[] COLUMNS = { "jf_name", "average",
-		"aggregate_report_min", "aggregate_report_max", "jf_last", };
+	private static final String[] COLUMNS = { "jf_name", "spline_visualizer_average",
+		"spline_visualizer_minimum", "spline_visualizer_maximum", "jf_last", };
 	
 	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
 			null, // Label
@@ -124,13 +125,13 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 			new Functor("getLabel"), new Functor("getAverage"),
 			new Functor("getMin"), new Functor("getMax"),
 			new Functor("getLast"), }, new Functor[] { null, null, null,
-			null, null }, new Class[] { String.class, String.class,
-			String.class, String.class, String.class });
+			null, null }, new Class[] { String.class, BigDecimal.class,
+			BigDecimal.class, BigDecimal.class, BigDecimal.class });
 		
 		myJTable = new YccCustomTable(model);
 		myJTable.getTableHeader().setDefaultRenderer(
 				new HeaderAsPropertyRenderer());
-		myJTable.setPreferredScrollableViewportSize(new Dimension(500, 50));
+		myJTable.setPreferredScrollableViewportSize(new Dimension(500, 100));
 		RendererUtils.applyRenderers(myJTable, RENDERERS);
 		JScrollPane myScrollPane = new JScrollPane(myJTable);
 		tablePanel.add(myScrollPane,BorderLayout.CENTER);
@@ -415,6 +416,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	protected synchronized void updateGui(TimeSeries ts, Second s, Number v) {
 		ts.addOrUpdate(s, v);
 		tableRowMap.get(ts.getKey()).addData(v);
+		myJTable.repaint();
 	}
 
 	public void itemStateChanged(ItemEvent e) {

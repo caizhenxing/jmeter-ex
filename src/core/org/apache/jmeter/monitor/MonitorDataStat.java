@@ -7,7 +7,7 @@ public class MonitorDataStat {
 
 	String label = "";
 	BigDecimal min = new BigDecimal(Long.MAX_VALUE);
-	BigDecimal max = new BigDecimal(-1);
+	BigDecimal max = BigDecimal.ZERO;
 	BigDecimal last = BigDecimal.ZERO;
 	BigDecimal average = BigDecimal.ZERO;
 	BigDecimal total=BigDecimal.ZERO;
@@ -20,12 +20,12 @@ public class MonitorDataStat {
 		if (t.compareTo(min)==-1) {
 			min=t;
 		}
-		if (t.compareTo(min)==1) {
+		if (t.compareTo(max)==1) {
 			max=t;
 		}
 		total=total.add(t);
 		count=count.add(BigDecimal.ONE);
-		average=total.divide(count);
+		average=total.divide(count,2,BigDecimal.ROUND_HALF_UP);
 		last=t;
 	}
 	
@@ -41,7 +41,7 @@ public class MonitorDataStat {
 		return df.format(min);
 	}
 
-	public void setMin(Double min) {
+	public void setMin(BigDecimal min) {
 		this.min = min;
 	}
 
@@ -49,7 +49,7 @@ public class MonitorDataStat {
 		return df.format(max);
 	}
 
-	public void setMax(Double max) {
+	public void setMax(BigDecimal max) {
 		this.max = max;
 	}
 
@@ -57,7 +57,7 @@ public class MonitorDataStat {
 		return df.format(last);
 	}
 
-	public void setLast(Double last) {
+	public void setLast(BigDecimal last) {
 		this.last = last;
 	}
 
@@ -65,7 +65,7 @@ public class MonitorDataStat {
 		return df.format(average);
 	}
 
-	public void setAverage(Double average) {
+	public void setAverage(BigDecimal average) {
 		this.average = average;
 	}
 }

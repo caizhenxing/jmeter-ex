@@ -1,7 +1,9 @@
 package org.apache.jmeter.monitor;
 
 import java.awt.BasicStroke;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -27,11 +29,19 @@ import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.table.TableCellRenderer;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jmeter.gui.util.FileDialoger;
+import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
+import org.apache.jmeter.gui.util.YccCustomTable;
 import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.util.JMeterUtils;
+import org.apache.jorphan.gui.ObjectTableModel;
+import org.apache.jorphan.gui.RendererUtils;
+import org.apache.jorphan.reflect.Functor;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -56,6 +66,8 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	
 	private JPanel checkboxPanel = new JPanel();
 	
+	private JPanel tablePanel = new JPanel(new BorderLayout());
+	
 	protected Map<String, TimeSeries> dataMap = new HashMap<String, TimeSeries>();
 	
 	private JFreeChart localJFreeChart = null;
@@ -79,6 +91,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	protected NumberAxis localNumberAxisR = null;
 
 	protected Map<JCheckBox, String> cbMap = new HashMap<JCheckBox, String>();
+	protected Map<String, MonitorDataStat> tableRowMap = new HashMap<String, MonitorDataStat>();
 	
 	private long dataEndPosition = 0;
 
@@ -90,7 +103,38 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	
 	private JLabel info = new JLabel();
 	
+	private transient ObjectTableModel model;
+	
+	private JTable myJTable = null;
+	
+	private static final String[] COLUMNS = { "jf_name", "average",
+		"aggregate_report_min", "aggregate_report_max", "jf_last", };
+	
+	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
+			null, // Label
+			null, // Mean
+			null, // Min
+			null, // Max
+			null, // Max
+	};
+	
 	public MonitorModel(){
+		// 初始化列表
+		model = new ObjectTableModel(COLUMNS, MonitorDataStat.class, new Functor[] {
+			new Functor("getLabel"), new Functor("getAverage"),
+			new Functor("getMin"), new Functor("getMax"),
+			new Functor("getLast"), }, new Functor[] { null, null, null,
+			null, null }, new Class[] { String.class, String.class,
+			String.class, String.class, String.class });
+		
+		myJTable = new YccCustomTable(model);
+		myJTable.getTableHeader().setDefaultRenderer(
+				new HeaderAsPropertyRenderer());
+		myJTable.setPreferredScrollableViewportSize(new Dimension(500, 50));
+		RendererUtils.applyRenderers(myJTable, RENDERERS);
+		JScrollPane myScrollPane = new JScrollPane(myJTable);
+		tablePanel.add(myScrollPane,BorderLayout.CENTER);
+		
 		DateAxis localDateAxis = new DateAxis(JMeterUtils
 				.getResString("monitor_time"));
 
@@ -158,6 +202,10 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	
 	public JPanel getCheckBoxPanel() {
 		return checkboxPanel;
+	}
+	
+	public JPanel getTablePanel() {
+		return tablePanel;
 	}
 
 
@@ -236,10 +284,16 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 			}
 		}
 		dataMap.put(name, ts);
+		
 		String[] tmp = name.split("\\$\\$");
 		JCheckBox jb = createChooseCheckBox(tmp[2], Color.BLACK);
 		checkboxPanel.add(jb);
 		cbMap.put(jb, tmp[2]);
+		// 增加列表行
+		MonitorDataStat mds=new MonitorDataStat();
+		mds.setLabel(tmp[2]);
+		model.insertRow(mds, model.getRowCount());
+		tableRowMap.put(tmp[2], mds);
 	}
 	
 	private JCheckBox createChooseCheckBox(String labelResourceName, Color color) {
@@ -360,6 +414,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	
 	protected synchronized void updateGui(TimeSeries ts, Second s, Number v) {
 		ts.addOrUpdate(s, v);
+		tableRowMap.get(ts.getKey()).addData(v);
 	}
 
 	public void itemStateChanged(ItemEvent e) {

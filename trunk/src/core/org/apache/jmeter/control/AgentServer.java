@@ -42,7 +42,7 @@ public class AgentServer {
 	}
 
 	public String getPid() {
-		return pid;
+		return pid == null ? "" : pid;
 	}
 
 	public void setPid(String pid) {

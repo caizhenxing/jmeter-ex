@@ -19,6 +19,7 @@ import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
 import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
 import org.apache.jmeter.gui.util.YccCustomTable;
 import org.apache.jmeter.monitor.Monitor;
+import org.apache.jmeter.monitor.MonitorDataStat;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.Calculator;
 import org.apache.jorphan.gui.ObjectTableModel;
@@ -120,24 +121,15 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 	public static final List<String> CATEGORY_LIST = new ArrayList<String>(Arrays
 			.asList(MonitorGui.CATEGORY));
 	private static final long serialVersionUID = 1L;
-	private transient ObjectTableModel model;
-	private static final String[] COLUMNS = { "jf_name", "average",
-			"aggregate_report_max", "aggregate_report_min", "jf_last", };
-	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
-			null, // Label
-			null, // Mean
-			null, // Min
-			null, // Max
-			null, // Max
-	};
 	
 	// 当前的Monitor
 	private Monitor monitor = null;
-	private JTable myJTable = null;
 	private JPanel mainPanel =new JPanel();
 	private JPanel upPanel =new JPanel();
+	private JPanel downPanel =new JPanel();
 	private CardLayout chartPanelCard;
 	private CardLayout checkboxPanelCard;
+	private CardLayout tablePanelCard;
 
 	/**
 	 * get current monitor
@@ -167,26 +159,16 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 		Box box = Box.createVerticalBox();
 		box.add(makeTitlePanel());
 		this.add(box, BorderLayout.NORTH);
-
-		model = new ObjectTableModel(COLUMNS, Calculator.class, new Functor[] {
-				new Functor("getLabel"), new Functor("getMeanAsNumber"),
-				new Functor("getMin"), new Functor("getMax"),
-				new Functor("getCurrent"), }, new Functor[] { null, null, null,
-				null, null }, new Class[] { String.class, Long.class,
-				Long.class, Long.class, Double.class });
-		myJTable = new YccCustomTable(model);
-		myJTable.getTableHeader().setDefaultRenderer(
-				new HeaderAsPropertyRenderer());
-		myJTable.setPreferredScrollableViewportSize(new Dimension(500, 50));
-		RendererUtils.applyRenderers(myJTable, RENDERERS);
-		JScrollPane myScrollPane = new JScrollPane(myJTable);
+		
 		chartPanelCard=new CardLayout(); 
 		checkboxPanelCard=new CardLayout(); 
+		tablePanelCard=new CardLayout(); 
 		mainPanel.setLayout(chartPanelCard);
 		upPanel.setLayout(checkboxPanelCard);
+		downPanel.setLayout(tablePanelCard);
 		this.add(upPanel, BorderLayout.NORTH);
 		this.add(mainPanel, BorderLayout.CENTER);
-		// 暂时不添加列表
+		this.add(downPanel, BorderLayout.SOUTH);
 //		this.add(myScrollPane, BorderLayout.SOUTH);
 	}
 
@@ -219,6 +201,10 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 		return upPanel;
 	}
 	
+	public JPanel getTablePanel(){
+		return downPanel;
+	}
+	
 	public String getLabelResource() {
 		// TODO Auto-generated method stub
 		return null;
@@ -239,6 +225,7 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 			monitor = (Monitor) tg;
 			chartPanelCard.show(mainPanel, monitor.toString());
 			checkboxPanelCard.show(upPanel, monitor.toString());
+			tablePanelCard.show(downPanel, monitor.toString());
 		}
 	}
 

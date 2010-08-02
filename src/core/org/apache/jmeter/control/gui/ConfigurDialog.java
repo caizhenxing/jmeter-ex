@@ -268,7 +268,9 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 			if (lst.contains(AGENTS[j])) {				
 				cbMap.get(AGENTS[j]).setSelected(true);
 				if (as.getPid()!=null) {
-					prossTxMap.get(AGENTS[j]).setText(as.getPid());
+					if (prossTxMap.get(AGENTS[j])!=null) {
+						prossTxMap.get(AGENTS[j]).setText(as.getPid());
+					}
 				}
 			}
 		}

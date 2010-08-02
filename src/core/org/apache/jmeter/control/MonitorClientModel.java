@@ -340,11 +340,16 @@ public class MonitorClientModel implements Runnable {
 				e.printStackTrace();
 			}
 			// 指定间隔获取数据
-			try {
-				this.fetchChartData();
-			} catch (Exception e) {
-				System.out.println("Over");
-			}
+//			try {
+				try {
+					this.fetchChartData();
+				} catch (HessianProtocolException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+//			} catch (Exception e) {
+//				System.out.println("Over");
+//			}
 		}
 	}
 
@@ -357,6 +362,7 @@ public class MonitorClientModel implements Runnable {
 			MonitorGui m = iterator.next();
 			m.getMainPanel().removeAll();
 			m.getCheckBoxPanel().removeAll();
+			m.getTablePanel().removeAll();
 		}
 		guiList.clear();
 
@@ -437,6 +443,8 @@ public class MonitorClientModel implements Runnable {
 							.add(mr.toString(), model.getChartPanel());
 					com.getCheckBoxPanel().add(mr.toString(),
 							model.getCheckBoxPanel());
+					com.getTablePanel().add(mr.toString(),
+							model.getTablePanel());
 
 					// 缓存Monitor与MonitorGui
 					this.linespecMap.put(chartName, mr);

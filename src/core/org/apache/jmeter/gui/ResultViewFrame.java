@@ -53,7 +53,10 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 	private JButton update = new JButton("更新工程");
 	private JButton view = new JButton("开始查看");
 	private SimpleDateFormat format= new  SimpleDateFormat("mm-dd hh:MM");
-	private Map<Integer,YccTab> tabMap=new HashMap<Integer,YccTab>();
+	// 服务器
+	private Map<Integer,YccTab> serverMap=new HashMap<Integer,YccTab>();
+	// 图形
+	private Map<Integer,YccTab> itemMap=new HashMap<Integer,YccTab>();
 	private JButton savegraph=new JButton("保存当前图片");
 	private JButton saveall = new JButton("保存所有图片");
 	private long beginTime=0;
@@ -104,10 +107,10 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 	}
 	
 	private void clearAll() {
-		for (Iterator<Integer> iterator = tabMap.keySet().iterator(); iterator
+		for (Iterator<Integer> iterator = serverMap.keySet().iterator(); iterator
 				.hasNext();) {
 			int index = iterator.next();
-			YccTab tab = tabMap.get(index);
+			YccTab tab = serverMap.get(index);
 			tab.removeAllSubTabPanel();
 		}
 	}

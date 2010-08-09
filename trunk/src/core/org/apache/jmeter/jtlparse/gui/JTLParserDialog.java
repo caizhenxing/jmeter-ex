@@ -90,7 +90,7 @@ public class JTLParserDialog extends JDialog  implements ActionListener {
 		}
 		Date date = new Date();
 		String desPath = savePath + File.separator
-				+ bartDateFormat.format(date) + " Result.txt";
+				+ bartDateFormat.format(date) + " Result.html";
 		jtlParser.setSaveFile(desPath);
 		try {
 			jtlParser.parse();

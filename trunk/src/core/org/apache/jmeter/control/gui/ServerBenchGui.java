@@ -3,9 +3,12 @@ package org.apache.jmeter.control.gui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -24,6 +27,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -57,12 +61,13 @@ import com.alibaba.b2b.qa.monitor.RemoteAgent;
  * @since jex002A
  * @author chenchao.yecc
  */
-public class ServerBenchGui extends AbstractJMeterGuiComponent implements ActionListener{
+public class ServerBenchGui extends AbstractJMeterGuiComponent implements ActionListener,KeyListener{
 	private static final long serialVersionUID = 1L;
 	private JComboBox com = new JComboBox();
 	private JTextField rangeField = new JTextField(58);
 //	private JTextField startField = new JTextField(1);
 //	private JTextField endField = new JTextField(1);
+	private JTextField ipchoice=new JTextField(10);
 	private ResultViewFrame resultFrame=new ResultViewFrame();
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
 	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
@@ -74,6 +79,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton stop = new JButton(JMeterUtils.getResString("server_bench_stop"));
 	private JButton stopProject = new JButton(JMeterUtils.getResString("server_bench_stop_pro"));
 	private JButton startBT = new JButton(JMeterUtils.getResString("server_bench_start"));
+	private JButton choice=new JButton(JMeterUtils.getResString("find"));
 	private ConfigurDialog confDialog = new ConfigurDialog();
 	private ProcessListDialog proDialog=new ProcessListDialog();
 	private MonitorClientModel model = new MonitorClientModel();
@@ -239,6 +245,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
                     }
             }
     });
+		agentTable.addKeyListener(this);
 		proDialog.setListener(this);
 		
 		add(mainPanel);
@@ -246,6 +253,15 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
         Font curFont = lb.getFont();
         lb.setFont(curFont.deriveFont((float) curFont.getSize() + 1));
 		add(lb);
+		
+		JPanel jp= new JPanel(new FlowLayout(FlowLayout.LEFT));
+		JLabel lbchoice = new JLabel(JMeterUtils.getResString("find_info"));
+		jp.add(lbchoice);
+		jp.add(ipchoice);
+		ipchoice.addKeyListener(this);
+		choice.addActionListener(this);
+		jp.add(choice);
+		add(jp);
 		add(myScrollPane);
 		
 		Box actPanel = Box.createHorizontalBox();
@@ -500,7 +516,22 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		} else if (e.getSource() == view){
 			setHistoryButtonEnable(false);
 			resultFrame.showFrame();
+		} else if (e.getSource() == choice){
+			findItemFromTable(ipchoice.getText());
 		}
+	}
+	
+	private void findItemFromTable(String ip){
+		for (Iterator<Integer> iterator = agentSeverContainer.keySet().iterator(); iterator.hasNext();) {
+			int index=iterator.next();
+			AgentServer as = agentSeverContainer.get(index);
+			if (as.getAddress().equals(ip)) {
+				agentTable.changeSelection(index, 1, false, false);
+				agentTable.requestFocus();
+				return;
+			}
+		}
+		// 所查IP不在列表中
 	}
 	
 	private boolean checkProcess(String line){
@@ -536,6 +567,11 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		}
 	}
 
+	/**
+	 * 设置Table的颜色
+	 * @author chenchao.yecc
+	 *
+	 */
 	private static class ColorTableCellRenderer extends DefaultTableCellRenderer {
 		private static final long serialVersionUID = 1L;
 
@@ -553,5 +589,25 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			}
 			return cell;
 		}
+	}
+
+	@Override
+	public void keyPressed(KeyEvent e) {
+	}
+	@Override
+	// 键盘事件
+	public void keyReleased(KeyEvent e) {
+		if (e.getSource()==ipchoice) {
+			if (e.getKeyCode()==KeyEvent.VK_ENTER) {
+				findItemFromTable(ipchoice.getText());
+			}
+		}else if(e.getSource()==agentTable){
+			if (e.getKeyCode()==KeyEvent.VK_SPACE) {
+				openModifyDialog(false);
+			}
+		}
+	}
+	@Override
+	public void keyTyped(KeyEvent e) {
 	}
 }

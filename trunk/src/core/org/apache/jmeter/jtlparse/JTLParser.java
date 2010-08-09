@@ -34,6 +34,8 @@ import org.xml.sax.helpers.DefaultHandler;
 public class JTLParser extends DefaultHandler {
 
 	private String SPLIT = ",";
+	private String HEADER = "<th>";
+	private String FIELD = "<td>";
 	private long maxRsTime = Long.MIN_VALUE;
 	private long minRsTime = Long.MAX_VALUE;
 	private double maxTps = Double.MIN_VALUE;
@@ -115,6 +117,11 @@ public class JTLParser extends DefaultHandler {
 		}
 	}
 
+	private String getWrapStr(String wrap,String value){
+		StringBuilder sb=new StringBuilder();
+		sb.append("    <th>").append(value).append("</th>");
+		return sb.toString();
+	}
 	private void writeResultToTemplate() {
 		BufferedWriter bw = null;
 		FileWriter fw = null;
@@ -126,15 +133,36 @@ public class JTLParser extends DefaultHandler {
 			bw = new BufferedWriter(fw);
 			pw = new PrintWriter(bw);
 			
+			// 输出表头
+			pw.println("<table border=\"1\">");
+			pw.println("  <tr>");
+			pw.println(getWrapStr(HEADER,"标签名字"));
+			pw.println(getWrapStr(HEADER,"采样次数"));
+			pw.println(getWrapStr(HEADER,"平均响应时间"));
+			pw.println(getWrapStr(HEADER,"最大响应时间"));
+			pw.println(getWrapStr(HEADER,"最小响应时间"));
+			pw.println(getWrapStr(HEADER,"90%响应时间"));
+			pw.println(getWrapStr(HEADER,"平均TPS"));
+			pw.println(getWrapStr(HEADER,"最小TPS"));
+			pw.println(getWrapStr(HEADER,"最大TPS"));
+			pw.println(getWrapStr(HEADER,"失败率"));
+			pw.println("  </tr>");
+			
 			// 先输出子Sample
 			for (Iterator<String> iterator = labels.iterator(); iterator.hasNext();) {
+				pw.println("  <tr>");
 				String lb = iterator.next();
 				SampleResult sr= samples.get(lb);
-				pw.println("标签名字：" + lb);
-				pw.println("采样次数：" + sr.count);
-				pw.println("平均响应时间：" + sr.sumRsTime / sr.count);
-				pw.println("最大响应时间：" + sr.maxRsTime);
-				pw.println("最小响应时间：" + sr.minRsTime);
+//				pw.println("标签名字：" + lb);
+				pw.println(getWrapStr(FIELD,lb));
+//				pw.println("采样次数：" + sr.count);
+				pw.println(getWrapStr(FIELD,String.valueOf(sr.count)));
+//				pw.println("平均响应时间：" + sr.sumRsTime / sr.count);
+				pw.println(getWrapStr(FIELD,df.format(sr.sumRsTime / sr.count)));
+//				pw.println("最大响应时间：" + sr.maxRsTime);
+				pw.println(getWrapStr(FIELD, String.valueOf(sr.maxRsTime)));
+//				pw.println("最小响应时间：" + sr.minRsTime);
+				pw.println(getWrapStr(FIELD, String.valueOf(sr.minRsTime)));
 				List<Long> keyList=sr.dataCounter.getKeyList();
 				Collections.sort(keyList);
 //				int posMid=(int)(sr.dataCounter.count*0.5);
@@ -143,7 +171,8 @@ public class JTLParser extends DefaultHandler {
 				for (int i = keyList.size(); i >= 0; i--) {
 					long val = keyList.get(i-1);
 					if (counter - sr.dataCounter.getValue(val) < posPers) {
-						pw.println("90%响应时间：" + val);
+//						pw.println("90%响应时间：" + val);
+						pw.println(getWrapStr(FIELD, String.valueOf(val)));
 						break;
 					} else {
 						counter = counter - sr.dataCounter.getValue(val);
@@ -152,22 +181,32 @@ public class JTLParser extends DefaultHandler {
 //				pw.println("50%响应时间：" + sr.tmpList.get((int)(sr.tmpList.size()*0.5)));
 				long howLongRunning = sr.endTime - sr.firstTime;
 				double throughput = ((double) (sr.count) / (double) howLongRunning) * 1000.0;
-				pw.println("平均TPS：" + throughput);
-				pw.println("最大TPS：" + sr.maxTps);
+//				pw.println("平均TPS：" + throughput);
+				pw.println(getWrapStr(FIELD,df.format(throughput)));
+//				pw.println("最大TPS：" + sr.maxTps);
+				pw.println(getWrapStr(FIELD,String.valueOf(sr.maxTps)));
 				if (sr.minTps < 0) {
 					sr.minTps = 0;
 				}
-				pw.println("最小TPS：" + sr.minTps);
+//				pw.println("最小TPS：" + sr.minTps);
+				pw.println(getWrapStr(FIELD,String.valueOf(sr.minTps)));
 				double rate = ((double) sr.error / (double) sr.count) * 100;
-				pw.println("失败率：" + df.format(rate) + "%");
-				pw.println();
+//				pw.println("失败率：" + df.format(rate) + "%");
+				pw.println(getWrapStr(FIELD,(df.format(rate) + "%")));
+				pw.println("  </tr>");
 			}
 			
-			pw.println("标签名字：总数");
-			pw.println("采样次数：" + count);
-			pw.println("平均响应时间：" + sumRsTime / count);
-			pw.println("最大响应时间：" + maxRsTime);
-			pw.println("最小响应时间：" + minRsTime);
+//			pw.println("标签名字：总数");
+			pw.println(getWrapStr(FIELD,"总数"));
+//			pw.println("采样次数：" + count);
+			pw.println(getWrapStr(FIELD,String.valueOf(count)));
+//			pw.println("平均响应时间：" + sumRsTime / count);
+			pw.println(getWrapStr(FIELD,df.format(sumRsTime / count)));
+//			pw.println("最大响应时间：" + maxRsTime);
+			pw.println(getWrapStr(FIELD, String.valueOf(maxRsTime)));
+//			pw.println("最小响应时间：" + minRsTime);
+			pw.println(getWrapStr(FIELD, String.valueOf(minRsTime)));
+			
 			List<Long> keyList=totalCounter.getKeyList();
 			Collections.sort(keyList);
 //			int posMid=(int)(sr.dataCounter.count*0.5);
@@ -176,7 +215,8 @@ public class JTLParser extends DefaultHandler {
 			for (int i = keyList.size(); i >= 0; i--) {
 				long val = keyList.get(i-1);
 				if (counter - totalCounter.getValue(val) < posPers) {
-					pw.println("90%响应时间：" + val);
+//					pw.println("90%响应时间：" + val);
+					pw.println(getWrapStr(FIELD, String.valueOf(val)));
 					break;
 				} else {
 					counter = counter - totalCounter.getValue(val);
@@ -186,14 +226,21 @@ public class JTLParser extends DefaultHandler {
 //			pw.println("90%响应时间：" + tmpList.get((int)(tmpList.size()*0.9)));
 			long howLongRunning = endTime - firstTime;
 			double throughput = ((double) (count) / (double) howLongRunning) * 1000.0;
-			pw.println("平均TPS：" + throughput);
-			pw.println("最大TPS：" + maxTps);
+//			pw.println("平均TPS：" + throughput);
+			pw.println(getWrapStr(FIELD,df.format(throughput)));
+//			pw.println("最大TPS：" + maxTps);
+			pw.println(getWrapStr(FIELD,String.valueOf(maxTps)));
 			if (minTps < 0) {
 				minTps = 0;
 			}
-			pw.println("最小TPS：" + minTps);
+//			pw.println("最小TPS：" + minTps);
+			pw.println(getWrapStr(FIELD,String.valueOf(minTps)));
 			double rate = ((double) error / (double) count) * 100;
-			pw.println("失败率：" + df.format(rate) + "%");
+//			pw.println("失败率：" + df.format(rate) + "%");
+			pw.println(getWrapStr(FIELD,(df.format(rate) + "%")));
+			// 输出表尾
+			pw.println("  </tr>");
+			pw.println("</table>");
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {

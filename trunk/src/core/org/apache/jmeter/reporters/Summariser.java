@@ -134,7 +134,7 @@ public class Summariser extends AbstractTestElement
      * Contains the items needed to collect stats for a summariser
      *
      */
-    protected static class Totals {	// jex002C
+    private static class Totals {	// jex002C
 
         /** Time of last summary (to prevent double reporting) */
         long last = 0;	// jex002C

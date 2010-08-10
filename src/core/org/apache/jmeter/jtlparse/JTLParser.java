@@ -587,6 +587,11 @@ public class JTLParser extends DefaultHandler {
 		}
 	}
 	
+	/**
+	 * 计算90%使用
+	 * @author chenchao.yecc
+	 *
+	 */
 	private static class DataCounter{
 		private Map<Long,Long> dataMap=new HashMap<Long,Long>();
 		private Long count =0L;

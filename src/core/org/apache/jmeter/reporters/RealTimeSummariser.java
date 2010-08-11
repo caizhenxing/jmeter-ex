@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,8 +35,8 @@ import org.apache.jorphan.util.JOrphanUtils;
 public class RealTimeSummariser extends AbstractTestElement implements Serializable, SampleListener, TestListener{
 	private static final long serialVersionUID = 1L;
 	private transient volatile PrintWriter writer= null;
-	private transient Totals myTotals = null;
 	private transient String myName = "";
+	private static String SPLIT = ",";
 	private static final DecimalFormat dfDouble = new DecimalFormat("#0.0");
 	private static final Hashtable accumulators = new Hashtable();
 	private static int instanceCount;
@@ -44,18 +45,15 @@ public class RealTimeSummariser extends AbstractTestElement implements Serializa
 	private long endTime = 0;
 	private long error = 0;
 	private long count = 0;
+	
 	private Set<String> labels =new HashSet<String>();
 	private Map<String, SampleVisualizer> visualizers =new HashMap<String, SampleVisualizer>();
 	
 	public RealTimeSummariser() {
-		
-	}
-	
-	public RealTimeSummariser(String s) {
 		super();
 		try {
 			writer = new PrintWriter(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream("JmeterData",
-			        false)), SaveService.getFileEncoding("UTF-8")), true);
+					false)), SaveService.getFileEncoding("UTF-8")), true);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
@@ -70,7 +68,6 @@ public class RealTimeSummariser extends AbstractTestElement implements Serializa
 			visualizers.put(s.getSampleLabel(), new SampleVisualizer());
 		}
 		
-		long now = System.currentTimeMillis() / 1000;// in seconds
 		boolean reportNow = false;
 
 		/*
@@ -78,26 +75,24 @@ public class RealTimeSummariser extends AbstractTestElement implements Serializa
 		 * error, otherwise can miss the slot. Also need to check we've not hit
 		 * the window already
 		 */
-		synchronized (myTotals) {
+		synchronized (visualizers.get(s.getSampleLabel())) {
 			if (s != null) {
-				myTotals.delta.addSample(s);
+				visualizers.get(s.getSampleLabel()).analyse(s);
 			}
 
-			if ((now > myTotals.last + 5) && (now % 3 <= 5)) {
+//			if ((now > myTotals.last + 5) && (now % 3 <= 5)) {
 				reportNow = true;
-			}
+//			}
 		}
 		if (reportNow) {
 			String str;
-//			str = format(myName, myDelta, "+");
-			// 写入结果文件
-			// log.info(str);
-//			System.out.println(str);
-			// Only if we have updated them
-				str = format(s.getSampleLabel(),"=");
-				// 写入结果文件
-				writer.println(str);
-				writer.flush();
+	    	for (Iterator<String> iterator = labels.iterator(); iterator.hasNext();) {
+	    		String label = iterator.next();
+	            str = format(label);
+	            // 写入结果文件
+	            writer.println(str);
+	            writer.flush();
+	        }
 		}
 	}
 	
@@ -130,16 +125,10 @@ public class RealTimeSummariser extends AbstractTestElement implements Serializa
         if (totals == null) {// We're not done yet
             return;
         }
-        for (int i=0; i<totals.length; i++) {
-            Map.Entry me = (Map.Entry)totals[i];
-            String str;
-            String name = (String) me.getKey();
-            Totals total = (Totals) me.getValue();
-            // Only print final delta if there were some samples in the delta
-            // and there has been at least one sample reported previously
-            total.moveDelta();
-            str = format(name, total.total, "=");
-            writer.println(str);
+        
+    	for (Iterator<String> iterator = labels.iterator(); iterator.hasNext();) {
+    		String label = iterator.next();
+            writer.println(format(label));
             writer.flush();
         }
         writer.close();
@@ -159,35 +148,44 @@ public class RealTimeSummariser extends AbstractTestElement implements Serializa
         return JOrphanUtils.rightAlign(sb, len);
     }
     
-    protected String format(String name, String type) {	// jex002C
+    protected String format(String name) {	// jex002C
     	SampleVisualizer sv= visualizers.get(name);
-        StringBuffer tmp = new StringBuffer(20); // for intermediate use
         StringBuffer sb = new StringBuffer(100); // output line buffer
+        // 名字
         sb.append(name);
-        sb.append(" ");
-        sb.append(type);
-        sb.append(" ");
-        sb.append(longToSb(tmp, s.getNumSamples(), 5));
-        sb.append(" in ");
-        long elapsed = s.getElapsed();
-        sb.append(doubleToSb(tmp, elapsed / 1000.0, 5, 1));
-        sb.append("s = ");
-        if (elapsed > 0) {
-            sb.append(doubleToSb(tmp, s.getRate(), 6, 1));
-        } else {
-            sb.append("******");// Rate is effectively infinite
-        }
-        sb.append("/s Avg: ");
-        sb.append(longToSb(tmp, sv..getAverage(), 5));
-        sb.append(" Min: ");
-        sb.append(longToSb(tmp, s.getMin(), 5));
-        sb.append(" Max: ");
-        sb.append(longToSb(tmp, s.getMax(), 5));
-        sb.append(" Err: ");
-        sb.append(longToSb(tmp, s.getErrorCount(), 5));
-        sb.append(" (");
-        sb.append(s.getErrorPercentageString());
-        sb.append(")");
+        sb.append(SPLIT);
+        //个数
+        sb.append(sv.count);
+        sb.append(SPLIT);
+        
+        //平均响应时间
+        long res = sv.sumRsTime/sv.count;
+        sb.append(res);
+        sb.append(SPLIT);
+        //最大响应时间
+        sb.append(sv.maxRsTime);
+        sb.append(SPLIT);
+        //最小响应时间
+        sb.append(sv.minRsTime);
+        sb.append(SPLIT);
+        
+        //Error
+        sb.append(sv.error);
+        sb.append(SPLIT);
+        
+        //时间戳
+        sb.append(sv.endTime);
+        sb.append(SPLIT);
+        
+        // 方差
+        double dev=Math.sqrt(res)-Math.sqrt(sv.lastRestime);
+        sb.append(dev);
+        sb.append(SPLIT);
+
+        // 平方和
+        double dev=Math.sqrt(res)-Math.sqrt(sv.lastRestime);
+        sb.append(dev);
+        sv.lastRestime=res;
         return sb.toString();
     }
 
@@ -233,13 +231,16 @@ public class RealTimeSummariser extends AbstractTestElement implements Serializa
 		long endTime = 0;
 		long error = 0;
 		long count = 0;
+		long lastRestime = 0;
+		// 平方和
+		long sumSqr = 0;
+		
 		private double maxTps = Double.MIN_VALUE;
 		private double minTps = Double.MAX_VALUE;
 		private long maxRsTime = Long.MIN_VALUE;
 		private long minRsTime = Long.MAX_VALUE;
 		boolean firstTimeInit = false;
-		void analyse(SampleResult s) {
-			endTime = s.getTimeStamp();
+		public void analyse(SampleResult s) {
 			if (!firstTimeInit) {
 				firstTime = endTime;
 				firstTimeInit = true;
@@ -258,6 +259,16 @@ public class RealTimeSummariser extends AbstractTestElement implements Serializa
 			if (!s.isSuccessful()) {
 				error = error + 1;
 			}
+		}
+		public void clearAllData(){
+			long sumRsTime = 0;
+			long firstTime = 0;
+			long endTime = 0;
+			long error = 0;
+			long count = 0;
+			long lastRestime = 0;
+			// 平方和
+			long sumSqr = 0;
 		}
 	}
 }

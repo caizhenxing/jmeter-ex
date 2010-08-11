@@ -33,6 +33,7 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
 import com.alibaba.b2b.qa.monitor.MonitorData;
+import com.alibaba.b2b.qa.monitor.MonitorProject;
 import com.alibaba.b2b.qa.monitor.RemoteAgent;
 import com.alibaba.b2b.qa.monitor.remote.RemoteControllerService;
 import com.alibaba.b2b.qa.monitor.remote.RemoteDataService;
@@ -104,6 +105,13 @@ public class MonitorClientModel implements Runnable {
 		MonitorData monitors = remoteDataService.getMonitorDataByDuration(agent, startTime, stopTime);
 		return monitors;
 	}
+	
+	public List<MonitorProject> getAllMonitorProject() {
+		List<MonitorProject> monitors = remoteDataService
+				.getAllMonitorProject();
+		return monitors == null ? new ArrayList<MonitorProject>() : monitors;
+	}
+	
 	
 	public void stopProject(RemoteAgent agent) {
 		try {

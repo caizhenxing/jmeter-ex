@@ -42,6 +42,8 @@ import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
+import com.alibaba.b2b.qa.monitor.MonitorProject;
+
 public class ResultViewFrame extends JFrame implements ActionListener{
 	
 	private static final long serialVersionUID = 1L;
@@ -237,8 +239,16 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 		if(e.getSource()==update){
 			System.out.println("update");
 		} else if(e.getSource()==view){
-			if (checkDate()) {
+//			if (checkDate()) {
+			if (true) {
 				// TODO 生成Tab页面代码
+//				List<MonitorProject> monitors=model.getAllMonitorProject();
+//				for (Iterator<MonitorProject> iterator = monitors.iterator(); iterator
+//						.hasNext();) {
+//					MonitorProject monitorProject = iterator
+//							.next();
+//					System.out.println(monitorProject);
+//				}
 				Map<String,ChartPanel> chartMap = model.getChartPanel(benchgui.getCurrentServerUrl(),(String)this.projects.getSelectedItem(),beginTime,endTime);
 			}
 //			model.getAllDataForProject(agent, startTime, stopTime);

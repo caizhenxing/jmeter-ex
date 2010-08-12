@@ -21,6 +21,7 @@ import org.apache.jmeter.monitor.Monitor;
 import org.apache.jmeter.monitor.MonitorModel;
 import org.apache.jmeter.monitor.MonitorModelFactory;
 import org.apache.jmeter.monitor.gui.MonitorGui;
+import org.apache.jmeter.server.Server;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
 import org.jfree.chart.ChartPanel;
@@ -32,6 +33,7 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
+import com.alibaba.b2b.qa.monitor.MonitorAgent;
 import com.alibaba.b2b.qa.monitor.MonitorData;
 import com.alibaba.b2b.qa.monitor.MonitorProject;
 import com.alibaba.b2b.qa.monitor.RemoteAgent;
@@ -58,7 +60,7 @@ public class MonitorClientModel implements Runnable {
 	private long interval = 2000;
 	private RemoteDataService remoteDataService = null;
 	private RemoteControllerService remoteControllerService = null;
-	private Map<String, ArrayList<HashMap<String, String>>> agents = null;
+	private Map<String, ArrayList<MonitorAgent>> agents = null;
 	private boolean running;
 	private HashMap<String, Monitor> linespecMap = new HashMap<String, Monitor>();
 	// 用于AgentServer和RemoteAgent得对应
@@ -71,7 +73,7 @@ public class MonitorClientModel implements Runnable {
 	private String pid = "";
 
 	// 缓存agent，取数据时使用
-	private Map<String, Map<String, String>> agentMap = new HashMap<String, Map<String, String>>();
+	private Map<String, MonitorAgent> agentMap = new HashMap<String, MonitorAgent>();
 
 	public MonitorClientModel() {
 		String value=JMeterUtils.getProperty("monitor.interval");
@@ -81,6 +83,13 @@ public class MonitorClientModel implements Runnable {
 		}
 	}
 
+	public void getMachineInfo(RemoteAgent a){
+		try {
+			String info=remoteControllerService.getAgentMachineInfo(a);
+		} catch (AgentConnectionError e) {
+			e.printStackTrace();
+		}
+	}
 	public Map<AgentServer, RemoteAgent> getRemoteAgentMap() {
 		return remoteAgentMap;
 	}
@@ -368,15 +377,16 @@ public class MonitorClientModel implements Runnable {
 		guiList.clear();
 
 		// 初始化Agent组
-		agents = remoteDataService.getProjectAgents(project);
-		if (agents == null) {
+		agents = remoteDataService.getProjectMonitorAgents(project);
+		if (agents == null || agents.isEmpty()) {
 			return false;
 		}
+		
 		// 初始化agentMap
 		for (String agent : agents.keySet()) {
-			ArrayList<HashMap<String, String>> monitorAgent = agents.get(agent);
-			for (Map<String, String> chart : monitorAgent) {
-				String chartName = agent + "$$" + chart.get("name");
+			ArrayList<MonitorAgent> monitorAgent = agents.get(agent);
+			for (MonitorAgent chart : monitorAgent) {
+				String chartName = agent + "$$" + chart.getName();
 				agentMap.put(chartName, chart);
 			}
 		}
@@ -398,6 +408,32 @@ public class MonitorClientModel implements Runnable {
 			// 新建ServerGui
 			JMeterTreeNode serverNode = addAgentToTree(benchNode, agent,
 					"org.apache.jmeter.server.gui.ServerGui");
+
+			// 获取所有的Agent所在服务器的信息
+			agentList = remoteControllerService.getAllAgents();
+			
+			// 为ServerNode指定Server的硬件信息
+			if (serverNode.getUserObject() instanceof Server) {
+				Server server = (Server) serverNode.getUserObject();
+				// 取得当前Agent对应的RemoteAgent
+				RemoteAgent ra = null;
+				for (Iterator<RemoteAgent> iterator = agentList.iterator(); iterator
+						.hasNext();) {
+					ra = iterator.next();
+					if (ra.getAddress().equals(agent)) {
+						break;
+					}
+				}
+				// 取得硬件信息
+				String info="";
+				try {
+					info = remoteControllerService.getAgentMachineInfo(ra);
+				} catch (AgentConnectionError e) {
+					e.printStackTrace();
+				}
+				// 将信息设定给Server
+				server.setCpuInfo(info);
+			}
 			for (int i = 0; i < MonitorGui.CATEGORY.length; i++) {
 				String chartName = agent + "$$" + MonitorGui.CATEGORY[i];
 				if (!agentMap.keySet().contains(chartName)) {
@@ -496,7 +532,7 @@ public class MonitorClientModel implements Runnable {
 		for (String element : this.linespecMap.keySet()) {
 			Monitor mor = linespecMap.get(element);
 			long pos = mor.getMonitorModel().getDataEndPosition();
-			Map<String, String> agent = agentMap.get(element);
+			MonitorAgent agent = agentMap.get(element);
 			MonitorData monitors = null;
 			if (mor.getMonitorModel().isFirstFetch()) {
 				monitors = remoteDataService.getStartMonitorData(agent);

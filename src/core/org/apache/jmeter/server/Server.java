@@ -17,7 +17,9 @@ public class Server extends AbstractTestElement implements Serializable {
 	int swap_mem=0;
 	double fre=0;
 	int enth_num;
-	
+	public void setCpuInfo(String info){
+		cpu_info=info;
+	}
 	public String getCpuInfo(){
 		return "";
 	}

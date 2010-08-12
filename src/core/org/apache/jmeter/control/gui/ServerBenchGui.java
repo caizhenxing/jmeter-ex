@@ -184,8 +184,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		urls.setPreferredSize(new Dimension(80,20));
 		urlsPanel.add(urls);
 
-//		rangeField.setText("http://10.20.136.18:8080/aliper-server/AliperServlet");
-		rangeField.setText("10.249.129.159:8080");
+//		rangeField.setText("10.249.129.159:8080");
+		rangeField.setText("10.249.128.13:8080");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);

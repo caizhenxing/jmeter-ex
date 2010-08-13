@@ -38,25 +38,25 @@ import org.apache.jmeter.samplers.SampleResult;
  */
 public class RunningSample {
 
-    private static final DecimalFormat rateFormatter = new DecimalFormat("#.0"); // $NON-NLS-1$
+    protected static final DecimalFormat rateFormatter = new DecimalFormat("#.0"); // $NON-NLS-1$
 
-    private static final DecimalFormat errorFormatter = new DecimalFormat("#0.00%"); // $NON-NLS-1$
+    protected static final DecimalFormat errorFormatter = new DecimalFormat("#0.00%"); // $NON-NLS-1$
 
-    private long counter;
+    protected long counter;
 
-    private long runningSum;
+    protected long runningSum;
 
-    private long max, min;
+    protected long max, min;
 
-    private long errorCount;
+    protected long errorCount;
 
-    private long firstTime;
+    protected long firstTime;
 
-    private long lastTime;
+    protected long lastTime;
 
-    private final String label;
+    protected final String label;
 
-    private final int index;
+    protected final int index;
 
     /**
      * Use this constructor to create the initial instance

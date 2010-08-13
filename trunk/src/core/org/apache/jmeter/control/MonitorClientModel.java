@@ -262,6 +262,19 @@ public class MonitorClientModel implements Runnable {
 		return true;
 	}
 	
+	private boolean initControlService(){
+		boolean res=true;
+		try {
+			remoteControllerService  = (RemoteControllerService) factory
+			.create(RemoteControllerService.class, HTTP_HEADER + serviceUrl
+					+ CONTROL_SERVER);
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+			res=false;
+		}
+		return res;
+	}
+	
 	private boolean initDataService(){
 		boolean res=true;
 		try {
@@ -432,7 +445,7 @@ public class MonitorClientModel implements Runnable {
 					e.printStackTrace();
 				}
 				// 将信息设定给Server
-				server.setCpuInfo(info);
+				server.setInfo(info);
 			}
 			for (int i = 0; i < MonitorGui.CATEGORY.length; i++) {
 				String chartName = agent + "$$" + MonitorGui.CATEGORY[i];

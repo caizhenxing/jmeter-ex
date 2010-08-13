@@ -92,9 +92,9 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		if (tg instanceof Server) {
 			Server s = (Server) tg;
 			setHardDriveInfo(CPU_INFO, s.getCpuInfo());
-			setHardDriveInfo(MEMORY_INFO, s.getCpuInfo());
-			setHardDriveInfo(DISK_INFO, s.getCpuInfo());
-			setHardDriveInfo(NET_INFO, s.getCpuInfo());
+			setHardDriveInfo(MEMORY_INFO, s.getMemoryInfo());
+			setHardDriveInfo(DISK_INFO, s.getDiskInfo());
+			setHardDriveInfo(NET_INFO, s.getOsInfo());
 		}
 	}
 

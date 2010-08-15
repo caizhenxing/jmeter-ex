@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.apache.jmeter.util.JMeterUtils;
 
-public class AgentServer {
+public class AgentServer implements Comparable<AgentServer>{
 	public static final String RUN = JMeterUtils.getResString("as_run");
 	public static final String STOP = JMeterUtils.getResString("as_stop");
 	public static final String READY = JMeterUtils.getResString("as_ready");
@@ -123,5 +123,25 @@ public class AgentServer {
 	
 	public List<String> getItemAsList(){
 		return Arrays.asList(items.split(","));
+	}
+
+	@Override
+	public int compareTo(AgentServer as) {
+		String anotherString = as.address;
+		int len1 = address.length();
+		int len2 = anotherString.length();
+		int n = Math.min(len1, len2);
+		char v1[] = address.toCharArray();
+		char v2[] = anotherString.toCharArray();
+		int k = 0;
+		while (k < n) {
+			char c1 = v1[k];
+			char c2 = v2[k];
+			if (c1 != c2) {
+				return c1 - c2;
+			}
+			k++;
+		}
+		return len1 - len2;
 	}
 }

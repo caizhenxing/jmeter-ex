@@ -2,6 +2,7 @@ package org.apache.jmeter.control;
 
 import java.awt.BasicStroke;
 import java.awt.Font;
+import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -72,6 +73,20 @@ public class MonitorClientModel implements Runnable {
 	private HessianProxyFactory factory = new HessianProxyFactory();
 	private String pid = "";
 
+	private RemoteDataService getRemoteDataService(){
+		if (remoteDataService == null) {
+			initDataService();
+		}
+		return remoteDataService;
+	}
+	
+	private RemoteControllerService getRemoteControllerService(){
+		if (remoteControllerService == null) {
+			initControlService();
+		}
+		return remoteControllerService;
+	}
+	
 	// 缓存agent，取数据时使用
 	private Map<String, MonitorAgent> agentMap = new HashMap<String, MonitorAgent>();
 
@@ -83,13 +98,6 @@ public class MonitorClientModel implements Runnable {
 		}
 	}
 
-	public void getMachineInfo(RemoteAgent a){
-		try {
-			String info=remoteControllerService.getAgentMachineInfo(a);
-		} catch (AgentConnectionError e) {
-			e.printStackTrace();
-		}
-	}
 	public Map<AgentServer, RemoteAgent> getRemoteAgentMap() {
 		return remoteAgentMap;
 	}
@@ -116,7 +124,7 @@ public class MonitorClientModel implements Runnable {
 	}
 	
 	public List<MonitorProject> getAllMonitorProject() {
-		List<MonitorProject> monitors = remoteDataService
+		List<MonitorProject> monitors = getRemoteDataService()
 				.getAllMonitorProject();
 		return monitors == null ? new ArrayList<MonitorProject>() : monitors;
 	}
@@ -124,7 +132,7 @@ public class MonitorClientModel implements Runnable {
 	
 	public void stopProject(RemoteAgent agent) {
 		try {
-			remoteControllerService.stopProject(agent, agent.getRunProject());
+			getRemoteControllerService().stopProject(agent, agent.getRunProject());
 			Thread.sleep(3000);
 		} catch (AgentConnectionError e) {
 			e.printStackTrace();
@@ -139,7 +147,7 @@ public class MonitorClientModel implements Runnable {
 			for (int i = 0; i < agent.getRunAgents().size(); i++) {
 				items[i] = agent.getRunAgents().get(i);
 			}
-			remoteControllerService.stopAgents(agent, items);
+			getRemoteControllerService().stopAgents(agent, items);
 			Thread.sleep(3000);
 		} catch (AgentConnectionError e) {
 			e.printStackTrace();
@@ -151,13 +159,13 @@ public class MonitorClientModel implements Runnable {
 	public void startAgent(RemoteAgent agent, List<String> items, String param) {
 		// 启动工程
 		try {
-			remoteControllerService.startProject(agent, agent.getRunProject());
+			getRemoteControllerService().startProject(agent, agent.getRunProject());
 			Thread.sleep(1000);
 			// 启动Agent
 			for (Iterator<String> iterator = items.iterator(); iterator
 					.hasNext();) {
 				try {
-					remoteControllerService.startAgent(agent, iterator.next(),
+					getRemoteControllerService().startAgent(agent, iterator.next(),
 							agent.getInterval(), agent.getCount(), param);
 				} catch (AgentConnectionError e) {
 					e.printStackTrace();
@@ -172,14 +180,11 @@ public class MonitorClientModel implements Runnable {
 	}
 
 	public synchronized List<AgentServer> configure()
-			throws MalformedURLException {
+			throws MalformedURLException,UndeclaredThrowableException {
 		remoteAgentMap.clear();
 		List<AgentServer> resList = new ArrayList<AgentServer>();
-		remoteControllerService = (RemoteControllerService) factory.create(
-				RemoteControllerService.class, HTTP_HEADER + serviceUrl
-						+ CONTROL_SERVER);
 		// 获得所有的服务器
-		agentList = remoteControllerService.getAllAgents();
+		agentList = getRemoteControllerService().getAllAgents();
 		if (agentList != null) {
 			for (Iterator<RemoteAgent> iterator = agentList.iterator(); iterator
 					.hasNext();) {
@@ -222,7 +227,7 @@ public class MonitorClientModel implements Runnable {
 	public List<String> getAllProcess(AgentServer tmpAgent) {
 		List<String> lst = new ArrayList<String>();
 		try {
-			lst = remoteControllerService.getProcessList(remoteAgentMap
+			lst = getRemoteControllerService().getProcessList(remoteAgentMap
 					.get(tmpAgent));
 		} catch (AgentConnectionError e) {
 			e.printStackTrace();
@@ -231,7 +236,7 @@ public class MonitorClientModel implements Runnable {
 	}
 
 	public synchronized boolean view() {
-		if (!initDataService()) {
+		if (getRemoteDataService()==null) {
 			JOptionPane.showMessageDialog(GuiPackage.getInstance()
 					.getMainFrame(), JMeterUtils
 					.getResString("server_bench_connect_error"), JMeterUtils
@@ -250,46 +255,40 @@ public class MonitorClientModel implements Runnable {
 		}
 		long st=start.getTime();
 		long en=end.getTime();
-		Map<String, ArrayList<HashMap<String, String>>> allAgent = remoteDataService.getProjectAgents("R");
+		Map<String, ArrayList<HashMap<String, String>>> allAgent = getRemoteDataService().getProjectAgents("R");
 		for (String agent : allAgent.keySet()) {
 			ArrayList<HashMap<String, String>> monitorAgent = allAgent.get(agent);
 			for (Map<String, String> chart : monitorAgent) {
 				MonitorData monitors = null;
-				monitors = remoteDataService.getMonitorDataByDuration(chart, st,en);
+				monitors = getRemoteDataService().getMonitorDataByDuration(chart, st,en);
 				System.out.println(monitors);
 			}
 		}
 		return true;
 	}
 	
-	private boolean initControlService(){
-		boolean res=true;
+	private void initControlService(){
 		try {
 			remoteControllerService  = (RemoteControllerService) factory
 			.create(RemoteControllerService.class, HTTP_HEADER + serviceUrl
 					+ CONTROL_SERVER);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
-			res=false;
 		}
-		return res;
 	}
 	
-	private boolean initDataService(){
-		boolean res=true;
+	private void initDataService(){
 		try {
 			remoteDataService = (RemoteDataService) factory
 			.create(RemoteDataService.class, HTTP_HEADER + serviceUrl
 					+ DATA_SERVER);
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
-			res=false;
 		}
-		return res;
 	}
 	
 	public synchronized boolean connect() throws MalformedURLException {
-		if (!initDataService()) {
+		if (getRemoteDataService()==null) {
 			JOptionPane.showMessageDialog(GuiPackage.getInstance()
 					.getMainFrame(), JMeterUtils
 					.getResString("server_bench_connect_error"), JMeterUtils
@@ -390,7 +389,7 @@ public class MonitorClientModel implements Runnable {
 		guiList.clear();
 
 		// 初始化Agent组
-		agents = remoteDataService.getProjectMonitorAgents(project);
+		agents = getRemoteDataService().getProjectMonitorAgents(project);
 		if (agents == null || agents.isEmpty()) {
 			return false;
 		}
@@ -423,7 +422,7 @@ public class MonitorClientModel implements Runnable {
 					"org.apache.jmeter.server.gui.ServerGui");
 
 			// 获取所有的Agent所在服务器的信息
-			agentList = remoteControllerService.getAllAgents();
+			agentList = getRemoteControllerService().getAllAgents();
 			
 			// 为ServerNode指定Server的硬件信息
 			if (serverNode.getUserObject() instanceof Server) {
@@ -440,7 +439,7 @@ public class MonitorClientModel implements Runnable {
 				// 取得硬件信息
 				String info="";
 				try {
-					info = remoteControllerService.getAgentMachineInfo(ra);
+					info = getRemoteControllerService().getAgentMachineInfo(ra);
 				} catch (AgentConnectionError e) {
 					e.printStackTrace();
 				}
@@ -548,7 +547,7 @@ public class MonitorClientModel implements Runnable {
 			MonitorAgent agent = agentMap.get(element);
 			MonitorData monitors = null;
 			if (mor.getMonitorModel().isFirstFetch()) {
-				monitors = remoteDataService.getStartMonitorData(agent);
+				monitors = getRemoteDataService().getStartMonitorData(agent);
 				if (monitors == null) {
 					continue;
 				}
@@ -557,7 +556,7 @@ public class MonitorClientModel implements Runnable {
 				pos = mor.getMonitorModel().getDataEndPosition();
 				mor.getMonitorModel().setFirstFetch(false);
 			} else {
-				monitors = remoteDataService.getMonitorData(agent, pos);
+				monitors = getRemoteDataService().getMonitorData(agent, pos);
 				if (monitors == null) {
 					continue;
 				}
@@ -575,14 +574,12 @@ public class MonitorClientModel implements Runnable {
 	}
 
 	public List<String> getProjects(String url) throws MalformedURLException {
-		remoteDataService = (RemoteDataService) factory.create(
-				RemoteDataService.class, HTTP_HEADER + url + DATA_SERVER);
-		return remoteDataService.getProjects();
+		return getRemoteDataService().getProjects();
 	}
 
 	public Map<String,ChartPanel> getChartPanel(String serverUrl,String project,long start,long end){
 		Map<String,ChartPanel> map=new HashMap<String,ChartPanel>();
-		Map<String, ArrayList<HashMap<String, String>>> servers = remoteDataService.getProjectAgents(project);
+		Map<String, ArrayList<HashMap<String, String>>> servers = getRemoteDataService().getProjectAgents(project);
 		if (servers == null) {
 			return map;
 		}
@@ -590,9 +587,9 @@ public class MonitorClientModel implements Runnable {
 			ArrayList<HashMap<String, String>> lst=servers.get(agentIp);
 			for (Iterator<HashMap<String, String>> iterator = lst.iterator(); iterator.hasNext();) {
 				HashMap<String, String> agent = iterator.next();
-				MonitorData data=this.remoteDataService.getStartMonitorData(agent);
+				MonitorData data=this.getRemoteDataService().getStartMonitorData(agent);
 				System.out.println(agentIp+":name="+agent.get("name"));
-				data = remoteDataService.getMonitorDataByDuration(agent, start, end);
+				data = getRemoteDataService().getMonitorDataByDuration(agent, start, end);
 				System.out.println(agentIp + data.getValues().size());
 //				long num=data.getDataEndPosition();
 //				int el=(int)num%10000;

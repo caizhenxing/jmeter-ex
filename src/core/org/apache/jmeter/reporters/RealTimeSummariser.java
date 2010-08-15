@@ -7,6 +7,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.jmeter.samplers.SampleEvent;
 import org.apache.jmeter.samplers.SampleResult;
@@ -21,7 +23,7 @@ import org.apache.jmeter.visualizers.RunningSample;
 public class RealTimeSummariser extends Summariser {
 	private static final long serialVersionUID = 1L;
 	private transient volatile PrintWriter writer= null;
-	private WriteTimer timeWriter=new WriteTimer(10);
+//	private WriteTimer timeWriter=new WriteTimer(10);
 	private SampleVisualizer sv = new SampleVisualizer();
 	public RealTimeSummariser(String s) {
 		super(s);
@@ -33,55 +35,22 @@ public class RealTimeSummariser extends Summariser {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		if (writer!=null) {
-			timeWriter.setWriter(writer);
-		}
-		timeWriter.start();
+		WriteTimer myTask = new WriteTimer();
+		Timer timer = new Timer(true);
+		timer.schedule(myTask,5000,5000);
+//		if (writer!=null) {
+//			timeWriter.setWriter(writer);
+//		}
+//		timeWriter.start();
 	}
 
 	public void sampleOccurred(SampleEvent e) {
 		SampleResult s = e.getResult();
 
-		long now = System.currentTimeMillis() / 1000;// in seconds
-
-		RunningSample myDelta = null;
-		RunningSample myTotal = null;
-		boolean reportNow = false;
-
-		/*
-		 * Have we reached the reporting boundary? Need to allow for a margin of
-		 * error, otherwise can miss the slot. Also need to check we've not hit
-		 * the window already
-		 */
-		synchronized (myTotals) {
+		// 将新的结果加至SampleVisualizer
+		synchronized (sv) {
 			if (s != null) {
-				myTotals.delta.addSample(s);
-			}
-
-			if ((now > myTotals.last + 5) && (now % 3 <= 5)) {
-				reportNow = true;
-
-				// copy the data to minimise the synch time
-				myDelta = new RunningSample(myTotals.delta);
-				myTotals.moveDelta();
-				myTotal = new RunningSample(myTotals.total);
-
-				myTotals.last = now; // stop double-reporting
-			}
-		}
-		if (reportNow) {
-			String str;
-//			str = format(myName, myDelta, "+");
-			// 写入结果文件
-			// log.info(str);
-//			System.out.println(str);
-			// Only if we have updated them
-			if (myTotal != null && myDelta != null
-					&& myTotal.getNumSamples() != myDelta.getNumSamples()) {
-				str = format(myName, myTotal, "=");
-				// 写入结果文件
-				writer.println(str);
-				writer.flush();
+				sv.analyse(s);
 			}
 		}
 	}
@@ -149,7 +118,17 @@ public class RealTimeSummariser extends Summariser {
 		long endTime = 0;
 		long error = 0;
 		long count = 0;
+		long rsTime=0;
+//		个数，名字，错误数，时间戳
 		long lastRestime = 0;
+		long lastMaxRsTime=0;
+		long lastMinRsTime=0;
+		long lastDev=0;
+		long lastSqrSum=0;
+		long lastEndTime=0;
+		
+		
+		
 		// 平方和
 		long sumSqr = 0;
 		
@@ -169,6 +148,7 @@ public class RealTimeSummariser extends Summariser {
 			minRsTime = Math.min(resTime, minRsTime);
 			maxRsTime = Math.max(resTime, maxRsTime);
 			sumRsTime = sumRsTime + resTime;
+			rsTime=sumRsTime/count;
 			if (howLongRunning != 0) {
 				double tps = ((double) count / (double) howLongRunning) * 1000.0;
 				minTps = Math.min(tps, minTps);
@@ -178,5 +158,46 @@ public class RealTimeSummariser extends Summariser {
 				error = error + 1;
 			}
 		}
+		
+		public void endAnalyse(){
+			// 平方和
+			sumSqr = (long) (Math.sqrt(lastRestime)+Math.sqrt(rsTime));
+			
+			// 上一次平均响应时间
+			if (count!=0) {
+				lastRestime= sumRsTime/count;				
+			} else {
+				lastRestime= 0;				
+			}
+		}
+		
+		public void initData(){
+			
+			firstTimeInit = false;
+			sumRsTime = 0;
+			firstTime = 0;
+			endTime = 0;
+			error = 0;
+			count = 0;
+			
+			maxTps = Double.MIN_VALUE;
+			minTps = Double.MAX_VALUE;
+			maxRsTime = Long.MIN_VALUE;
+			minRsTime = Long.MAX_VALUE;
+		}
 	}
+	
+	private class WriteTimer extends TimerTask {
+
+		@Override
+		public void run() {
+			synchronized (sv) {
+				System.out.println(sv.count+","+sv.error+","+sv.sumRsTime);
+				sv.endAnalyse();
+				sv.initData();
+			}
+		}
+		
+	}
+
 }

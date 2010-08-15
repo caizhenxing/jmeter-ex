@@ -14,6 +14,7 @@ import java.awt.event.MouseEvent;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -184,8 +185,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		urls.setPreferredSize(new Dimension(80,20));
 		urlsPanel.add(urls);
 
-//		rangeField.setText("10.249.129.159:8080");
-		rangeField.setText("10.249.128.13:8080");
+		rangeField.setText("10.249.129.159:8080");
+//		rangeField.setText("10.249.128.13:8080");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);
@@ -235,7 +236,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		
 		agentTable.getTableHeader().setDefaultRenderer(
 				new HeaderAsPropertyRenderer());
-		agentTable.setPreferredScrollableViewportSize(new Dimension(500, 250));
+		agentTable.setPreferredScrollableViewportSize(new Dimension(500, 390));
 		RendererUtils.applyRenderers(agentTable, RENDERERS);
 		JScrollPane myScrollPane = new JScrollPane(agentTable);
 		agentTable.addMouseListener(new MouseAdapter() {
@@ -348,6 +349,9 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			}
 		// 断开连接
 		} else if (e.getSource() == disConnect) {
+			if (connect.isEnabled()) {
+				return;
+			}
 			if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_info_disconnect"),JMeterUtils.getResString("confirm_title_disconnect"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
 				return;
 			}
@@ -549,22 +553,28 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
     		confDialog.showModifyValueDialog(as,editable);
 		}
 	}
-	private void updateAgentList(){
+	
+	private boolean updateAgentList(){
+		boolean res=false;
 		List<AgentServer> aglst=null;
 		agentSeverContainer.clear();
 		tableModel.clearData();
 		try {
 			aglst=model.configure();
 		} catch (MalformedURLException e1) {
-			e1.printStackTrace();
+			return res;
+		} catch (UndeclaredThrowableException e1){
+			return res;
 		}
 		if (aglst!=null) {
+			Collections.sort(aglst);
 			for (Iterator<AgentServer> iterator = aglst.iterator(); iterator.hasNext();) {
 				AgentServer as =iterator.next();
 				agentSeverContainer.put(tableModel.getRowCount(), as);
 				tableModel.insertRow(as, tableModel.getRowCount());
 			}
 		}
+		return true;
 	}
 
 	/**
@@ -594,6 +604,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	@Override
 	public void keyPressed(KeyEvent e) {
 	}
+	
 	@Override
 	// 键盘事件
 	public void keyReleased(KeyEvent e) {
@@ -607,6 +618,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			}
 		}
 	}
+	
 	@Override
 	public void keyTyped(KeyEvent e) {
 	}

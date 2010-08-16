@@ -412,6 +412,7 @@ public class ViewResultsFullVisualizer extends AbstractVisualizer
                     if ((SampleResult.TEXT).equals(res.getDataType())) // equals(null) is OK
                     {
                         String response = getResponseAsString(res);
+                    	response = checkDataEncoding(res, response);	// jex003A
                         if (command.equals(TEXT_COMMAND)) {
                             showTextResponse(response);
                         } else if (command.equals(HTML_COMMAND)) {
@@ -626,6 +627,8 @@ public class ViewResultsFullVisualizer extends AbstractVisualizer
             SampleResult res = (SampleResult) node.getUserObject();
             String response = getResponseAsString(res);
 
+            response = checkDataEncoding(res,getResponseAsString(res));	// jex003A
+            
             if (command.equals(TEXT_COMMAND)) {
                 showTextResponse(response);
             } else if (command.equals(HTML_COMMAND)) {
@@ -637,6 +640,36 @@ public class ViewResultsFullVisualizer extends AbstractVisualizer
             }
         }
     }
+    
+    /*
+     * @param res
+     * @param response
+     * @since jex003A
+     * @return
+     */
+    private String checkDataEncoding(SampleResult res,String response){
+        if (res.getDataEncodingWithDefault().equals("ISO-8859-1")) {
+        	return convertISOtoGB2312(response);
+        }
+        return response;
+    }
+    
+    /*
+     * @param str
+     * @since jex003A
+     * @return
+     */
+    private String convertISOtoGB2312(String str) {
+		String tempStr = null;
+		System.out.println(java.nio.charset.Charset.forName("ISO-8859-1")
+				.newEncoder().canEncode("ËæÊ±ËæµØÇ©µ¥"));
+		try {
+			tempStr = new String(str.getBytes("ISO-8859-1"), "GB2312");
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		}
+		return tempStr;
+	}
 
     private void showRenderedResponse(String response, SampleResult res) {
         if (response == null) {

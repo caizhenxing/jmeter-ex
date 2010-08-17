@@ -19,6 +19,7 @@
 package org.apache.jmeter.assertions;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 
@@ -47,7 +48,8 @@ public class ResponseAssertion extends AbstractScopedAssertion implements Serial
     private static final Logger log = LoggingManager.getLoggerForClass();
 
     private final static String TEST_FIELD = "Assertion.test_field";  // $NON-NLS-1$
-
+    private final static String ASSERT_ENCODE = "Assertion.encode";  // $NON-NLS-1$
+    
     // Values for TEST_FIELD
     // N.B. we cannot change the text value as it is in test plans
     private final static String SAMPLE_URL = "Assertion.sample_label"; // $NON-NLS-1$
@@ -79,7 +81,7 @@ public class ResponseAssertion extends AbstractScopedAssertion implements Serial
     private final static int EQUALS = 1 << 3;
 
     private final static int SUBSTRING = 1 << 4;
-
+    
     // Mask should contain all types (but not NOT)
     private final static int TYPE_MASK = CONTAINS | EQUALS | MATCH | SUBSTRING;
     
@@ -96,6 +98,23 @@ public class ResponseAssertion extends AbstractScopedAssertion implements Serial
     private static final String DIFF_DELTA_END
             = JMeterUtils.getPropDefault("assertion.equals_diff_delta_end", "]]]");
 
+    /**
+     * 
+     * @since jex003A
+     * @param encode
+     */
+    public void setEncode(String code){
+    	setProperty(new StringProperty(ASSERT_ENCODE, code));
+    }
+    
+    /**
+     * 
+     * @since jex003A
+     */
+    public String getEncode(){
+    	return getPropertyAsString(ASSERT_ENCODE);
+    }
+    
     public ResponseAssertion() {
         setProperty(new CollectionProperty(TEST_STRINGS, new ArrayList()));
     }
@@ -289,7 +308,18 @@ public class ResponseAssertion extends AbstractScopedAssertion implements Serial
 
         // What are we testing against?
         if (isTestFieldResponseData()) {
-            toCheck = response.getResponseDataAsString(); // (bug25052)
+        	// jex003A begin
+        	if (getPropertyAsString(ASSERT_ENCODE).equals("")) {
+        		toCheck = response.getResponseDataAsString(); // (bug25052)
+			} else {
+		        try {
+		        	toCheck = new String(response.getResponseData(),getPropertyAsString(ASSERT_ENCODE));
+		        } catch (UnsupportedEncodingException e) {
+		            log.warn("Using platform default as "+response.getDataEncodingWithDefault()+" caused "+e);
+		            toCheck = response.getResponseDataAsString();
+		        }
+			}
+        	// jex003A end
         } else if (isTestFieldResponseCode()) {
             toCheck = response.getResponseCode();
         } else if (isTestFieldResponseMessage()) {

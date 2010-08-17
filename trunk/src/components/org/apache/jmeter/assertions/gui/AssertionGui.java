@@ -274,8 +274,8 @@ public class AssertionGui extends AbstractAssertionGui {
         box.add(createTypePanel());
         // jex003A begin
         JPanel t=new JPanel(new FlowLayout(FlowLayout.LEFT));	
-        t.setBorder(BorderFactory.createTitledBorder("断言编码"));
-        t.add(new JLabel("编码"));
+        t.setBorder(BorderFactory.createTitledBorder(JMeterUtils.getResString("assert_encode")));
+        t.add(new JLabel(JMeterUtils.getResString("encode")));
         encodeText=new JTextField(5);
         t.add(encodeText);
         box.add(t);

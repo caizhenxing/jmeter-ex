@@ -14,6 +14,7 @@ import org.apache.jmeter.samplers.SampleEvent;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.visualizers.RunningSample;
+import org.apache.jmeter.visualizers.SamplingStatCalculator;
 
 /**
  * 
@@ -24,7 +25,8 @@ public class RealTimeSummariser extends Summariser {
 	private static final long serialVersionUID = 1L;
 	private transient volatile PrintWriter writer= null;
 //	private WriteTimer timeWriter=new WriteTimer(10);
-	private SampleVisualizer sv = new SampleVisualizer();
+//	private SampleVisualizer sv = new SampleVisualizer();
+	private SamplingStatCalculator sv = new SamplingStatCalculator();
 	public RealTimeSummariser(String s) {
 		super(s);
 		try {
@@ -50,35 +52,41 @@ public class RealTimeSummariser extends Summariser {
 		// 将新的结果加至SampleVisualizer
 		synchronized (sv) {
 			if (s != null) {
-				sv.analyse(s);
+				sv.addSample(s);
 			}
 		}
 	}
 	
     public void testEnded(String host) {
-        Object[] totals = null;
-        synchronized (accumulators) {
-            instanceCount--;
-            if (instanceCount <= 0){
-                totals = accumulators.entrySet().toArray();                
-            }
-        }
-        if (totals == null) {// We're not done yet
-            return;
-        }
-        for (int i=0; i<totals.length; i++) {
-            Map.Entry me = (Map.Entry)totals[i];
-            String str;
-            String name = (String) me.getKey();
-            Totals total = (Totals) me.getValue();
-            // Only print final delta if there were some samples in the delta
-            // and there has been at least one sample reported previously
-            total.moveDelta();
-            str = format(name, total.total, "=");
-            writer.println(str);
-            writer.flush();
-        }
-        writer.close();
+		System.out.print(sv.getLabel());
+		System.out.print(",");
+		System.out.print(sv.getCount());
+		System.out.print(",");
+		System.out.print(sv.getAvgPageBytes());
+		System.out.print(",");
+		System.out.print(sv.getBytesPerSecond());
+		System.out.print(",");
+		System.out.print(sv.getStandardDeviation());
+		System.out.print(",");
+		System.out.print(sv.getMax());
+		System.out.print(",");
+		System.out.print(sv.getMin());
+		System.out.print(",");
+		System.out.print(sv.getMean());
+		System.out.println("");
+//        for (int i=0; i<totals.length; i++) {
+//            Map.Entry me = (Map.Entry)totals[i];
+//            String str;
+//            String name = (String) me.getKey();
+//            Totals total = (Totals) me.getValue();
+//            // Only print final delta if there were some samples in the delta
+//            // and there has been at least one sample reported previously
+//            total.moveDelta();
+//            str = format(name, total.total, "=");
+//            writer.println(str);
+//            writer.flush();
+//        }
+//        writer.close();
     }
     
     protected String format(String name, RunningSample s, String type) {	// jex002C
@@ -192,12 +200,25 @@ public class RealTimeSummariser extends Summariser {
 		@Override
 		public void run() {
 			synchronized (sv) {
-				System.out.println(sv.count+","+sv.error+","+sv.sumRsTime);
-				sv.endAnalyse();
-				sv.initData();
+				System.out.print(sv.getLabel());
+				System.out.print(",");
+				System.out.print(sv.getCount());
+				System.out.print(",");
+				System.out.print(sv.getAvgPageBytes());
+				System.out.print(",");
+				System.out.print(sv.getBytesPerSecond());
+				System.out.print(",");
+				System.out.print(sv.getStandardDeviation());
+				System.out.print(",");
+				System.out.print(sv.getMax());
+				System.out.print(",");
+				System.out.print(sv.getMin());
+				System.out.print(",");
+				System.out.print(sv.getMean());
+				System.out.print(",");
+				System.out.print(sv.getErrorCount());
+				System.out.println("");
 			}
 		}
-		
 	}
-
 }

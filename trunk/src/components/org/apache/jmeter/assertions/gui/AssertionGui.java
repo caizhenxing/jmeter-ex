@@ -20,6 +20,7 @@ package org.apache.jmeter.assertions.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -28,10 +29,12 @@ import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 
 import org.apache.jmeter.assertions.ResponseAssertion;
 import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
@@ -49,6 +52,7 @@ import org.apache.jmeter.util.JMeterUtils;
 public class AssertionGui extends AbstractAssertionGui {
     /** The name of the table column in the list of patterns. */
     
+	private static final String ENCODE = "assertion_encode"; //$NON-NLS-1$
     private static final String COL_RESOURCE_NAME = "assertion_patterns_to_test"; //$NON-NLS-1$
 
     /** Radio button indicating that the text response should be tested. */
@@ -109,6 +113,7 @@ public class AssertionGui extends AbstractAssertionGui {
     /** Button to delete a pattern. */
     private JButton deletePattern;
 
+    private JTextField encodeText;
     /** Table model for the pattern table. */
     private PowerTableModel tableModel;
 
@@ -157,6 +162,7 @@ public class AssertionGui extends AbstractAssertionGui {
             }
 
             ra.setAssumeSuccess(assumeSuccess.isSelected());
+            ra.setEncode(encodeText.getText());	// jex003A
 
             if (containsBox.isSelected()) {
                 ra.setToContainsType();
@@ -193,6 +199,7 @@ public class AssertionGui extends AbstractAssertionGui {
         
         containsBox.setSelected(true);
         notBox.setSelected(false);
+        encodeText.setText("");	// jex003A
     }    
 
     /**
@@ -249,6 +256,7 @@ public class AssertionGui extends AbstractAssertionGui {
             deletePattern.setEnabled(true);
         }
 
+        encodeText.setText(model.getEncode());	// jex003A
         tableModel.fireTableDataChanged();
     }
 
@@ -264,6 +272,14 @@ public class AssertionGui extends AbstractAssertionGui {
         box.add(createScopePanel());
         box.add(createFieldPanel());
         box.add(createTypePanel());
+        // jex003A begin
+        JPanel t=new JPanel(new FlowLayout(FlowLayout.LEFT));	
+        t.setBorder(BorderFactory.createTitledBorder("断言编码"));
+        t.add(new JLabel("编码"));
+        encodeText=new JTextField(5);
+        t.add(encodeText);
+        box.add(t);
+        // jex003A end
         add(box, BorderLayout.NORTH);
         add(createStringPanel(), BorderLayout.CENTER);
     }

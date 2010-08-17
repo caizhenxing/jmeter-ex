@@ -661,8 +661,6 @@ public class ViewResultsFullVisualizer extends AbstractVisualizer
      */
     private String convertISOtoGB2312(String str) {
 		String tempStr = null;
-		System.out.println(java.nio.charset.Charset.forName("ISO-8859-1")
-				.newEncoder().canEncode("ËæÊ±ËæµØÇ©µ¥"));
 		try {
 			tempStr = new String(str.getBytes("ISO-8859-1"), "GB2312");
 		} catch (Exception exception) {

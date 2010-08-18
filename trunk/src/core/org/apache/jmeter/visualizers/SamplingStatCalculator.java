@@ -37,15 +37,15 @@ import org.apache.log.Logger;
 public class SamplingStatCalculator {
     private static final Logger log = LoggingManager.getLoggerForClass();
 
-    private final StatCalculator calculator = new StatCalculator();
+    protected final StatCalculator calculator = new StatCalculator();
 
-    private final List storedValues = new Vector();
+    protected final List storedValues = new Vector();
 
-    private double maxThroughput;
+    protected double maxThroughput;
 
-    private long firstTime;
+    protected long firstTime;
 
-    private String label;
+    protected String label;
 
     public SamplingStatCalculator() {// Don't (can't) use this...
         log.warn("Constructor only intended for use in testing"); // $NON-NLS-1$

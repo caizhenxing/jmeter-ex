@@ -15,6 +15,7 @@ import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.visualizers.RunningSample;
 import org.apache.jmeter.visualizers.SamplingStatCalculator;
+import org.apache.jmeter.visualizers.SummariserSamplingStatCalculator;
 
 /**
  * 
@@ -26,7 +27,7 @@ public class RealTimeSummariser extends Summariser {
 	private transient volatile PrintWriter writer= null;
 //	private WriteTimer timeWriter=new WriteTimer(10);
 //	private SampleVisualizer sv = new SampleVisualizer();
-	private SamplingStatCalculator sv = new SamplingStatCalculator();
+	private SummariserSamplingStatCalculator sv = new SummariserSamplingStatCalculator();
 	public RealTimeSummariser(String s) {
 		super(s);
 		try {
@@ -120,80 +121,79 @@ public class RealTimeSummariser extends Summariser {
         return sb.toString();
     }
     
-	private static class SampleVisualizer{
-		long sumRsTime = 0;
-		long firstTime = 0;
-		long endTime = 0;
-		long error = 0;
-		long count = 0;
-		long rsTime=0;
-//		个数，名字，错误数，时间戳
-		long lastRestime = 0;
-		long lastMaxRsTime=0;
-		long lastMinRsTime=0;
-		long lastDev=0;
-		long lastSqrSum=0;
-		long lastEndTime=0;
-		
-		
-		
-		// 平方和
-		long sumSqr = 0;
-		
-		private double maxTps = Double.MIN_VALUE;
-		private double minTps = Double.MAX_VALUE;
-		private long maxRsTime = Long.MIN_VALUE;
-		private long minRsTime = Long.MAX_VALUE;
-		boolean firstTimeInit = false;
-		public void analyse(SampleResult s) {
-			if (!firstTimeInit) {
-				firstTime = endTime;
-				firstTimeInit = true;
-			}
-			long howLongRunning = endTime - firstTime;
-			count = count + 1;
-			long resTime=s.getTime();
-			minRsTime = Math.min(resTime, minRsTime);
-			maxRsTime = Math.max(resTime, maxRsTime);
-			sumRsTime = sumRsTime + resTime;
-			rsTime=sumRsTime/count;
-			if (howLongRunning != 0) {
-				double tps = ((double) count / (double) howLongRunning) * 1000.0;
-				minTps = Math.min(tps, minTps);
-				maxTps = Math.max(tps, maxTps);
-			}
-			if (!s.isSuccessful()) {
-				error = error + 1;
-			}
-		}
-		
-		public void endAnalyse(){
-			// 平方和
-			sumSqr = (long) (Math.sqrt(lastRestime)+Math.sqrt(rsTime));
-			
-			// 上一次平均响应时间
-			if (count!=0) {
-				lastRestime= sumRsTime/count;				
-			} else {
-				lastRestime= 0;				
-			}
-		}
-		
-		public void initData(){
-			
-			firstTimeInit = false;
-			sumRsTime = 0;
-			firstTime = 0;
-			endTime = 0;
-			error = 0;
-			count = 0;
-			
-			maxTps = Double.MIN_VALUE;
-			minTps = Double.MAX_VALUE;
-			maxRsTime = Long.MIN_VALUE;
-			minRsTime = Long.MAX_VALUE;
-		}
-	}
+//	private static class SampleVisualizer{
+//		long sumRsTime = 0;
+//		long firstTime = 0;
+//		long endTime = 0;
+//		long error = 0;
+//		long count = 0;
+//		long rsTime=0;
+////		个数，名字，错误数，时间戳
+//		long lastRestime = 0;
+//		long lastMaxRsTime=0;
+//		long lastMinRsTime=0;
+//		long lastDev=0;
+//		long lastSqrSum=0;
+//		long lastEndTime=0;
+//		
+//		
+//		
+//		// 平方和
+//		long sumSqr = 0;
+//		
+//		private double maxTps = Double.MIN_VALUE;
+//		private double minTps = Double.MAX_VALUE;
+//		private long maxRsTime = Long.MIN_VALUE;
+//		private long minRsTime = Long.MAX_VALUE;
+//		boolean firstTimeInit = false;
+//		public void analyse(SampleResult s) {
+//			if (!firstTimeInit) {
+//				firstTime = endTime;
+//				firstTimeInit = true;
+//			}
+//			long howLongRunning = endTime - firstTime;
+//			count = count + 1;
+//			long resTime=s.getTime();
+//			minRsTime = Math.min(resTime, minRsTime);
+//			maxRsTime = Math.max(resTime, maxRsTime);
+//			sumRsTime = sumRsTime + resTime;
+//			rsTime=sumRsTime/count;
+//			if (howLongRunning != 0) {
+//				double tps = ((double) count / (double) howLongRunning) * 1000.0;
+//				minTps = Math.min(tps, minTps);
+//				maxTps = Math.max(tps, maxTps);
+//			}
+//			if (!s.isSuccessful()) {
+//				error = error + 1;
+//			}
+//		}
+//		
+//		public void endAnalyse(){
+//			// 平方和
+//			sumSqr = (long) (Math.sqrt(lastRestime)+Math.sqrt(rsTime));
+//			
+//			// 上一次平均响应时间
+//			if (count!=0) {
+//				lastRestime= sumRsTime/count;				
+//			} else {
+//				lastRestime= 0;				
+//			}
+//		}
+//		
+//		public void initData(){
+//			firstTimeInit = false;
+//			sumRsTime = 0;
+//			firstTime = 0;
+//			endTime = 0;
+//			error = 0;
+//			count = 0;
+//			
+//			maxTps = Double.MIN_VALUE;
+//			minTps = Double.MAX_VALUE;
+//			maxRsTime = Long.MIN_VALUE;
+//			minRsTime = Long.MAX_VALUE;
+//		}
+//	}
 	
 	private class WriteTimer extends TimerTask {
 
@@ -218,6 +218,7 @@ public class RealTimeSummariser extends Summariser {
 				System.out.print(",");
 				System.out.print(sv.getErrorCount());
 				System.out.println("");
+				sv.clear();
 			}
 		}
 	}

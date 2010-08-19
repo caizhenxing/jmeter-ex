@@ -7,6 +7,9 @@ package org.apache.jmeter.visualizers;
  *
  */
 public class SummariserSamplingStatCalculator extends SamplingStatCalculator {
+	public SummariserSamplingStatCalculator(String label){
+		super(label);
+	}
 	public void clear(){
 		super.clear();
 	}

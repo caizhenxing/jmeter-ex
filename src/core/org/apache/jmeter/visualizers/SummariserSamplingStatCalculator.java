@@ -7,10 +7,16 @@ package org.apache.jmeter.visualizers;
  *
  */
 public class SummariserSamplingStatCalculator extends SamplingStatCalculator {
-	public SummariserSamplingStatCalculator(String label){
+
+	public double getSqurSum() {
+		return super.calculator.getsumOfSquares();
+	}
+
+	public SummariserSamplingStatCalculator(String label) {
 		super(label);
 	}
-	public void clear(){
+
+	public void clear() {
 		super.clear();
 	}
 }

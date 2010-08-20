@@ -203,6 +203,7 @@ public class SamplingStatCalculator {
      */
     public Sample addSample(SampleResult res) {
         long rtime, cmean, cstdv, cmedian, cpercent, eCount, endTime;
+        double squrSum;	// jex003A
         double throughput;
         boolean rbool;
         synchronized (calculator) {
@@ -237,6 +238,7 @@ public class SamplingStatCalculator {
             cstdv = (long)calculator.getStandardDeviation();
             cmedian = calculator.getMedian().longValue();
             cpercent = calculator.getPercentPoint( 0.500 ).longValue();
+            squrSum = calculator.getsumOfSquares();
 // TODO cpercent is the same as cmedian here - why? and why pass it to "distributionLine"?
             rbool = res.isSuccessful();
         }

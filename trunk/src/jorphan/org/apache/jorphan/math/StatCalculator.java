@@ -177,6 +177,15 @@ public class StatCalculator {
         return count;
     }
 
+    /**
+     * 
+     * @return
+     * @since jex003A
+     */
+    public double getsumOfSquares(){
+    	return sumOfSquares;
+    }
+    
     public void addValue(Number val) {
         addSortedValue(val);
         count++;

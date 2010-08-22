@@ -23,8 +23,7 @@ public class NetMonitorModel extends MonitorModel {
 			} catch (NumberFormatException e) {
 				System.out.println("Error date value:" + strings[j]);
 			}
-			int pos = MonitorGui.CATEGORY_LIST.indexOf(category);
-			String type = MonitorGui.TYPE[pos][j];
+			String type = MonitorGui.MONITOR_CONFIGURE.get(category).getDataType(fs[j]);
 			if (type.equals(MonitorModel.TYPE_LONG)) {
 				Long v = Long.parseLong(StringUtils.strip(strings[j]));
 				updateGui(ts, new Second(time), v);

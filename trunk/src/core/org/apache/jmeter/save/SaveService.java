@@ -34,6 +34,7 @@ import java.util.Properties;
 
 import java.nio.charset.Charset;
 
+import org.apache.jmeter.monitor.MonitorCatogory;
 import org.apache.jmeter.reporters.ResultCollectorHelper;
 import org.apache.jmeter.samplers.SampleEvent;
 import org.apache.jmeter.testelement.TestElement;
@@ -94,7 +95,7 @@ public class SaveService {
         }
     }
 
-    private static final XStream JMXSAVER = new XStreamWrapper(new PureJavaReflectionProvider());
+    public static final XStream JMXSAVER = new XStreamWrapper(new PureJavaReflectionProvider());
     private static final XStream JTLSAVER = new XStreamWrapper(new PureJavaReflectionProvider());
     static {
         JTLSAVER.setMode(XStream.NO_REFERENCES); // This is needed to stop XStream keeping copies of each class
@@ -314,6 +315,20 @@ public class SaveService {
         return element;
     }
 
+    /**
+     * 
+     * @since jex003A
+     */
+    public static Map<String,MonitorCatogory> loadMonitorConfigure(InputStream in) throws IOException {
+        InputStreamReader inputStreamReader = getInputStreamReader(in);
+        Map<String,MonitorCatogory> wrapper = (Map<String,MonitorCatogory>)JMXSAVER.fromXML(inputStreamReader);
+        inputStreamReader.close();
+        if (wrapper == null){
+            log.error("Problem loading monitor configure");
+            return null;
+        }
+        return wrapper;
+    }
     /**
      * Save a sampleResult to an XML output file using XStream.
      *

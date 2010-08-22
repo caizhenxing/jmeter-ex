@@ -18,20 +18,24 @@ import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.visualizers.SummariserSamplingStatCalculator;
 
 /**
- * 
+ * 用于计算指定间隔时间内的响应时间，平方差，平方和等，并将结果输出至JmeterRealTime.tmp
  * @author chenchao.yecc
  * @version jex002A
  */
 public class RealTimeSummariser extends Summariser {
 	private static final long serialVersionUID = 1L;
 	private transient volatile PrintWriter writer= null;
+	private transient volatile PrintWriter labelWriter= null;
 	private WriteTimer myTask=null;
-	private Map<String,SummariserSamplingStatCalculator> labelMap = new HashMap<String,SummariserSamplingStatCalculator>();
+	private Map<Integer,SummariserSamplingStatCalculator> labelMap = new HashMap<Integer,SummariserSamplingStatCalculator>();
+	private Map<Integer,String> labelCode = new HashMap<Integer,String>();
 	public RealTimeSummariser(String s) {
 		super(s);
 		try {
-			writer = new PrintWriter(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream("JmeterDetail",
+			writer = new PrintWriter(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream("JmeterRealTime.tmp",
 			        false)), SaveService.getFileEncoding("UTF-8")), true);
+			labelWriter = new PrintWriter(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream("JmeterSample.tmp",
+					false)), SaveService.getFileEncoding("UTF-8")), true);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
@@ -44,10 +48,19 @@ public class RealTimeSummariser extends Summariser {
 
 	public void sampleOccurred(SampleEvent e) {
 		SampleResult s = e.getResult();
-		SummariserSamplingStatCalculator sv = labelMap.get(s.getSampleLabel());
-		if (sv==null){
-			sv = new SummariserSamplingStatCalculator(s.getSampleLabel());
-			labelMap.put(s.getSampleLabel(), sv);
+		// 取得Sample的名字
+		String name = s.getSampleLabel();
+		// 取得名字的hash码
+		int code = name.hashCode();
+		SummariserSamplingStatCalculator sv = labelMap.get(code);
+		if (sv == null) {
+			labelCode.put(code, name);
+			sv = new SummariserSamplingStatCalculator(name);
+			labelMap.put(code, sv);
+			labelWriter.print(code);
+			labelWriter.print(",");
+			labelWriter.println(name);
+			labelWriter.flush();
 		}
 
 		// 将新的结果加至SampleVisualizer
@@ -59,7 +72,7 @@ public class RealTimeSummariser extends Summariser {
 	}
 	
 	public void testEnded(String host) {
-		for (Iterator<String> iterator = labelMap.keySet().iterator(); iterator
+		for (Iterator<Integer> iterator = labelMap.keySet().iterator(); iterator
 				.hasNext();) {
 			SummariserSamplingStatCalculator sv = labelMap.get(iterator.next());
 			synchronized (sv) {
@@ -68,6 +81,7 @@ public class RealTimeSummariser extends Summariser {
 		}
 		writer.flush();
 		writer.close();
+		labelWriter.close();
 		myTask.cancel();
 }
     
@@ -89,9 +103,7 @@ public class RealTimeSummariser extends Summariser {
 			// 错误数
 			append(",").append(sv.getErrorCount()).
 			// 标准方差
-			append(",").append(sv.getStandardDeviation())
-			// 平方和
-			.append(",").append(sv.getSqurSum());
+			append(",").append(sv.getStandardDeviation());
 		}
 		return sb.toString();
 	}
@@ -100,7 +112,7 @@ public class RealTimeSummariser extends Summariser {
 
 		@Override
 		public void run() {
-			for (Iterator<String> iterator = labelMap.keySet().iterator(); iterator
+			for (Iterator<Integer> iterator = labelMap.keySet().iterator(); iterator
 					.hasNext();) {
 				SummariserSamplingStatCalculator sv = labelMap.get(iterator
 						.next());

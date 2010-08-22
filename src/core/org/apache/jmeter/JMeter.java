@@ -62,6 +62,7 @@ import org.apache.jmeter.plugin.PluginManager;
 import org.apache.jmeter.reporters.RealTimeSummariser;
 import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
+import org.apache.jmeter.reporters.TotalSampleSummariser;
 import org.apache.jmeter.samplers.Remoteable;
 import org.apache.jmeter.samplers.SampleEvent;
 import org.apache.jmeter.save.SaveService;
@@ -790,7 +791,9 @@ public class JMeter implements JMeterPlugin {
                 tree.add(tree.getArray()[0], logger);
             }
             RealTimeSummariser realsummary = new RealTimeSummariser("s");	// jex002A
+            TotalSampleSummariser totalsummary = new TotalSampleSummariser("t");	// jex003A
             tree.add(tree.getArray()[0], realsummary);	// jex002A
+            tree.add(tree.getArray()[0], totalsummary);	// jex003A
             String summariserName = JMeterUtils.getPropDefault("summariser.name", "");//$NON-NLS-1$
             if (summariserName.length() > 0) {
                 log.info("Creating summariser <" + summariserName + ">");

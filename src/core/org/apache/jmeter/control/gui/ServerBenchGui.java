@@ -34,6 +34,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
@@ -177,26 +179,46 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		VerticalPanel mainPanel = new VerticalPanel();
 
 		mainPanel.setLayout(new VerticalLayout(5, VerticalLayout.LEFT));
-		mainPanel.setBorder(BorderFactory.createTitledBorder(JMeterUtils.getResString("server_bench_login")));
+		mainPanel.setBorder(BorderFactory.createTitledBorder(JMeterUtils
+				.getResString("server_bench_login")));
 
 		// project
 		Box urlsPanel = Box.createHorizontalBox();
-		JLabel urls=new JLabel(JMeterUtils.getResString("server_bench_url"));
-		urls.setPreferredSize(new Dimension(80,20));
+		JLabel urls = new JLabel(JMeterUtils.getResString("server_bench_url"));
+		urls.setPreferredSize(new Dimension(80, 20));
 		urlsPanel.add(urls);
 
-		rangeField.setText("10.249.129.159:8080");
-//		rangeField.setText("10.249.128.13:8080");
+		// rangeField.setText("10.249.129.159:8080");
+		rangeField.setText("10.249.128.13:8080");
+		// 用户修改URL后重新取得连接
+		rangeField.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				model.modifiedServerURL();
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				model.modifiedServerURL();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				model.modifiedServerURL();
+			}
+		});
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);
 
 		Box projectPanel = Box.createHorizontalBox();
-		JLabel pro=new JLabel(JMeterUtils.getResString("server_bench_projects"));
-		pro.setPreferredSize(new Dimension(80,20));
+		JLabel pro = new JLabel(JMeterUtils
+				.getResString("server_bench_projects"));
+		pro.setPreferredSize(new Dimension(80, 20));
 		projectPanel.add(pro);
 
-		String s[]={JMeterUtils.getResString("server_bench_getprojects")};
+		String s[] = { JMeterUtils.getResString("server_bench_getprojects") };
 		com.setModel(new DefaultComboBoxModel(s));
 		com.setPreferredSize(new Dimension(300, 20));
 		projectPanel.add(com);
@@ -204,7 +226,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		projectPanel.add(update);
 		update.addActionListener(this);
 		mainPanel.add(projectPanel);
-		
+
 		Box buttonPanel = Box.createHorizontalBox();
 		buttonPanel.add(Box.createHorizontalStrut(20));
 		buttonPanel.add(connect);
@@ -212,50 +234,53 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		buttonPanel.add(disConnect);
 		buttonPanel.add(Box.createHorizontalStrut(20));
 		buttonPanel.add(view);
-//		buttonPanel.add(Box.createHorizontalStrut(20));
-//		buttonPanel.add(new JLabel("时间段："));
-//		buttonPanel.add(startField);
-//		buttonPanel.add(new JLabel("--"));
-//		buttonPanel.add(endField);
-//		buttonPanel.add(Box.createHorizontalStrut(20));
+		// buttonPanel.add(Box.createHorizontalStrut(20));
+		// buttonPanel.add(new JLabel("时间段："));
+		// buttonPanel.add(startField);
+		// buttonPanel.add(new JLabel("--"));
+		// buttonPanel.add(endField);
+		// buttonPanel.add(Box.createHorizontalStrut(20));
 		connect.addActionListener(this);
 		view.addActionListener(this);
 		disConnect.addActionListener(this);
 		mainPanel.add(buttonPanel);
-		
+
 		// 配置Dialog
-		tableModel = new ObjectTableModel(COLUMNS, AgentServer.class, new Functor[] {
-			new Functor("getState"), new Functor("getAddress"), new Functor("getPort"),
-			new Functor("getProject"), new Functor("getInterval"),new Functor("getTimes"),
-			new Functor("getStartTime"),new Functor("getEndTime"),
-			new Functor("getItems"), }, new Functor[] { null, null, null, null,
-			null, null, null,null,null }, new Class[] { String.class, String.class, String.class,
-			String.class, Integer.class, Long.class , String.class, String.class, String.class});
+		tableModel = new ObjectTableModel(COLUMNS, AgentServer.class,
+				new Functor[] { new Functor("getState"),
+						new Functor("getAddress"), new Functor("getPort"),
+						new Functor("getProject"), new Functor("getInterval"),
+						new Functor("getTimes"), new Functor("getStartTime"),
+						new Functor("getEndTime"), new Functor("getItems"), },
+				new Functor[] { null, null, null, null, null, null, null, null,
+						null }, new Class[] { String.class, String.class,
+						String.class, String.class, Integer.class, Long.class,
+						String.class, String.class, String.class });
 		agentTable = new YccCustomTable(tableModel);
 		agentTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		
+
 		agentTable.getTableHeader().setDefaultRenderer(
 				new HeaderAsPropertyRenderer());
 		agentTable.setPreferredScrollableViewportSize(new Dimension(500, 390));
 		RendererUtils.applyRenderers(agentTable, RENDERERS);
 		JScrollPane myScrollPane = new JScrollPane(agentTable);
 		agentTable.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent evt) {
-                    if (evt.getClickCount() == 2) {
-                    	openModifyDialog(false);
-                    }
-            }
-    });
+			public void mouseClicked(MouseEvent evt) {
+				if (evt.getClickCount() == 2) {
+					openModifyDialog(false);
+				}
+			}
+		});
 		agentTable.addKeyListener(this);
 		proDialog.setListener(this);
-		
+
 		add(mainPanel);
 		JLabel lb = new JLabel(JMeterUtils.getResString("agent_configuration"));
-        Font curFont = lb.getFont();
-        lb.setFont(curFont.deriveFont((float) curFont.getSize() + 1));
+		Font curFont = lb.getFont();
+		lb.setFont(curFont.deriveFont((float) curFont.getSize() + 1));
 		add(lb);
-		
-		JPanel jp= new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+		JPanel jp = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		JLabel lbchoice = new JLabel(JMeterUtils.getResString("find_info"));
 		jp.add(lbchoice);
 		jp.add(ipchoice);
@@ -264,9 +289,9 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		jp.add(choice);
 		add(jp);
 		add(myScrollPane);
-		
+
 		Box actPanel = Box.createHorizontalBox();
-		startBT.setPreferredSize(new Dimension(80,30));
+		startBT.setPreferredSize(new Dimension(80, 30));
 		startBT.addActionListener(this);
 		actPanel.add(configure);
 		actPanel.add(Box.createHorizontalStrut(20));
@@ -280,21 +305,21 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		actPanel.add(Box.createHorizontalStrut(20));
 		actPanel.add(stopProject);
 		add(actPanel);
-		
+
 		configure.addActionListener(this);
 		show.addActionListener(this);
 		edit.addActionListener(this);
 		stop.addActionListener(this);
 		stopProject.addActionListener(this);
 		confDialog.addLiseners(this);
-		
-//		dlg=new JDialog((JFrame)null, "", true);
-//		dpb.setIndeterminate(true);
-//		dlg.setUndecorated(true);
-//		dlg.add(BorderLayout.NORTH, dpb);
-//		dlg.add(BorderLayout.CENTER, new JLabel("Progress..."));
-//		dlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-//		dlg.setSize(300, 50);
+
+		// dlg=new JDialog((JFrame)null, "", true);
+		// dpb.setIndeterminate(true);
+		// dlg.setUndecorated(true);
+		// dlg.add(BorderLayout.NORTH, dpb);
+		// dlg.add(BorderLayout.CENTER, new JLabel("Progress..."));
+		// dlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		// dlg.setSize(300, 50);
 	}
 
 //	private void showProcess(){

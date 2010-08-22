@@ -29,7 +29,7 @@ public class TestSampleSaveConfiguration extends JMeterTestCase {
     }
 
     public void testClone() throws Exception {
-        SampleSaveConfiguration a = new SampleSaveConfiguration();
+        SampleSaveConfiguration a = SampleSaveConfiguration.staticConfig();
         a.setUrl(false);
         a.setAssertions(true);
         a.setDefaultDelimiter();
@@ -63,13 +63,13 @@ public class TestSampleSaveConfiguration extends JMeterTestCase {
     }
     
     public void testEqualsAndHashCode() throws Exception {
-        SampleSaveConfiguration a = new SampleSaveConfiguration();
+        SampleSaveConfiguration a = SampleSaveConfiguration.staticConfig();
         a.setUrl(false);
         a.setAssertions(true);
         a.setDefaultDelimiter();
         a.setDefaultTimeStampFormat();
         a.setDataType(true);
-        SampleSaveConfiguration b = new SampleSaveConfiguration();
+        SampleSaveConfiguration b = SampleSaveConfiguration.staticConfig();
         b.setUrl(false);
         b.setAssertions(true);
         b.setDefaultDelimiter();

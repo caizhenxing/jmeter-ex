@@ -177,9 +177,9 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	}
 	
 
-	public void initSecondValueAxis(int index) {
+	public void initSecondValueAxis(String category) {
 
-		if (MonitorGui.COLLECTION_COUNT[index] == 1) {
+		if (MonitorGui.MONITOR_CONFIGURE.get(category).getYAxisCount() == 1) {
 			return;
 		}
 		XYPlot localXYPlot = localJFreeChart.getXYPlot();
@@ -265,23 +265,17 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 
 	
 	public void addTimeSeries(String name, TimeSeries ts) {
-		int index = MonitorGui.CATEGORY_LIST.indexOf(category);
-		if (MonitorGui.COLLECTION_COUNT[index] == 1) {
+		if (MonitorGui.MONITOR_CONFIGURE.get(category).getYAxisCount() == 1) {
 			localTimeSeriesCollectionL.addSeries(ts);
 		} else {
-			String[] items = MonitorGui.ITEM[index];
-			String[] lines = MonitorGui.LINE_COLLECTION[index];
-			List<String> lst = new ArrayList<String>(Arrays.asList(items));
 			String[] tmp = name.split("\\$\\$");
 			String item = tmp[2];
-			int pos = lst.indexOf(item);
-			String state = lines[pos];
+			String state = MonitorGui.MONITOR_CONFIGURE.get(category).getShowType(item);
 			if (state.equals("1")) {
 				localTimeSeriesCollectionL.addSeries(ts);
 			} else if(state.equals("2")) {
 				localTimeSeriesCollectionR.addSeries(ts);
 			} else {
-				
 			}
 		}
 		dataMap.put(name, ts);
@@ -320,34 +314,19 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 
 	public void setLineColor() {
 
-		int pos = -1;
-		String[] lineSpec = pathName.split("\\$\\$");
-		String name = lineSpec[1];
-		for (int i = 0; i < MonitorGui.CATEGORY.length; i++) {
-			if (name.equals(MonitorGui.CATEGORY[i])) {
-				pos = i;
-				break;
-			}
-		}
-		List<String> itemLst = new ArrayList<String>(Arrays
-				.asList(MonitorGui.ITEM[pos]));
 		int len = localTimeSeriesCollectionL.getSeriesCount();
 		if (len != 0) {
 			for (int i = 0; i < len; i++) {
-				int c = itemLst.indexOf(localTimeSeriesCollectionL.getSeries(i)
-						.getKey());
 				localXYLineAndShapeRendererL.setSeriesPaint(i,
-						getColor(MonitorGui.COLOR[pos][c]));
+						getColor(MonitorGui.MONITOR_CONFIGURE.get(category).getLineColor((String) localTimeSeriesCollectionL.getSeries(i).getKey())));
 			}
 		}
 
 		len = localTimeSeriesCollectionR.getSeriesCount();
 		if (len != 0) {
 			for (int i = 0; i < len; i++) {
-				int c = itemLst.indexOf(localTimeSeriesCollectionR.getSeries(i)
-						.getKey());
 				localXYLineAndShapeRendererR.setSeriesPaint(i,
-						getColor(MonitorGui.COLOR[pos][c]));
+						getColor(MonitorGui.MONITOR_CONFIGURE.get(category).getLineColor((String) localTimeSeriesCollectionR.getSeries(i).getKey())));
 			}
 		}
 	}
@@ -396,8 +375,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 			} catch (NumberFormatException e) {
 				System.out.println("Error date value:" + strings[j]);
 			}
-			int pos = MonitorGui.CATEGORY_LIST.indexOf(category);
-			String type = MonitorGui.TYPE[pos][j];
+			String type = MonitorGui.MONITOR_CONFIGURE.get(category).getDataType(fs[j]);
 			if (type.equals(MonitorModel.TYPE_LONG)) {
 				Long v = Long.parseLong(StringUtils.strip(strings[j]));
 				updateGui(ts, new Second(time), v);

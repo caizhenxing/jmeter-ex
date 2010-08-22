@@ -19,6 +19,7 @@ import org.apache.jmeter.exceptions.IllegalUserActionException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.monitor.Monitor;
+import org.apache.jmeter.monitor.MonitorLine;
 import org.apache.jmeter.monitor.MonitorModel;
 import org.apache.jmeter.monitor.MonitorModelFactory;
 import org.apache.jmeter.monitor.gui.MonitorGui;
@@ -446,38 +447,41 @@ public class MonitorClientModel implements Runnable {
 				// 将信息设定给Server
 				server.setInfo(info);
 			}
-			for (int i = 0; i < MonitorGui.CATEGORY.length; i++) {
-				String chartName = agent + "$$" + MonitorGui.CATEGORY[i];
+			for (Iterator<String> iterator = MonitorGui.MONITOR_CONFIGURE.keySet().iterator(); iterator.hasNext();) {
+				String category = iterator.next();
+				String chartName = agent + "$$" + category;
 				if (!agentMap.keySet().contains(chartName)) {
 					continue;
 				}
 				// 为每一个Agent的监控分类生成类别Gui
 				JMeterTreeNode dataNode = addAgentToTree(serverNode,
 						JMeterUtils.getResString(MonitorModel.PRE_TITLE
-								+ MonitorGui.CATEGORY[i]),
+								+ category),
 						"org.apache.jmeter.monitor.gui.MonitorGui");
 
 				// 初始化每一个monitor的时间序列
 				if (dataNode.getUserObject() instanceof Monitor) {
 					MonitorModel model = MonitorModelFactory
-							.getMonitorModel(MonitorGui.CATEGORY[i]);
+							.getMonitorModel(category);
 					Monitor mr = (Monitor) dataNode.getUserObject();
 					mr.setMonitorModel(model);
 					model.setPathName(chartName);
 					model.setHost(agent);
-					model.setCategory(MonitorGui.CATEGORY[i]);
-					model.setTitle(MonitorGui.CATEGORY[i]);
-					model.setNumberAxis(MonitorGui.CATEGORY[i]);
-					model.initSecondValueAxis(i);
+					model.setCategory(category);
+					model.setTitle(category);
+					model.setNumberAxis(category);
+					model.initSecondValueAxis(category);
 
 					// 显示的指标
 					String tmp = chartName + "$$";
-					String[] fs = MonitorGui.ITEM[i];
-					for (int j = 1; j < fs.length; j++) {
-						String name = tmp + fs[j];
+					Map<String, MonitorLine> lines=MonitorGui.MONITOR_CONFIGURE.get(category).getLines();
+					for (Iterator<String> iterator2 = lines.keySet().iterator(); iterator2
+							.hasNext();) {
+						String line=iterator2.next();
+						String name = tmp + line;
 						// System.out.println(fs[j]);
-						if (!MonitorGui.LINE_COLLECTION[i][j].equals("-")) {
-							TimeSeries ts = new TimeSeries(fs[j],
+						if (!MonitorGui.MONITOR_CONFIGURE.get(category).getShowType(line).equals("-")) {
+							TimeSeries ts = new TimeSeries(line,
 									org.jfree.data.time.Second.class);
 							ts.setMaximumItemAge(periods);
 							model.addTimeSeries(name, ts);

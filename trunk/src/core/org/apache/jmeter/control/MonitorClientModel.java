@@ -59,6 +59,7 @@ public class MonitorClientModel implements Runnable {
 	public static final String CONTROL_SERVER = "/monitor/remote/remoteControllerService";
 	private String serviceUrl;
 	private String project;
+	private boolean modified = false;
 	private long interval = 2000;
 	private RemoteDataService remoteDataService = null;
 	private RemoteControllerService remoteControllerService = null;
@@ -74,16 +75,22 @@ public class MonitorClientModel implements Runnable {
 	private HessianProxyFactory factory = new HessianProxyFactory();
 	private String pid = "";
 
+	public void modifiedServerURL(){
+		modified=true;
+	}
+	
 	private RemoteDataService getRemoteDataService(){
-		if (remoteDataService == null) {
+		if (remoteDataService == null||modified) {
 			initDataService();
+			modified=false;
 		}
 		return remoteDataService;
 	}
 	
 	private RemoteControllerService getRemoteControllerService(){
-		if (remoteControllerService == null) {
+		if (remoteControllerService == null||modified) {
 			initControlService();
+			modified=false;
 		}
 		return remoteControllerService;
 	}

@@ -39,7 +39,7 @@ public class SamplingStatCalculator {
 
     protected final StatCalculator calculator = new StatCalculator();
 
-    protected final List storedValues = new Vector();
+    private final List storedValues = new Vector();
 
     protected double maxThroughput;
 
@@ -64,7 +64,7 @@ public class SamplingStatCalculator {
      *
      * @param stat
      */
-    public SamplingStatCalculator(SamplingStatCalculator stat) {
+	public SamplingStatCalculator(SamplingStatCalculator stat) {
         this(stat.label);
         addSamples(stat);
     }
@@ -265,7 +265,7 @@ public class SamplingStatCalculator {
         }
     }
 
-    private long getEndTime(SampleResult res) {
+    protected long getEndTime(SampleResult res) {	// jex003C
         long endTime = res.getEndTime();
         long lastTime = getCurrentSample().getEndTime();
         if (lastTime < endTime) {
@@ -277,7 +277,7 @@ public class SamplingStatCalculator {
     /**
      * @param res
      */
-    private void setStartTime(SampleResult res) {
+    protected void setStartTime(SampleResult res) {	// jex003C
         long startTime = res.getStartTime();
         if (firstTime > startTime) {
             // this is our first sample, set the start time to current timestamp

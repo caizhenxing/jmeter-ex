@@ -65,7 +65,7 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 	private long endTime=0;
 	// 用于查看历史按钮活性设置的回调
 	private ServerBenchGui benchgui=null;
-	private MonitorClientModel model = new MonitorClientModel();
+	private MonitorClientModel model = null;
 	
 	public void setServerBenchGui(ServerBenchGui benchgui){
 		this.benchgui=benchgui;
@@ -75,7 +75,7 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 		this.model=model;
 	}
 	
-	public void showFrame() {
+	public boolean showFrame() {
 		// 取最新的工程列表
 		List<String> lst = null;
 		try {
@@ -88,7 +88,7 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 					+ model.getServiceUrl(), JMeterUtils
 					.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
-			return;
+			return false;
 		} catch (UndeclaredThrowableException e1) {
 			JOptionPane.showMessageDialog(GuiPackage.getInstance()
 					.getMainFrame(), JMeterUtils
@@ -96,7 +96,7 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 					+ model.getServiceUrl(), JMeterUtils
 					.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
-			return;
+			return false;
 		}
 		this.pack();
 		// 初始化控件
@@ -106,6 +106,7 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 		toTf.setText("");
 		url.setText(benchgui.getCurrentServerUrl());
 		JMeterUtils.centerWindow(this);
+		return true;
 	}
 	
 	private void clearAll() {

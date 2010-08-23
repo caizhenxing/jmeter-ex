@@ -187,27 +187,30 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		JLabel urls = new JLabel(JMeterUtils.getResString("server_bench_url"));
 		urls.setPreferredSize(new Dimension(80, 20));
 		urlsPanel.add(urls);
-
-		// rangeField.setText("10.249.129.159:8080");
-		rangeField.setText("10.249.128.13:8080");
 		// 用户修改URL后重新取得连接
 		rangeField.getDocument().addDocumentListener(new DocumentListener() {
 
 			@Override
 			public void changedUpdate(DocumentEvent e) {
 				model.modifiedServerURL();
+				model.setServiceUrl(rangeField.getText());
 			}
 
 			@Override
 			public void insertUpdate(DocumentEvent e) {
 				model.modifiedServerURL();
+				model.setServiceUrl(rangeField.getText());
 			}
 
 			@Override
 			public void removeUpdate(DocumentEvent e) {
 				model.modifiedServerURL();
+				model.setServiceUrl(rangeField.getText());
 			}
 		});
+		
+		// rangeField.setText("10.249.129.159:8080");
+		rangeField.setText("10.249.128.13:8080");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);
@@ -544,6 +547,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			}
 		} else if (e.getSource() == view){
 			setHistoryButtonEnable(false);
+			resultFrame.setMonitorClientModel(model);
 			resultFrame.showFrame();
 		} else if (e.getSource() == choice){
 			findItemFromTable(ipchoice.getText());

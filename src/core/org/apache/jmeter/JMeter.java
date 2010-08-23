@@ -295,12 +295,12 @@ public class JMeter implements JMeterPlugin {
 					file.mkdirs();
 				}
 				desPath = desPath + File.separator
-						+ bartDateFormat.format(date) + " Result.txt";
+						+ bartDateFormat.format(date) + " Result.html";
 
 			} else {
 				File file = new File(srcPath);
 				desPath = file.getAbsoluteFile().getParent() + File.separator
-						+ bartDateFormat.format(date) + " Result.txt";
+						+ bartDateFormat.format(date) + " Result.html";
 			}
 
 			JTLParser jtlParser = new JTLParser();

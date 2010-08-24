@@ -219,13 +219,29 @@ public class JMeterTreeModel extends DefaultTreeModel {
     public void clearTestPlan(TestElement testPlan) {
         // Remove the workbench and testplan nodes
         int children = getChildCount(getRoot());
-        while (children > 0) {
-            JMeterTreeNode child = (JMeterTreeNode)getChild(getRoot(), 0);
-            super.removeNodeFromParent(child);
+        // jex003C begin
+        TestElement mo = new JVMBenchGui().createTestElement();
+        TestElement sv = new ServerBenchGui().createTestElement();
+        int el=0;
+        while (children > el) {
+            JMeterTreeNode child = (JMeterTreeNode)getChild(getRoot(), el);
+            Object o=child.getUserObject();
+            if (o instanceof JVMBench && o!=null) {
+            	mo=(TestElement)child.getUserObject();
+            	mo.setProperty(TestElement.HOLD, true);
+            	el++;
+			} else if(o instanceof ServerBench && o!=null){
+				sv=(TestElement)child.getUserObject();
+				sv.setProperty(TestElement.HOLD, true);
+				el++;
+			} else {
+				super.removeNodeFromParent(child);
+			}
+            // jex003C end
             children = getChildCount(getRoot());
         }
         // Init the tree
-        initTree(testPlan,new WorkBenchGui().createTestElement(),new JVMBenchGui().createTestElement(),new ServerBenchGui().createTestElement()); // Assumes this is only called from GUI mode // jex002C
+        initTree(testPlan,new WorkBenchGui().createTestElement(),mo,sv); // Assumes this is only called from GUI mode // jex003C
     }
 
     /**
@@ -240,8 +256,12 @@ public class JMeterTreeModel extends DefaultTreeModel {
         // Insert the workbench node
         insertNodeInto(new JMeterTreeNode(wb, this), (JMeterTreeNode) getRoot(), 1);
         // Insert the monitor node
-        insertNodeInto(new JMeterTreeNode(mo, this), (JMeterTreeNode) getRoot(), 2);	//jex-001A
-        insertNodeInto(new JMeterTreeNode(sv, this), (JMeterTreeNode) getRoot(), 3);	//jex-002A
+        if (!mo.getPropertyAsBoolean(TestElement.HOLD)) {									//jex-003C
+        	insertNodeInto(new JMeterTreeNode(mo, this), (JMeterTreeNode) getRoot(), 2);	//jex-001A
+		}																					//jex-003C
+        if (!sv.getPropertyAsBoolean(TestElement.HOLD)) {									//jex-003C
+        	insertNodeInto(new JMeterTreeNode(sv, this), (JMeterTreeNode) getRoot(), 3);	//jex-002A
+        }																					//jex-003C
         // Let others know that the tree content has changed.
         // This should not be necessary, but without it, nodes are not shown when the user
         // uses the Close menu item

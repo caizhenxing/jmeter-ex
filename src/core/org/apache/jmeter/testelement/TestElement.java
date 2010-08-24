@@ -24,6 +24,7 @@ import org.apache.jmeter.threads.JMeterContext;
 
 public interface TestElement extends Cloneable {
     public final static String NAME = "TestElement.name"; //$NON-NLS-1$
+    public final static String HOLD = "TestElement.hold"; // jex003A
 
     public final static String GUI_CLASS = "TestElement.gui_class"; //$NON-NLS-1$
 

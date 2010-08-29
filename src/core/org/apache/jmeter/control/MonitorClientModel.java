@@ -79,7 +79,7 @@ public class MonitorClientModel implements Runnable {
 		modified=true;
 	}
 	
-	private RemoteDataService getRemoteDataService(){
+	public RemoteDataService getRemoteDataService(){
 		if (remoteDataService == null||modified) {
 			initDataService();
 			modified=false;
@@ -126,17 +126,19 @@ public class MonitorClientModel implements Runnable {
 		return serviceUrl;
 	}
 	
-	public MonitorData getAllDataForProject(Map<String,String> agent,long startTime,long stopTime){
-		MonitorData monitors = remoteDataService.getMonitorDataByDuration(agent, startTime, stopTime);
-		return monitors;
-	}
-	
 	public List<MonitorProject> getAllMonitorProject() {
 		List<MonitorProject> monitors = getRemoteDataService()
 				.getAllMonitorProject();
 		return monitors == null ? new ArrayList<MonitorProject>() : monitors;
 	}
 	
+	public Map<String, ArrayList<MonitorAgent>> getProjectMonitorAgentsWithReportTime(String projectName, String reportTime){
+		return getRemoteDataService().getProjectMonitorAgentsWithReportTime(projectName,reportTime);
+	}
+	
+	public MonitorData getMonitorDataByDuration(MonitorAgent ma, long start, long end){
+		return getRemoteDataService().getMonitorDataByDuration(ma,start,end);
+	}
 	
 	public void stopProject(RemoteAgent agent) {
 		try {
@@ -241,38 +243,6 @@ public class MonitorClientModel implements Runnable {
 			e.printStackTrace();
 		}
 		return lst;
-	}
-
-	public synchronized boolean view() {
-		if (getRemoteDataService()==null) {
-			JOptionPane.showMessageDialog(GuiPackage.getInstance()
-					.getMainFrame(), JMeterUtils
-					.getResString("server_bench_connect_error"), JMeterUtils
-					.getResString("server_bench_error"),
-					JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss"); 
-		Date start=null;
-		Date end=null;
-		try {
-			start= sdf.parse("2010-07-13 01:44:00");
-			end= sdf.parse("2010-07-13 01:47:00");
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		long st=start.getTime();
-		long en=end.getTime();
-		Map<String, ArrayList<HashMap<String, String>>> allAgent = getRemoteDataService().getProjectAgents("R");
-		for (String agent : allAgent.keySet()) {
-			ArrayList<HashMap<String, String>> monitorAgent = allAgent.get(agent);
-			for (Map<String, String> chart : monitorAgent) {
-				MonitorData monitors = null;
-				monitors = getRemoteDataService().getMonitorDataByDuration(chart, st,en);
-				System.out.println(monitors);
-			}
-		}
-		return true;
 	}
 	
 	private void initControlService(){
@@ -587,19 +557,19 @@ public class MonitorClientModel implements Runnable {
 	public List<String> getProjects(String url) throws MalformedURLException {
 		return getRemoteDataService().getProjects();
 	}
-
-	public Map<String,ChartPanel> getChartPanel(String serverUrl,String project,long start,long end){
+	
+	public Map<String,ChartPanel> getChartPanel(String project,long start,long end){
 		Map<String,ChartPanel> map=new HashMap<String,ChartPanel>();
-		Map<String, ArrayList<HashMap<String, String>>> servers = getRemoteDataService().getProjectAgents(project);
+		Map<String, ArrayList<MonitorAgent>> servers = getRemoteDataService().getProjectMonitorAgents(project);
 		if (servers == null) {
 			return map;
 		}
 		for (String agentIp : servers.keySet()) {
-			ArrayList<HashMap<String, String>> lst=servers.get(agentIp);
-			for (Iterator<HashMap<String, String>> iterator = lst.iterator(); iterator.hasNext();) {
-				HashMap<String, String> agent = iterator.next();
+			ArrayList<MonitorAgent> lst=servers.get(agentIp);
+			for (Iterator<MonitorAgent> iterator = lst.iterator(); iterator.hasNext();) {
+				MonitorAgent agent = iterator.next();
 				MonitorData data=this.getRemoteDataService().getStartMonitorData(agent);
-				System.out.println(agentIp+":name="+agent.get("name"));
+				System.out.println(agentIp+":name="+agent.getName());
 				data = getRemoteDataService().getMonitorDataByDuration(agent, start, end);
 				System.out.println(agentIp + data.getValues().size());
 //				long num=data.getDataEndPosition();
@@ -648,6 +618,39 @@ public class MonitorClientModel implements Runnable {
 	
 //		addTimeSeries(localTimeSeriesCollectionL);
 		return map;
+	}
+	
+
+	public synchronized boolean view() {
+		if (getRemoteDataService()==null) {
+			JOptionPane.showMessageDialog(GuiPackage.getInstance()
+					.getMainFrame(), JMeterUtils
+					.getResString("server_bench_connect_error"), JMeterUtils
+					.getResString("server_bench_error"),
+					JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss"); 
+		Date start=null;
+		Date end=null;
+		try {
+			start= sdf.parse("2010-07-13 01:44:00");
+			end= sdf.parse("2010-07-13 01:47:00");
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		long st=start.getTime();
+		long en=end.getTime();
+		Map<String, ArrayList<HashMap<String, String>>> allAgent = getRemoteDataService().getProjectAgents("R");
+		for (String agent : allAgent.keySet()) {
+			ArrayList<HashMap<String, String>> monitorAgent = allAgent.get(agent);
+			for (Map<String, String> chart : monitorAgent) {
+				MonitorData monitors = null;
+//				monitors = getRemoteDataService().getMonitorDataByDuration(chart, st,en);
+				System.out.println(monitors);
+			}
+		}
+		return true;
 	}
 	
 	public synchronized void disConnect() {

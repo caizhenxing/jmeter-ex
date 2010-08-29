@@ -1,16 +1,17 @@
 package org.apache.jmeter.gui;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.Font;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -25,44 +27,67 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
+import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.MutableTreeNode;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jmeter.control.MonitorClientModel;
 import org.apache.jmeter.control.gui.ServerBenchGui;
+import org.apache.jmeter.gui.util.HorizontalPanel;
+import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.util.JMeterUtils;
 import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
+import com.alibaba.b2b.qa.monitor.MonitorAgent;
+import com.alibaba.b2b.qa.monitor.MonitorData;
 import com.alibaba.b2b.qa.monitor.MonitorProject;
 
-public class ResultViewFrame extends JFrame implements ActionListener{
+public class ResultViewFrame extends JFrame implements ActionListener,ItemListener{
 	
 	private static final long serialVersionUID = 1L;
-	private JFreeChart localJFreeChart = null;
-	private JComboBox projects=new JComboBox();
+	private static int GAP = 8;
+	private static int VGAP = 3;
+	// 工程列表
+	private DefaultComboBoxModel projectModel = new DefaultComboBoxModel();
+	private JComboBox projects=new JComboBox(projectModel);
+	// 工程名对应的Report时间
+	private Map<String,DefaultComboBoxModel> timeMap = new HashMap<String,DefaultComboBoxModel>();
+	// 时间段列表
+	private JComboBox times=new JComboBox();
+	// 开始时间
 	private JTextField fromTf = new JTextField(12);
+	// 结束时间
 	private JTextField toTf = new JTextField(12);
-	private JTextField url = new JTextField(12);
+	// 服务器URL
+	private JTextField url = new JTextField(30);
+	// 树
+	private JTree tree;
+	private ViewTreeModel treeModel = null;
+	
+	// 更新按钮
 	private JButton update = new JButton("更新工程");
+	// 查看按钮
 	private JButton view = new JButton("开始查看");
-	private SimpleDateFormat format= new  SimpleDateFormat("mm-dd hh:MM");
-	// 服务器
-	private Map<Integer,YccTab> serverMap=new HashMap<Integer,YccTab>();
-	// 图形
-	private Map<Integer,YccTab> itemMap=new HashMap<Integer,YccTab>();
+	
+	private static SimpleDateFormat format= new  SimpleDateFormat("mm-dd hh:MM");
 	private JButton savegraph=new JButton("保存当前图片");
 	private JButton saveall = new JButton("保存所有图片");
 	private long beginTime=0;
 	private long endTime=0;
+    private JScrollPane mainPanel=null;
+    private JScrollPane treePanel = null;
+	private YccTab tab = new YccTab();
+	// 工程名对应的Report工程信息
+	private Map<String,MonitorProject> projectMap = new HashMap<String,MonitorProject>();
+	
 	// 用于查看历史按钮活性设置的回调
 	private ServerBenchGui benchgui=null;
 	private MonitorClientModel model = null;
@@ -76,46 +101,23 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 	}
 	
 	public boolean showFrame() {
-		// 取最新的工程列表
-		List<String> lst = null;
-		try {
-			lst = model.getProjects(benchgui.getCurrentServerUrl());
-			projects.setModel(new DefaultComboBoxModel(lst.toArray()));
-		} catch (MalformedURLException e1) {
-			JOptionPane.showMessageDialog(GuiPackage.getInstance()
-					.getMainFrame(), JMeterUtils
-					.getResString("server_bench_failed")
-					+ model.getServiceUrl(), JMeterUtils
-					.getResString("server_bench_error"),
-					JOptionPane.ERROR_MESSAGE);
-			return false;
-		} catch (UndeclaredThrowableException e1) {
-			JOptionPane.showMessageDialog(GuiPackage.getInstance()
-					.getMainFrame(), JMeterUtils
-					.getResString("server_bench_failed")
-					+ model.getServiceUrl(), JMeterUtils
-					.getResString("server_bench_error"),
-					JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
+		// 设置服务器URL
+		url.setText(benchgui.getCurrentServerUrl());
 		this.pack();
 		// 初始化控件
 		this.clearAll();
-		// 只在第一次显示的时候清空日期
-		fromTf.setText("");
-		toTf.setText("");
-		url.setText(benchgui.getCurrentServerUrl());
 		JMeterUtils.centerWindow(this);
 		return true;
 	}
 	
 	private void clearAll() {
-		for (Iterator<Integer> iterator = serverMap.keySet().iterator(); iterator
-				.hasNext();) {
-			int index = iterator.next();
-			YccTab tab = serverMap.get(index);
-			tab.removeAllSubTabPanel();
-		}
+		// 清空日期
+		fromTf.setText("");
+		toTf.setText("");
+		projectModel.removeAllElements();
+		timeMap.clear();
+		projects.removeAllItems();
+		times.removeAllItems();
 	}
 	
 	protected void processWindowEvent(WindowEvent e) {
@@ -130,39 +132,87 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 		view.addActionListener(this);
 		savegraph.addActionListener(this);
 		saveall.addActionListener(this);
+		projects.addItemListener(this);
 		this.setTitle("历史数据查看器");
 		this.setDefaultCloseOperation(HIDE_ON_CLOSE);
 		initGui();
 	}
 	
 	private void initGui(){
-		// 上层面板
-		JPanel upPanel=new JPanel(new FlowLayout());
-		upPanel.add(new JLabel("工程"));
-		upPanel.add(projects);
-		upPanel.add(update);
-		upPanel.add(new JLabel("开始时间"));
-		upPanel.add(fromTf);
-		upPanel.add(new JLabel(" 结束时间"));
-		upPanel.add(toTf);
-		upPanel.add(view);
-		// 中层面板
-		JPanel midPanel=new JPanel(new BorderLayout());
 		
-		// 下层面板
-		JPanel downPanel=new JPanel(new FlowLayout());
-		downPanel.add(savegraph);
-		downPanel.add(saveall);
-	
-//		tab.add("Cpu",getChartPanel());
-//		tab.add("Memory",getChartPanel());
-//		tab.add("Net",getChartPanel());
-//		tab.add("IO",getChartPanel());
-//		midPanel.add(tab,BorderLayout.CENTER);?
+		// 控制区域
+		 JPanel upPanel=new JPanel(new BorderLayout());
 		
-		this.getContentPane().add(upPanel,BorderLayout.NORTH);
-		this.getContentPane().add(midPanel,BorderLayout.CENTER);
-		this.getContentPane().add(downPanel,BorderLayout.SOUTH);
+		 // 上层面板
+		 // 左边面板
+		 VerticalPanel leftPanel = new VerticalPanel();
+		 leftPanel.add(Box.createVerticalStrut(VGAP));
+		 JPanel tmp = new JPanel(new BorderLayout());
+		 tmp = new JPanel(new BorderLayout());
+		 tmp.add(new JLabel("服务器URL："),BorderLayout.WEST);
+		 tmp.add(url,BorderLayout.CENTER);
+		 url.setEditable(false);
+		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
+		 leftPanel.add(tmp);
+		 tmp = new JPanel(new BorderLayout());
+		 tmp.add(new JLabel("工程名字："),BorderLayout.WEST);
+		 tmp.add(projects,BorderLayout.CENTER);
+		 JPanel bp = new HorizontalPanel();
+		 bp.add(Box.createHorizontalStrut(GAP));
+		 bp.add(update);
+		 bp.add(Box.createHorizontalStrut(GAP));
+		 tmp.add(bp,BorderLayout.EAST);
+//		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
+		 leftPanel.add(tmp);
+		 tmp = new JPanel(new BorderLayout());
+		 tmp.add(new JLabel("工程时段："),BorderLayout.WEST);
+		 tmp.add(times,BorderLayout.CENTER);
+		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
+		 leftPanel.add(tmp);
+		 leftPanel.add(Box.createVerticalStrut(VGAP));
+		 upPanel.add(leftPanel,BorderLayout.WEST);
+		 
+		 // 中间面板
+		 VerticalPanel midPanel = new VerticalPanel();
+		 midPanel.add(Box.createVerticalStrut(GAP));
+		 tmp = new JPanel(new BorderLayout());
+		 tmp.add(new JLabel("开始时间："),BorderLayout.WEST);
+		 tmp.add(fromTf,BorderLayout.CENTER);
+		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
+		 midPanel.add(tmp);
+		 tmp = new JPanel(new BorderLayout());
+		 tmp.add(new JLabel("结束时间："),BorderLayout.WEST);
+		 tmp.add(toTf,BorderLayout.CENTER);
+		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
+		 midPanel.add(tmp);
+		 bp = new HorizontalPanel();
+		 bp.add(Box.createHorizontalStrut(GAP));
+		 bp.add(savegraph);
+		 bp.add(Box.createHorizontalStrut(GAP));
+		 bp.add(saveall);
+		 bp.add(Box.createHorizontalStrut(GAP));
+		 bp.add(view);
+		 bp.add(Box.createHorizontalStrut(GAP));
+		 midPanel.add(bp);
+		 
+		 upPanel.add(midPanel,BorderLayout.CENTER);
+		 
+		// 图形区域
+		JSplitPane treeAndMain = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+		mainPanel=new JScrollPane();
+		
+		// 初始化树
+		ViewTreeNode rootNode = new  ViewTreeNode("Servers");
+		treeModel = new ViewTreeModel(rootNode);
+		tree=new JTree(treeModel);
+		treePanel = new JScrollPane(tree);
+		treePanel.setMinimumSize(new Dimension(100, 0));
+		
+		treeAndMain.setLeftComponent(treePanel);
+		treeAndMain.setRightComponent(mainPanel);
+		
+		this.getContentPane().add(upPanel, BorderLayout.NORTH);
+		this.getContentPane().add(treeAndMain, BorderLayout.CENTER);
 	}
 	
 	private void addTimeSeries(TimeSeriesCollection localTimeSeriesCollectionL) {
@@ -238,19 +288,62 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource()==update){
-			System.out.println("update");
+			// 取最新的工程列表
+			projectModel.removeAllElements();
+			timeMap.clear();
+			try {
+				List<MonitorProject> monitors=model.getAllMonitorProject();
+				for (Iterator<MonitorProject> iterator = monitors.iterator(); iterator
+						.hasNext();) {
+					MonitorProject monitorProject = iterator.next();
+					projectMap.put(monitorProject.getProjectName(), monitorProject);
+					projectModel.addElement(monitorProject.getProjectName());
+				}
+			} catch (UndeclaredThrowableException e1) {
+				JOptionPane.showMessageDialog(GuiPackage.getInstance()
+						.getMainFrame(), JMeterUtils
+						.getResString("server_bench_failed")
+						+ model.getServiceUrl(), JMeterUtils
+						.getResString("server_bench_error"),
+						JOptionPane.ERROR_MESSAGE);
+			}
 		} else if(e.getSource()==view){
 //			if (checkDate()) {
 			if (true) {
 				// TODO 生成Tab页面代码
-//				List<MonitorProject> monitors=model.getAllMonitorProject();
-//				for (Iterator<MonitorProject> iterator = monitors.iterator(); iterator
-//						.hasNext();) {
-//					MonitorProject monitorProject = iterator
-//							.next();
-//					System.out.println(monitorProject);
-//				}
-				Map<String,ChartPanel> chartMap = model.getChartPanel(benchgui.getCurrentServerUrl(),(String)this.projects.getSelectedItem(),beginTime,endTime);
+				String item =(String)projects.getSelectedItem();
+				ReportTimeItem rt = (ReportTimeItem)times.getSelectedItem();
+				// 设定结束时间
+				MonitorProject pro = projectMap.get(item);
+				List<String> tmplst = Arrays.asList(pro.getReportTimeList());
+				int index = tmplst.indexOf(rt.getTime());
+				if (index+1 != tmplst.size()) {
+					rt.setEndTime(tmplst.get(index+1));
+				} else {
+					rt.setEndTime("");
+				}
+				
+				// 取得所有的监控项
+				Map<String, ArrayList<MonitorAgent>>  agentMap = model.getProjectMonitorAgentsWithReportTime(item, rt.getTime());
+				for (Iterator<String> iterator = agentMap.keySet().iterator(); iterator
+						.hasNext();) {
+					String ip = iterator.next();
+					// 添加Server树节点
+					ViewTreeNode serverNode = new  ViewTreeNode(ip);
+					ViewTabbedPane tab = new ViewTabbedPane();
+					serverNode.setTabbedPanel(tab);
+					treeModel.insertNodeInto(serverNode, treeModel.getRootNode(), treeModel.getRootNode().getChildCount());
+					ArrayList<MonitorAgent> aglst= agentMap.get(ip);
+					for (Iterator<MonitorAgent> iterator2 = aglst.iterator(); iterator2
+							.hasNext();) {
+						MonitorAgent monitorAgent = iterator2.next();
+						MonitorData md= model.getMonitorDataByDuration(monitorAgent, rt.getTimeValue(), rt.getEndTimeValue());
+						Thread t = new Thread(new ChartPanelCreater(monitorAgent,md));
+//						t.start();
+						// 设置ViewTabbedPane
+					}
+				}
+//				Map<String,ChartPanel> chartMap = model.getChartPanel((String)this.projects.getSelectedItem(),beginTime,endTime);
 			}
 //			model.getAllDataForProject(agent, startTime, stopTime);
 //			startField.getText();
@@ -260,8 +353,102 @@ public class ResultViewFrame extends JFrame implements ActionListener{
 			System.out.println("savegraph");
 		} else if(e.getSource()==saveall){
 			System.out.println("saveall");
+		}
+	}
+	
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if (e.getSource()==projects) {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				// 更新Report时间
+				String item  = (String)projects.getSelectedItem();
+				if (timeMap.keySet().contains(item)) {
+					times.setModel(timeMap.get(item));
+				} else {
+					DefaultComboBoxModel tmodel = new DefaultComboBoxModel();
+					timeMap.put(item, tmodel);
+					String[] str=projectMap.get(item).getReportTimeList();
+					for (int i = 0; i < str.length; i++) {
+						ReportTimeItem rt = new ReportTimeItem();
+						rt.setTime(str[i]);
+						tmodel.addElement(rt);
+					}
+					times.setModel(timeMap.get(item));
+				}
+			}
 			
 		}
+	}
+	
+	private class ChartPanelCreater implements Runnable{
+		private MonitorAgent agent;
+		private MonitorData data;
+		public ChartPanelCreater(MonitorAgent agent,MonitorData data){
+			this.agent=agent;
+			this.data=data;
+		}
+		public void run(){
+			
+		}
+	}
+	private static class ReportTimeItem{
+		private static SimpleDateFormat reportFormat= new  SimpleDateFormat("yyyymmddhhMMss");
+		String time="";
+		String endTime="";
+		String formatTime="";
 		
+		public long getTimeValue(){
+			long value = -1L;
+			try {
+				Date date = reportFormat.parse(time);
+				value = date.getTime();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			return value;
+		}
+		
+		public long getEndTimeValue(){
+			long value = -1L;
+			if (endTime.equals("")) {
+				value = System.currentTimeMillis();
+			} else {
+				try {
+					Date date = reportFormat.parse(endTime);
+					value = date.getTime();
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			}
+			return value;
+		}
+		
+		public String getEndTime(){
+			return endTime;
+		}
+		
+		public String toString(){
+			return formatTime;
+		}
+		
+		public void setTime(String time){
+			this.time=time;
+			formatTime = getConvertDate(time);
+		}
+		
+		public void setEndTime(String end){
+			endTime=end;
+		}
+		
+		public String getTime(){
+			return time;
+		}
+		
+		private static String getConvertDate(String str){
+			StringBuilder sb=new StringBuilder();
+			sb.append(str.subSequence(0, 4)).append("-").append(str.subSequence(4, 6)).append("-").append(str.subSequence(6, 8));
+			sb.append(" ").append(str.subSequence(8, 10)).append(":").append(str.subSequence(10, 12)).append(":").append(str.subSequence(12, 14));
+			return sb.toString();
+		}
 	}
 }

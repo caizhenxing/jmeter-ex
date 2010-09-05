@@ -32,17 +32,27 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
+import javax.swing.event.TreeSelectionEvent;
+import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jmeter.control.MonitorClientModel;
 import org.apache.jmeter.control.gui.ServerBenchGui;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
+import org.apache.jmeter.monitor.Monitor;
+import org.apache.jmeter.monitor.MonitorLine;
+import org.apache.jmeter.monitor.MonitorModel;
+import org.apache.jmeter.monitor.MonitorModelFactory;
+import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.util.JMeterUtils;
 import org.jfree.chart.ChartPanel;
 import org.jfree.data.time.Millisecond;
+import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
@@ -50,7 +60,7 @@ import com.alibaba.b2b.qa.monitor.MonitorAgent;
 import com.alibaba.b2b.qa.monitor.MonitorData;
 import com.alibaba.b2b.qa.monitor.MonitorProject;
 
-public class ResultViewFrame extends JFrame implements ActionListener,ItemListener{
+public class ResultViewFrame extends JFrame implements ActionListener,ItemListener,TreeSelectionListener{
 	
 	private static final long serialVersionUID = 1L;
 	private static int GAP = 8;
@@ -204,7 +214,11 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		// 初始化树
 		ViewTreeNode rootNode = new  ViewTreeNode("Servers");
 		treeModel = new ViewTreeModel(rootNode);
+		rootNode.setAllowsChildren(true);
 		tree=new JTree(treeModel);
+		tree.addTreeSelectionListener(this);
+		tree.setShowsRootHandles(true);
+		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION );
 		treePanel = new JScrollPane(tree);
 		treePanel.setMinimumSize(new Dimension(100, 0));
 		
@@ -309,8 +323,14 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 			}
 		} else if(e.getSource()==view){
 //			if (checkDate()) {
+			long t = System.currentTimeMillis();
 			if (true) {
-				// TODO 生成Tab页面代码
+				// 清空树和显示区域
+				int count=treeModel.getRootNode().getChildCount();
+				for (int i = 0; i < count; i++) {
+					treeModel.removeNodeFromParent((MutableTreeNode) treeModel.getChild(treeModel.getRootNode(),i));
+				}
+				mainPanel.setViewportView(null);
 				String item =(String)projects.getSelectedItem();
 				ReportTimeItem rt = (ReportTimeItem)times.getSelectedItem();
 				// 设定结束时间
@@ -337,12 +357,82 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 					for (Iterator<MonitorAgent> iterator2 = aglst.iterator(); iterator2
 							.hasNext();) {
 						MonitorAgent monitorAgent = iterator2.next();
-						MonitorData md= model.getMonitorDataByDuration(monitorAgent, rt.getTimeValue(), rt.getEndTimeValue());
-						Thread t = new Thread(new ChartPanelCreater(monitorAgent,md));
-//						t.start();
+						MonitorModel monitorModel = MonitorModelFactory
+								.getMonitorModel(monitorAgent.getName());
+						monitorModel.setPathName(ip + monitorAgent.getName());
+						monitorModel.setHost(ip);
+						monitorModel.setCategory(monitorAgent.getName());
+						monitorModel.setTitle(monitorAgent.getName());
+						monitorModel.setNumberAxis(monitorAgent.getName());
+						monitorModel.initSecondValueAxis(monitorAgent.getName());
+
+						// 显示的指标
+						String tmp = ip +"$$"+ monitorAgent.getName() + "$$";
+						Map<String, MonitorLine> lines = MonitorGui.MONITOR_CONFIGURE
+								.get(monitorAgent.getName()).getLines();
+						// 取得所有数据
+						MonitorData md = model.getMonitorDataByDuration(
+								monitorAgent, rt.getTimeValue(), rt
+								.getEndTimeValue());
+						List<String> lst = Arrays.asList(md.getFields());
+						for (Iterator<String> iterator3 = lines.keySet()
+								.iterator(); iterator3.hasNext();) {
+							String line = iterator3.next();
+							String name = tmp + line;
+							// System.out.println(fs[j]);
+							if (!MonitorGui.MONITOR_CONFIGURE.get(monitorAgent.getName())
+									.getShowType(line).equals("-")) {
+								TimeSeries ts = new TimeSeries(line,
+										org.jfree.data.time.Second.class);
+								ts.setMaximumItemAge(50000);
+								List<String[]> results = md.getValues();
+								int nmb = lst.indexOf(line);
+								for (Iterator<String[]> iterator4 = results.iterator(); iterator4
+										.hasNext();) {
+									String[] values = iterator4.next();
+									String strings = values[nmb];
+									Date time = null;
+									try {
+										time = new Date(Long.parseLong(values[0]));
+									} catch (NumberFormatException ne) {
+										System.out.println("Error date value:");
+									}
+									String type = MonitorGui.MONITOR_CONFIGURE.get(monitorAgent.getName()).getDataType(line);
+									if (type.equals(MonitorModel.TYPE_LONG)) {
+										Long v = Long.parseLong(StringUtils.strip(strings));
+										ts.add(new Second(time), v);
+									} else if (type.equals(MonitorModel.TYPE_DOUBLE)) {
+										Double v = null;
+										if (monitorAgent.getName().equals("net")) {
+											v = Double.parseDouble(StringUtils.strip(values[nmb + 9]));
+										} else {
+											v = Double.parseDouble(StringUtils.strip(values[nmb]));
+										}
+										ts.add(new Second(time), v);
+									}
+								}
+								monitorModel.addTimeSeries(name, ts);
+							}
+						}
+						monitorModel.setLineColor();
+						// 初始化Tab面板
+						JPanel tp = new JPanel(new BorderLayout());
+						tp.add(monitorModel.getCheckBoxPanel(),BorderLayout.NORTH);
+						tp.add(monitorModel.getChartPanel(),BorderLayout.CENTER);
+						tab.add(monitorAgent.getName(), tp);
+
+						// Thread t = new Thread(new
+						// ChartPanelCreater(monitorAgent,md));
+						// t.start();
 						// 设置ViewTabbedPane
 					}
 				}
+				// 展开所有树节点
+				for (int i = 0; i < tree.getRowCount(); i++) {
+					tree.expandRow(i);
+				}
+				System.out.println(System.currentTimeMillis()-t);
+//			    tree.setRootVisible(false);
 //				Map<String,ChartPanel> chartMap = model.getChartPanel((String)this.projects.getSelectedItem(),beginTime,endTime);
 			}
 //			model.getAllDataForProject(agent, startTime, stopTime);
@@ -380,6 +470,21 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		}
 	}
 	
+
+	@Override
+	public void valueChanged(TreeSelectionEvent e) {
+		// TODO Auto-generated method stub
+		ViewTreeNode selectedNode = (ViewTreeNode)tree.getLastSelectedPathComponent();
+		if (selectedNode==null) {
+			return;
+		}
+		if (selectedNode.getUserObject().equals("Servers")) {
+			return;
+		}
+		mainPanel.setViewportView(selectedNode.getTabbedPanel());
+//		System.out.println("ip");
+	}
+	
 	private class ChartPanelCreater implements Runnable{
 		private MonitorAgent agent;
 		private MonitorData data;
@@ -391,8 +496,10 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 			
 		}
 	}
+	
+	
 	private static class ReportTimeItem{
-		private static SimpleDateFormat reportFormat= new  SimpleDateFormat("yyyymmddhhMMss");
+		private static SimpleDateFormat reportFormat= new  SimpleDateFormat("yyyyMMddHHmmss");
 		String time="";
 		String endTime="";
 		String formatTime="";

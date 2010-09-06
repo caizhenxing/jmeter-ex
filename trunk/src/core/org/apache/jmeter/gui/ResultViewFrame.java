@@ -229,27 +229,8 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		this.getContentPane().add(treeAndMain, BorderLayout.CENTER);
 	}
 	
-	private void addTimeSeries(TimeSeriesCollection localTimeSeriesCollectionL) {
-		Random r= new Random();
-		TimeSeries ts = new TimeSeries("T",Millisecond.class);
-				localTimeSeriesCollectionL.addSeries(ts);
-				for (int i = 0; i < 10000; i++) {
-					Date time = new Date();
-					ts.addOrUpdate(new Millisecond(time), r.nextInt(100));
-					try {
-						Thread.sleep(0);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				}
-	}
-	
-	private void addListToTimeSeries() {
-		TimeSeries ts = new TimeSeries("T",
-				org.jfree.data.time.Second.class);
-	}
-	
 	class YccTab extends JTabbedPane{
+		private static final long serialVersionUID = 1L;
 		JTabbedPane subTab = new JTabbedPane();
 		public void addSubTabPanel(String title,ChartPanel chart){
 			super.addTab(title, chart);
@@ -374,45 +355,13 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						MonitorData md = model.getMonitorDataByDuration(
 								monitorAgent, rt.getTimeValue(), rt
 								.getEndTimeValue());
-						List<String> lst = Arrays.asList(md.getFields());
 						for (Iterator<String> iterator3 = lines.keySet()
 								.iterator(); iterator3.hasNext();) {
 							String line = iterator3.next();
-							String name = tmp + line;
-							// System.out.println(fs[j]);
-							if (!MonitorGui.MONITOR_CONFIGURE.get(monitorAgent.getName())
-									.getShowType(line).equals("-")) {
-								TimeSeries ts = new TimeSeries(line,
-										org.jfree.data.time.Second.class);
-								ts.setMaximumItemAge(50000);
-								List<String[]> results = md.getValues();
-								int nmb = lst.indexOf(line);
-								for (Iterator<String[]> iterator4 = results.iterator(); iterator4
-										.hasNext();) {
-									String[] values = iterator4.next();
-									String strings = values[nmb];
-									Date time = null;
-									try {
-										time = new Date(Long.parseLong(values[0]));
-									} catch (NumberFormatException ne) {
-										System.out.println("Error date value:");
-									}
-									String type = MonitorGui.MONITOR_CONFIGURE.get(monitorAgent.getName()).getDataType(line);
-									if (type.equals(MonitorModel.TYPE_LONG)) {
-										Long v = Long.parseLong(StringUtils.strip(strings));
-										ts.add(new Second(time), v);
-									} else if (type.equals(MonitorModel.TYPE_DOUBLE)) {
-										Double v = null;
-										if (monitorAgent.getName().equals("net")) {
-											v = Double.parseDouble(StringUtils.strip(values[nmb + 9]));
-										} else {
-											v = Double.parseDouble(StringUtils.strip(values[nmb]));
-										}
-										ts.add(new Second(time), v);
-									}
-								}
-								monitorModel.addTimeSeries(name, ts);
-							}
+							
+							new Thread(new ChartPanelCreater(tmp, line,
+									monitorAgent, md,
+									monitorModel)).start();
 						}
 						monitorModel.setLineColor();
 						// 初始化Tab面板
@@ -482,21 +431,67 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 			return;
 		}
 		mainPanel.setViewportView(selectedNode.getTabbedPanel());
-//		System.out.println("ip");
 	}
 	
-	private class ChartPanelCreater implements Runnable{
-		private MonitorAgent agent;
-		private MonitorData data;
-		public ChartPanelCreater(MonitorAgent agent,MonitorData data){
-			this.agent=agent;
-			this.data=data;
+	class ChartPanelCreater implements Runnable {
+		private MonitorAgent monitorAgent = null;
+		private MonitorData md = null;
+		private MonitorModel monitorModel = null;
+		private String ip = null;
+		private String line = null;
+		private List<String> lst = null;
+
+		public ChartPanelCreater(String ip, String line,
+				MonitorAgent monitorAgent, MonitorData md,
+				MonitorModel monitorModel) {
+			this.ip = ip;
+			this.line = line;
+			this.monitorAgent = monitorAgent;
+			this.md = md;
+			this.monitorModel = monitorModel;
+			lst = Arrays.asList(md.getFields());
 		}
-		public void run(){
-			
+
+		public void run() {
+			String name = ip + line;
+			if (!MonitorGui.MONITOR_CONFIGURE.get(monitorAgent.getName())
+					.getShowType(line).equals("-")) {
+				TimeSeries ts = new TimeSeries(line,
+						org.jfree.data.time.Second.class);
+				ts.setMaximumItemAge(50000);
+				List<String[]> results = md.getValues();
+				int nmb = lst.indexOf(line);
+				for (Iterator<String[]> iterator4 = results.iterator(); iterator4
+						.hasNext();) {
+					String[] values = iterator4.next();
+					String strings = values[nmb];
+					Date time = null;
+					try {
+						time = new Date(Long.parseLong(values[0]));
+					} catch (NumberFormatException ne) {
+						System.out.println("Error date value:");
+					}
+					String type = MonitorGui.MONITOR_CONFIGURE.get(
+							monitorAgent.getName()).getDataType(line);
+					if (type.equals(MonitorModel.TYPE_LONG)) {
+						Long v = Long.parseLong(StringUtils.strip(strings));
+						ts.add(new Second(time), v);
+					} else if (type.equals(MonitorModel.TYPE_DOUBLE)) {
+						Double v = null;
+						if (monitorAgent.getName().equals("net")) {
+							v = Double.parseDouble(StringUtils
+									.strip(values[nmb + 9]));
+						} else {
+							v = Double.parseDouble(StringUtils
+									.strip(values[nmb]));
+						}
+						ts.add(new Second(time), v);
+					}
+				}
+				monitorModel.addTimeSeries(name, ts);
+			}
 		}
 	}
-	
 	
 	private static class ReportTimeItem{
 		private static SimpleDateFormat reportFormat= new  SimpleDateFormat("yyyyMMddHHmmss");

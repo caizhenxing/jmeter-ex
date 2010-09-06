@@ -264,7 +264,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	}
 
 	
-	public void addTimeSeries(String name, TimeSeries ts) {
+	public synchronized void addTimeSeries(String name, TimeSeries ts) {
 		if (MonitorGui.MONITOR_CONFIGURE.get(category).getYAxisCount() == 1) {
 			localTimeSeriesCollectionL.addSeries(ts);
 		} else {

@@ -8,6 +8,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,14 +19,18 @@ import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 
 import org.apache.jmeter.control.AgentServer;
 import org.apache.jmeter.util.JMeterUtils;
@@ -49,6 +54,16 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	private Map<String,JTextField> prossTxMap = new HashMap<String,JTextField>();
 	private JButton active= null;
 	private Map<String,JCheckBox> cbMap=new HashMap<String,JCheckBox>(); 
+	private JRadioButton jbcustom = new JRadioButton();
+	private JRadioButton jbfiftin = new JRadioButton();
+	private JRadioButton jbthirty = new JRadioButton();
+	private JRadioButton jbfortyfive = new JRadioButton();
+	private JRadioButton jbhour = new JRadioButton();
+	private JRadioButton jbday = new JRadioButton();
+	private JRadioButton jbthreeday = new JRadioButton();
+	private JRadioButton jbfiveday = new JRadioButton();
+	private JRadioButton jbsevenday = new JRadioButton();
+	private ButtonGroup bg =new ButtonGroup();
 
 	public static final String[] AGENTS={
 		AgentCommand.AGENT_FILE,
@@ -64,6 +79,12 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	
 	public ConfigurDialog(){
 		init();
+		ActionListener actionListener＿Esc = new ActionListener() {
+			public void actionPerformed(ActionEvent actionEvent) {
+				ConfigurDialog.this.setVisible(false);
+			}
+		};
+		this.getRootPane().registerKeyboardAction(actionListener＿Esc, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),JComponent.WHEN_IN_FOCUSED_WINDOW);
 		this.setModal(true);
 		this.setResizable(false);
 		this.setTitle(JMeterUtils.getResString("agent_configure_dialog"));
@@ -131,6 +152,27 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		interTF=new JTextField(10);
 		tmpPanel.add(interTF);
 		tmpPanel.add(new JLabel(JMeterUtils.getResString("second")));
+		tmpPanel.add(Box.createHorizontalStrut(12));
+		jbcustom.addItemListener(this);
+		bg.add(jbcustom);
+		tmpPanel.add(jbcustom);
+		tmpPanel.add(new JLabel("自定义"));
+		tmpPanel.add(Box.createHorizontalStrut(3));
+		jbfiftin.addItemListener(this);
+		bg.add(jbfiftin);
+		tmpPanel.add(jbfiftin);
+		tmpPanel.add(new JLabel("15分钟"));
+		tmpPanel.add(Box.createHorizontalStrut(3));
+		jbthirty.addItemListener(this);
+		tmpPanel.add(jbthirty);
+		bg.add(jbthirty);
+		tmpPanel.add(new JLabel("30分钟"));
+		tmpPanel.add(Box.createHorizontalStrut(3));
+		jbfortyfive.addItemListener(this);
+		tmpPanel.add(jbfortyfive);
+		bg.add(jbfortyfive);
+		tmpPanel.add(new JLabel("45分钟"));
+		tmpPanel.add(Box.createHorizontalStrut(3));
 		cfPanel.add(tmpPanel);
 		
 		// time
@@ -139,6 +181,31 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		timeTF=new JTextField(10);
 		tmpPanel.add(timeTF);
 		tmpPanel.add(new JLabel(JMeterUtils.getResString("count")));
+		tmpPanel.add(Box.createHorizontalStrut(12));
+		jbhour.addItemListener(this);
+		tmpPanel.add(jbhour);
+		bg.add(jbhour);
+		tmpPanel.add(new JLabel("1小时"));
+		tmpPanel.add(Box.createHorizontalStrut(3));
+		jbday.addItemListener(this);
+		tmpPanel.add(jbday);
+		bg.add(jbday);
+		tmpPanel.add(new JLabel("1天"));
+		tmpPanel.add(Box.createHorizontalStrut(3));
+		jbthreeday.addItemListener(this);
+		tmpPanel.add(jbthreeday);
+		bg.add(jbthreeday);
+		tmpPanel.add(new JLabel("3天"));
+		tmpPanel.add(Box.createHorizontalStrut(3));
+		jbfiveday.addItemListener(this);
+		tmpPanel.add(jbfiveday);
+		bg.add(jbfiveday);
+		tmpPanel.add(new JLabel("5天"));
+		tmpPanel.add(Box.createHorizontalStrut(3));
+		jbsevenday.addItemListener(this);
+		tmpPanel.add(jbsevenday);
+		bg.add(jbsevenday);
+		tmpPanel.add(new JLabel("7天"));
 		cfPanel.add(tmpPanel);
 		
 		
@@ -262,6 +329,48 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		interTF.setEditable(editable);
 		timeTF.setText(String.valueOf(as.getTimes()));
 		timeTF.setEditable(editable);
+		jbcustom.setEnabled(editable);
+		jbfiftin.setEnabled(editable);
+		jbthirty.setEnabled(editable);
+		jbfortyfive.setEnabled(editable);
+		jbhour.setEnabled(editable);
+		jbday.setEnabled(editable);
+		jbthreeday.setEnabled(editable);
+		jbfiveday.setEnabled(editable);
+		jbsevenday.setEnabled(editable);
+		// 配置JRadioButton的选择状态
+		int time = (int) (as.getInterval()*(as.getTimes()));
+		switch (time) {
+		// 15min
+		case 60 * 15:
+			break;
+		// 30min
+		case 60 * 30:
+			break;
+		// 45min
+		case 60 * 45:
+			break;
+		// 60min
+		case 60 * 60:
+			break;
+		// 1day
+		case 60 * 60 * 24:
+			break;
+		// 3day
+		case 60 * 60 * 24 * 3:
+			break;
+		// 5day
+		case 60 * 60 * 24 * 5:
+			break;
+		// 7day
+		case 60 * 60 * 24 * 7:
+			break;
+		default:
+			jbcustom.setSelected(true);
+		}
+		if (as.getRbItem()!=null) {
+			bg.setSelected(as.getRbItem().getModel(), true);
+		}
 		List<String> lst = Arrays.asList(as.getItems().split(","));
 		for (int j = 0; j < AGENTS.length; j++) {
 			cbMap.get(AGENTS[j]).setEnabled(editable);
@@ -284,8 +393,27 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	}
 	
 	public void itemStateChanged(ItemEvent e) {
-		// TODO Auto-generated method stub
-		
+		interTF.setText("3");
+		if (e.getSource() == jbfiftin) {
+			timeTF.setText("300");
+		} else if (e.getSource() == jbthirty) {
+			timeTF.setText("600");
+		} else if (e.getSource() == jbfortyfive) {
+			timeTF.setText("900");
+		} else if (e.getSource() == jbhour) {
+			timeTF.setText("1200");
+		} else if (e.getSource() == jbday) {
+			timeTF.setText("28800");
+		} else if (e.getSource() == jbthreeday) {
+			timeTF.setText("86400");
+		} else if (e.getSource() == jbfiveday) {
+			timeTF.setText("144000");
+		} else if (e.getSource() == jbsevenday) {
+			timeTF.setText("201600");
+		} else if (e.getSource() == jbcustom) {
+			timeTF.setText("");
+			interTF.setText("");
+		}
 	}
 
 	public void actionPerformed(ActionEvent e) {

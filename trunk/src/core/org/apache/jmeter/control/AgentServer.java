@@ -3,6 +3,8 @@ package org.apache.jmeter.control;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.swing.JRadioButton;
+
 import org.apache.jmeter.util.JMeterUtils;
 
 public class AgentServer implements Comparable<AgentServer>{
@@ -20,7 +22,16 @@ public class AgentServer implements Comparable<AgentServer>{
 	private String state;
 	private String startTime= "";
 	private String endTime= "";
+	private JRadioButton rbitem= null;
 
+	public void setRbItem(JRadioButton rbitem){
+		this.rbitem=rbitem;
+	}
+	
+	public JRadioButton getRbItem(){
+		return rbitem;
+	}
+	
 	public String getStartTime() {
 		return startTime;
 	}

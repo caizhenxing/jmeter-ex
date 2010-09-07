@@ -368,6 +368,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						JPanel tp = new JPanel(new BorderLayout());
 						tp.add(monitorModel.getCheckBoxPanel(),BorderLayout.NORTH);
 						tp.add(monitorModel.getChartPanel(),BorderLayout.CENTER);
+						tp.add(monitorModel.getTablePanel(),BorderLayout.SOUTH);
 						tab.add(monitorAgent.getName(), tp);
 
 						// Thread t = new Thread(new

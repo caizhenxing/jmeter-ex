@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
@@ -34,9 +33,7 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.MutableTreeNode;
-import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.commons.lang.StringUtils;
@@ -44,17 +41,14 @@ import org.apache.jmeter.control.MonitorClientModel;
 import org.apache.jmeter.control.gui.ServerBenchGui;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
-import org.apache.jmeter.monitor.Monitor;
 import org.apache.jmeter.monitor.MonitorLine;
 import org.apache.jmeter.monitor.MonitorModel;
 import org.apache.jmeter.monitor.MonitorModelFactory;
 import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.util.JMeterUtils;
 import org.jfree.chart.ChartPanel;
-import org.jfree.data.time.Millisecond;
 import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
-import org.jfree.data.time.TimeSeriesCollection;
 
 import com.alibaba.b2b.qa.monitor.MonitorAgent;
 import com.alibaba.b2b.qa.monitor.MonitorData;
@@ -434,6 +428,16 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		mainPanel.setViewportView(selectedNode.getTabbedPanel());
 	}
 	
+//	class ChartLineCreater implements Runnable{
+//		
+//		public ChartLineCreater(){
+//			
+//		}
+//		
+//		public void run() {
+//			
+//		}
+//	}
 	class ChartPanelCreater implements Runnable {
 		private MonitorAgent monitorAgent = null;
 		private MonitorData md = null;
@@ -476,7 +480,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 							monitorAgent.getName()).getDataType(line);
 					if (type.equals(MonitorModel.TYPE_LONG)) {
 						Long v = Long.parseLong(StringUtils.strip(strings));
-						ts.add(new Second(time), v);
+						ts.addOrUpdate(new Second(time), v);
 					} else if (type.equals(MonitorModel.TYPE_DOUBLE)) {
 						Double v = null;
 						if (monitorAgent.getName().equals("net")) {
@@ -486,7 +490,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 							v = Double.parseDouble(StringUtils
 									.strip(values[nmb]));
 						}
-						ts.add(new Second(time), v);
+						ts.addOrUpdate(new Second(time), v);
 					}
 				}
 				monitorModel.addTimeSeries(name, ts);

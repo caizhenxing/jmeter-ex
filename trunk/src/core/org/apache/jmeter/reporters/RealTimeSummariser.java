@@ -103,7 +103,9 @@ public class RealTimeSummariser extends Summariser {
 			// 错误数
 			append(",").append(sv.getErrorCount()).
 			// 标准方差
-			append(",").append(sv.getStandardDeviation());
+			append(",").append(sv.getStandardDeviation()).
+			// 平方和
+			append(",").append(sv.getSqurSum());
 		}
 		return sb.toString();
 	}

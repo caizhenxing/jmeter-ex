@@ -169,14 +169,14 @@ public class MonitorClientModel implements Runnable {
 	public void startAgent(RemoteAgent agent, List<String> items, String param) {
 		// 启动工程
 		try {
-			getRemoteControllerService().startProject(agent, agent.getRunProject());
+			System.out.println(getRemoteControllerService().startProject(agent, agent.getRunProject()));
 			Thread.sleep(1000);
 			// 启动Agent
 			for (Iterator<String> iterator = items.iterator(); iterator
 					.hasNext();) {
 				try {
-					getRemoteControllerService().startAgent(agent, iterator.next(),
-							agent.getInterval(), agent.getCount(), param);
+					System.out.println(getRemoteControllerService().startAgent(agent, iterator.next(),
+							agent.getInterval(), agent.getCount(), param));
 				} catch (AgentConnectionError e) {
 					e.printStackTrace();
 				}
@@ -580,7 +580,6 @@ public class MonitorClientModel implements Runnable {
 //				}
 //				System.out.println("get date from "+(1+time*10000)+" to "+(time*10000+el));
 			}
-			
 		}
 		
 		DateAxis localDateAxis = new DateAxis("TT");

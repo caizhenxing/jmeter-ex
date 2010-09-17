@@ -143,8 +143,8 @@ public class JTLParser extends DefaultHandler {
 			pw.println(getWrapStr(HEADER,"最小响应时间"));
 			pw.println(getWrapStr(HEADER,"90%响应时间"));
 			pw.println(getWrapStr(HEADER,"平均TPS"));
-			pw.println(getWrapStr(HEADER,"最小TPS"));
 			pw.println(getWrapStr(HEADER,"最大TPS"));
+			pw.println(getWrapStr(HEADER,"最小TPS"));
 			pw.println(getWrapStr(HEADER,"失败率"));
 			pw.println("  </tr>");
 			
@@ -332,9 +332,11 @@ public class JTLParser extends DefaultHandler {
 		}
 		return res;
 	}
+	
 	private JtlNode createJtlNode(Attributes attrs) {
 		long newValue;
 		boolean newResult;
+		int state = JtlNode.UNAVAILABLE;
 		JtlNode node = new JtlNode();
 		int len = attrs.getLength();
 		for (int i = 0; i < len; i++) {
@@ -343,26 +345,30 @@ public class JTLParser extends DefaultHandler {
 			case 116:
 				newValue = Long.parseLong(attrs.getValue(i));
 				node.setAttTime(newValue);
+				state = JtlNode.AVAILABLE;
 				break;
 			// lt LATENCY
 			case 3464:
-//				newValue = Long.parseLong(attrs.getValue(i));
-//				node.setLatency(newValue);
+				// newValue = Long.parseLong(attrs.getValue(i));
+				// node.setLatency(newValue);
 				break;
 			// ts TIME_STAMP
 			case 3711:
 				newValue = Long.parseLong(attrs.getValue(i));
 				node.setTimeStamp(newValue);
+				state = JtlNode.AVAILABLE;
 				break;
 			// s SUCCESS
 			case 115:
 				newResult = Boolean.parseBoolean(attrs.getValue(i));
 				node.setSuccess(newResult);
+				state = JtlNode.AVAILABLE;
 				break;
 			// lb LABEL
 			case 3446:
-				String lb=attrs.getValue(i);
+				String lb = attrs.getValue(i);
 				node.setLabel(lb);
+				state = JtlNode.AVAILABLE;
 				break;
 			// rc RESPONSE_CODE
 			case 3633:
@@ -401,10 +407,9 @@ public class JTLParser extends DefaultHandler {
 			// case 3159:
 			// break;
 			default:
-				node.setState(JtlNode.UNAVAILABLE);
-				return node;
 			}
 		}
+		node.setState(state);
 		return node;
 	}
 

@@ -63,6 +63,9 @@ public class Server extends AbstractTestElement implements Serializable {
 	}
 	
 	private void parseCpuInfo(String info) {
+		if (info == null ||info.equals("null")||StringUtils.isBlank(info)) {
+			return;
+		}
 		Map<String, String> kv = new HashMap<String, String>();
 		// processor count:2 ;model name:Intel(R) Xeon(R) CPU E5450 @ 3.00GHz
 		// ;cpu MHz:2992.632 ;cache size:6144 KB ;cpu cores:2 ;
@@ -80,6 +83,9 @@ public class Server extends AbstractTestElement implements Serializable {
 	}
 	
 	private void parseMemInfo(String info){
+		if (info == null ||info.equals("null")||StringUtils.isBlank(info)) {
+			return;
+		}
 		Map<String, String> kv = new HashMap<String, String>();
 		String[] items = info.split(";");
 		for (int i = 0; i < items.length; i++) {
@@ -92,6 +98,9 @@ public class Server extends AbstractTestElement implements Serializable {
 	}
 	
 	private void parseDiskInfo(String info){
+		if (info == null ||info.equals("null")||StringUtils.isBlank(info)) {
+			return;
+		}
 		// /dev/hda1:3.6G(Total),3.3G(Used); tmpfs:1014M(Total),0(Used); /dev/hdb:20G(Total),340M(Used); 
 		StringBuilder sb = new StringBuilder();
 		StringBuilder sb1 = new StringBuilder();
@@ -114,6 +123,9 @@ public class Server extends AbstractTestElement implements Serializable {
 	}
 	
 	private void parseOSInfo(String info){
+		if (info == null ||info.equals("null")) {
+			return;
+		}
 		StringBuilder sb = new StringBuilder();
 		sb.append("操作系统信息：").append(info).append(NEW_LINE);
 		os_info=sb.toString();

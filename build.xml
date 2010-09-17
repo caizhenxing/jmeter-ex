@@ -335,6 +335,7 @@
 	<include name="${hessian.jar}"/>
 	<include name="${jxl.jar}"/>
 	<include name="${dom4j.jar}"/>
+	<include name="${json.jar}"/>
   </patternset>
 
   <!--
@@ -394,6 +395,7 @@
 	<pathelement location="${hessian.jar}"/>
 	<pathelement location="${jxl.jar}"/>
 	<pathelement location="${dom4j.jar}"/>
+	<pathelement location="${json.jar}"/>
     <!-- Generated jars -->
     <fileset dir="${lib.dir}" includes="jorphan.jar"/>
     <!-- API-only jars-->
@@ -419,7 +421,7 @@
         JMeter version
         This is overridden for formal releases.
     -->
-    <property name="jmeter.version" value="2.3.4.${DSTAMP}"/>
+    <property name="jmeter.version" value="1.3.0bate.${DSTAMP}"/>
     <!-- Remember to change "docversion" below if necessary -->
     <condition property="implementation.version" 
           value="${jmeter.version} r${svn.revision}" else="${jmeter.version}">

@@ -334,6 +334,10 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						MonitorAgent monitorAgent = iterator2.next();
 						MonitorModel monitorModel = MonitorModelFactory
 								.getMonitorModel(monitorAgent.getName());
+						if (monitorModel==null) {
+							System.out.println("Unkonw moniotr:"+ monitorAgent.getName());
+							continue;
+						}
 						monitorModel.setPathName(ip + monitorAgent.getName());
 						monitorModel.setHost(ip);
 						monitorModel.setCategory(monitorAgent.getName());
@@ -414,7 +418,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		}
 	}
 	
-
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 		// TODO Auto-generated method stub
@@ -428,16 +431,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		mainPanel.setViewportView(selectedNode.getTabbedPanel());
 	}
 	
-//	class ChartLineCreater implements Runnable{
-//		
-//		public ChartLineCreater(){
-//			
-//		}
-//		
-//		public void run() {
-//			
-//		}
-//	}
 	class ChartPanelCreater implements Runnable {
 		private MonitorAgent monitorAgent = null;
 		private MonitorData md = null;
@@ -445,7 +438,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		private String ip = null;
 		private String line = null;
 		private List<String> lst = null;
-		private DataMergeService service = new DataMergeService(5D);
+		private DataMergeService service = new DataMergeService(10D);
 
 		public ChartPanelCreater(String ip, String line,
 				MonitorAgent monitorAgent, MonitorData md,
@@ -554,9 +547,10 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	            double value = preLineValue + prevSlope * point.getTime();
 	            point3.setValue(value);
 
-	            double slope2 = getSlope(secondPoint, point);
+//	            double slope2 = getSlope(secondPoint, point);
 
-	            double angle = Math.toDegrees(angle(prevSlope, slope2));
+//	            double angle = Math.toDegrees(angle(prevSlope, slope2));
+	            double angle = Math.abs(((point.getValue()-value)/value)*100);
 
 	            if (angle <= acceptAngle) { //如果误差在可接受范围内
 	                secondPoint = point3;

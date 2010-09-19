@@ -393,29 +393,34 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	}
 	
 	public void itemStateChanged(ItemEvent e) {
-		interTF.setText("3");
 		if (e.getSource() == jbfiftin) {
-			timeTF.setText("300");
+			setInterAndTime("3","300");
 		} else if (e.getSource() == jbthirty) {
-			timeTF.setText("600");
+			setInterAndTime("3","600");
 		} else if (e.getSource() == jbfortyfive) {
-			timeTF.setText("900");
+			setInterAndTime("3","900");
 		} else if (e.getSource() == jbhour) {
-			timeTF.setText("1200");
+			setInterAndTime("3","1200");
 		} else if (e.getSource() == jbday) {
-			timeTF.setText("28800");
+			setInterAndTime("3","28800");
 		} else if (e.getSource() == jbthreeday) {
-			timeTF.setText("86400");
+			setInterAndTime("3","86400");
 		} else if (e.getSource() == jbfiveday) {
-			timeTF.setText("144000");
+			setInterAndTime("3","144000");
 		} else if (e.getSource() == jbsevenday) {
-			timeTF.setText("201600");
+			setInterAndTime("3","144000");
 		} else if (e.getSource() == jbcustom) {
 			timeTF.setText("");
 			interTF.setText("");
+		} else {
+			
 		}
 	}
 
+	private void setInterAndTime(String ineter,String time){
+		timeTF.setText(time);
+		interTF.setText(ineter);
+	}
 	public void actionPerformed(ActionEvent e) {
 		
 	}

@@ -4,9 +4,9 @@ public class MonitorModelFactory {
 	public static MonitorModel getMonitorModel(String type){
 		if (type.equals("file")) {
 			return new FileMonitorModel();
-		} else if (type.equals("jsat_heap")) {
+		} else if (type.equals("jstat_heap")) {
 			return new JHeapMonitorModel();
-		} else if (type.equals("jsat_gc")) {
+		} else if (type.equals("jstat_gc")) {
 			return new JGCMonitorModel();
 		} else if (type.equals("memory")) {
 			return new MemoryMonitorModel();

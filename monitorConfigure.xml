@@ -118,9 +118,9 @@
     </org.apache.jmeter.monitor.MonitorCatogory>
   </java.util.Map_-Entry>
   <java.util.Map_-Entry>
-    <java.lang.String>jsat_heap</java.lang.String>
+    <java.lang.String>jstat_heap</java.lang.String>
     <org.apache.jmeter.monitor.MonitorCatogory>
-      <category>jsat_heap</category>
+      <category>jstat_heap</category>
       <yAxis>1</yAxis>
       <lines>
         <java.util.Map_-Entry>
@@ -315,9 +315,9 @@
     </org.apache.jmeter.monitor.MonitorCatogory>
   </java.util.Map_-Entry>
   <java.util.Map_-Entry>
-    <java.lang.String>jsat_gc</java.lang.String>
+    <java.lang.String>jstat_gc</java.lang.String>
     <org.apache.jmeter.monitor.MonitorCatogory>
-      <category>jsat_gc</category>
+      <category>jstat_gc</category>
       <yAxis>2</yAxis>
       <lines>
         <java.util.Map_-Entry>

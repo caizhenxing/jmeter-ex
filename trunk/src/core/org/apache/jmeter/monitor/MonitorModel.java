@@ -39,7 +39,9 @@ import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.ObjectTableModel;
 import org.apache.jorphan.gui.RendererUtils;
+import org.apache.jorphan.logging.LoggingManager;
 import org.apache.jorphan.reflect.Functor;
+import org.apache.log.Logger;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -51,7 +53,15 @@ import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
+/**
+ * 绘制和统计时序图的面板
+ * @since jex002A
+ * @author chenchao.yecc
+ *
+ */
 public abstract class MonitorModel implements ItemListener, ActionListener{
+	
+	private static final Logger log = LoggingManager.getLoggerForClass();
 	public static final String TYPE_LONG = "Long";
 	public static final String TYPE_DOUBLE = "Double";
 	public static final String TYPE_STRING = "String[5]";
@@ -60,6 +70,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	public static final String PRE_NUM_AXISR = "number_axis_r_";
 	public static final String PRE_TK = "tk_";
 	
+	private static SimpleDateFormat psf = null;
 	private ChartPanel chartPanel = null;
 	
 	private JPanel checkboxPanel = new JPanel();
@@ -116,6 +127,16 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 			null, // Max
 	};
 	
+	static {
+		String value=JMeterUtils.getProperty("monitor.format");
+		try {
+			psf = new SimpleDateFormat(value);
+		} catch(IllegalArgumentException e) {
+			psf = new SimpleDateFormat("MM-dd hh:mm:ss");
+			log.warn("the value of monitor.persent is invalid!use default value: MM-dd hh:mm:ss");
+		}
+	}
+	
 	public MonitorModel(){
 		// 初始化列表
 		model = new ObjectTableModel(COLUMNS, MonitorDataStat.class, new Functor[] {
@@ -143,8 +164,9 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 
 		localDateAxis.setTickLabelFont(new Font("SansSerif", 0, 12));
 		localDateAxis.setLabelFont(new Font("SansSerif", 0, 14));
-		// TODO 显示格式加入配置
-		localDateAxis.setDateFormatOverride(new SimpleDateFormat("MM-dd hh:mm:ss"));
+		
+		// 取得配置的显示格式
+		localDateAxis.setDateFormatOverride(MonitorModel.psf);
 
 		localXYLineAndShapeRendererL = new XYLineAndShapeRenderer(true, false);
 		localXYLineAndShapeRendererL.setSeriesStroke(0, new BasicStroke(1.0F,
@@ -260,6 +282,41 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 		this.category = category;
 	}
 
+	/**
+	 * 在查看历史的时候将Checkbox和时序图追加至面板
+	 * @since jex003A
+	 */
+	public synchronized void addLazyTimeSeries(String name, TimeSeries ts) {
+		if (MonitorGui.MONITOR_CONFIGURE.get(category).getYAxisCount() == 1) {
+			localTimeSeriesCollectionL.addSeries(ts);
+		} else {
+			String[] tmp = name.split("\\$\\$");
+			String item = tmp[2];
+			String state = MonitorGui.MONITOR_CONFIGURE.get(category).getShowType(item);
+			if (state.equals("1")) {
+				localTimeSeriesCollectionL.addSeries(ts);
+			} else if(state.equals("2")) {
+				localTimeSeriesCollectionR.addSeries(ts);
+			} else {
+			}
+		}
+		setLineColor();
+		dataMap.put(name, ts);
+		String[] tmp = name.split("\\$\\$");
+		JCheckBox jb = createChooseCheckBox(tmp[2], Color.BLACK);
+		checkboxPanel.add(jb);
+		cbMap.put(jb, tmp[2]);
+	}
+	
+	/**
+	 * 在查看历史的时候将已经计算好的结果输出至表格上
+	 * @since jex003A
+	 */
+	public synchronized void addRowToTable(String name,MonitorDataStat mds){
+		String[] tmp = name.split("\\$\\$");
+		mds.setLabel(tmp[2]);
+		model.insertRow(mds, model.getRowCount());
+	}
 	
 	public synchronized void addTimeSeries(String name, TimeSeries ts) {
 		if (MonitorGui.MONITOR_CONFIGURE.get(category).getYAxisCount() == 1) {
@@ -276,7 +333,6 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 			}
 		}
 		dataMap.put(name, ts);
-		
 		String[] tmp = name.split("\\$\\$");
 		JCheckBox jb = createChooseCheckBox(tmp[2], Color.BLACK);
 		checkboxPanel.add(jb);
@@ -357,7 +413,6 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 		}
 	}
 
-
 	public void updateGui(String category, String[] fs, String[] strings) {
 		for (int j = 1; j < fs.length; j++) {
 			String name = pathName + "$$" + fs[j];
@@ -370,7 +425,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 			try {
 				time = new Date(Long.parseLong(strings[0]));
 			} catch (NumberFormatException e) {
-				System.out.println("Error date value:" + strings[j]);
+				log.error("Error date value:" + strings[j]);
 			}
 			String type = MonitorGui.MONITOR_CONFIGURE.get(category).getDataType(fs[j]);
 			if (type.equals(MonitorModel.TYPE_LONG)) {
@@ -388,7 +443,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 		}
 	}
 	
-	protected synchronized void updateGui(TimeSeries ts, Second s, Number v) {
+	public synchronized void updateGui(TimeSeries ts, Second s, Number v) {
 		ts.addOrUpdate(s, v);
 		tableRowMap.get(ts.getKey()).addData(v);
 		myJTable.repaint();
@@ -428,7 +483,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 		JOptionPane.showMessageDialog(null, "保存成功", "完成",
 				JOptionPane.INFORMATION_MESSAGE);
 	}
-	
+
 	private void saveAsFile(String outputPath) {
 		FileOutputStream out = null;
 		try {
@@ -455,5 +510,20 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 				}
 			}
 		}
+//		File out = new File(outputPath);
+//
+//		// 保存为jpg
+//		JMeterGUIComponent gp = GuiPackage.getInstance().getCurrentGui();
+//		if (gp instanceof JPanel) {
+//			JPanel p = (JPanel) gp;
+//			BufferedImage bi = (BufferedImage) p.createImage(p.getWidth(), p
+//					.getHeight());
+//			p.paint(bi.getGraphics());
+//			try {
+//				javax.imageio.ImageIO.write(bi, "jpg", out);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
 }

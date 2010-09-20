@@ -65,6 +65,7 @@ import com.alibaba.b2b.qa.monitor.RemoteAgent;
  * @author chenchao.yecc
  */
 public class ServerBenchGui extends AbstractJMeterGuiComponent implements ActionListener,KeyListener{
+	
 	private static final long serialVersionUID = 1L;
 	private JComboBox com = new JComboBox();
 	private JTextField rangeField = new JTextField(58);
@@ -172,7 +173,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		setLayout(new VerticalLayout(5, VerticalLayout.BOTH));
 		setBorder(makeBorder());
 
-		add(makeTitlePanel());
+//		add(makeTitlePanel());	// jex003D 删除了Title面板
 		resultFrame.setServerBenchGui(this);
 
 		// URL
@@ -237,12 +238,6 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		buttonPanel.add(disConnect);
 		buttonPanel.add(Box.createHorizontalStrut(20));
 		buttonPanel.add(view);
-		// buttonPanel.add(Box.createHorizontalStrut(20));
-		// buttonPanel.add(new JLabel("时间段："));
-		// buttonPanel.add(startField);
-		// buttonPanel.add(new JLabel("--"));
-		// buttonPanel.add(endField);
-		// buttonPanel.add(Box.createHorizontalStrut(20));
 		connect.addActionListener(this);
 		view.addActionListener(this);
 		disConnect.addActionListener(this);
@@ -315,14 +310,6 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		stop.addActionListener(this);
 		stopProject.addActionListener(this);
 		confDialog.addLiseners(this);
-
-		// dlg=new JDialog((JFrame)null, "", true);
-		// dpb.setIndeterminate(true);
-		// dlg.setUndecorated(true);
-		// dlg.add(BorderLayout.NORTH, dpb);
-		// dlg.add(BorderLayout.CENTER, new JLabel("Progress..."));
-		// dlg.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
-		// dlg.setSize(300, 50);
 	}
 
 //	private void showProcess(){
@@ -454,6 +441,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			tmpAgent.setState(AgentServer.READY);
 			agentTable.repaint();
 			confDialog.setVisible(false);
+			
 		// 应用配置后的Agent
 		} else if(e.getSource()==startBT){
 			boolean res=false;
@@ -481,8 +469,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 					ra.setCount(as.getTimes());
 					ra.setInterval(as.getInterval());
 					ra.setRunAgents(as.getItemAsList());
-					model.startAgent(ra, as.getItemAsList(),as.getPid());
-					done = true;
+					done=model.startAgent(ra, as.getItemAsList(),as.getPid());
 				} else {
 					continue;
 				}
@@ -490,6 +477,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			if (done) {
 				updateAgentList();
 				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("start_agent"),JMeterUtils.getResString("info_success"), JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("start_agent_warn"),JMeterUtils.getResString("info_success"), JOptionPane.WARNING_MESSAGE);
 			}
 		// 编辑Agent
 		} else if (e.getSource() == edit) {

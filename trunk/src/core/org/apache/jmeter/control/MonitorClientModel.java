@@ -1,13 +1,8 @@
 package org.apache.jmeter.control;
 
-import java.awt.BasicStroke;
-import java.awt.Font;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -26,14 +21,9 @@ import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.server.Server;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.util.JMeterUtils;
-import org.jfree.chart.ChartPanel;
-import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.DateAxis;
-import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.apache.jorphan.logging.LoggingManager;
+import org.apache.log.Logger;
 import org.jfree.data.time.TimeSeries;
-import org.jfree.data.time.TimeSeriesCollection;
 
 import com.alibaba.b2b.qa.monitor.MonitorAgent;
 import com.alibaba.b2b.qa.monitor.MonitorData;
@@ -54,6 +44,7 @@ import com.caucho.hessian.io.HessianProtocolException;
  */
 public class MonitorClientModel implements Runnable {
 
+	private static final Logger log = LoggingManager.getLoggerForClass();
 	public static final String HTTP_HEADER = "http://";
 	public static final String DATA_SERVER = "/monitor/remote/remoteDataService";
 	public static final String CONTROL_SERVER = "/monitor/remote/remoteControllerService";
@@ -103,6 +94,9 @@ public class MonitorClientModel implements Runnable {
 		int interval=JMeterUtils.StringToInt(value);
 		if (interval != 0 && interval >= 2) {
 			this.interval = interval * 1000;
+		} else {
+			this.interval = 3000;
+			log.warn("the value of monitor.interval is invalid!use default value: 3");
 		}
 	}
 
@@ -166,17 +160,34 @@ public class MonitorClientModel implements Runnable {
 		}
 	}
 
-	public void startAgent(RemoteAgent agent, List<String> items, String param) {
+	public boolean startAgent(RemoteAgent agent, List<String> items, String param) {
 		// 启动工程
+		String result = "";
+		boolean res = true;
 		try {
-			System.out.println(getRemoteControllerService().startProject(agent, agent.getRunProject()));
+			result = getRemoteControllerService().startProject(agent,
+					agent.getRunProject());
+			if (!result.toUpperCase().contains("SUCCESS")) {
+				res = false;
+				log.error("Start project failed:project name is "
+						+ agent.getRunProject());
+			}
+			
+			// 等待工程启动成功
 			Thread.sleep(1000);
+			
 			// 启动Agent
 			for (Iterator<String> iterator = items.iterator(); iterator
 					.hasNext();) {
 				try {
-					System.out.println(getRemoteControllerService().startAgent(agent, iterator.next(),
-							agent.getInterval(), agent.getCount(), param));
+					result = getRemoteControllerService().startAgent(agent,
+							iterator.next(), agent.getInterval(),
+							agent.getCount(), param);
+					if (!result.toUpperCase().contains("SUCCESS")) {
+						res = false;
+						log.error("Start agent failed:agent name is "
+								+ agent.getAddress());
+					}
 				} catch (AgentConnectionError e) {
 					e.printStackTrace();
 				}
@@ -187,6 +198,7 @@ public class MonitorClientModel implements Runnable {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		return res;
 	}
 
 	public synchronized List<AgentServer> configure()
@@ -296,14 +308,6 @@ public class MonitorClientModel implements Runnable {
 		}
 		return true;
 	}
-
-	 // 每个Monitor对应一个线程
-//	private class LineDrawer implements Runnable {
-//
-//		public void run() {
-//			
-//		}
-//	}
 
 	/**
 	 * 为每总数大于10000的一组数据开启一个绘图线程
@@ -557,104 +561,11 @@ public class MonitorClientModel implements Runnable {
 	public List<String> getProjects(String url) throws MalformedURLException {
 		return getRemoteDataService().getProjects();
 	}
-	
-	public Map<String,ChartPanel> getChartPanel(String project,long start,long end){
-		Map<String,ChartPanel> map=new HashMap<String,ChartPanel>();
-		Map<String, ArrayList<MonitorAgent>> servers = getRemoteDataService().getProjectMonitorAgents(project);
-		if (servers == null) {
-			return map;
-		}
-		for (String agentIp : servers.keySet()) {
-			ArrayList<MonitorAgent> lst=servers.get(agentIp);
-			for (Iterator<MonitorAgent> iterator = lst.iterator(); iterator.hasNext();) {
-				MonitorAgent agent = iterator.next();
-				MonitorData data=this.getRemoteDataService().getStartMonitorData(agent);
-				System.out.println(agentIp+":name="+agent.getName());
-				data = getRemoteDataService().getMonitorDataByDuration(agent, start, end);
-				System.out.println(agentIp + data.getValues().size());
-//				long num=data.getDataEndPosition();
-//				int el=(int)num%10000;
-//				int time=(int)num/10000;
-//				for (int i = 0; i< time; i++) {
-//					System.out.println("get date from "+(1+i*10000)+" to "+((i+1)*10000));
-//				}
-//				System.out.println("get date from "+(1+time*10000)+" to "+(time*10000+el));
-			}
-		}
-		
-		DateAxis localDateAxis = new DateAxis("TT");
 
-		// 设置左侧主轴
-		NumberAxis localNumberAxisL = new NumberAxis("");
-		localNumberAxisL.setTickLabelFont(new Font("SansSerif", 0, 12));
-		localNumberAxisL.setLabelFont(new Font("SansSerif", 0, 14));
-
-		localDateAxis.setTickLabelFont(new Font("SansSerif", 0, 12));
-		localDateAxis.setLabelFont(new Font("SansSerif", 0, 14));
-		localDateAxis.setDateFormatOverride(new SimpleDateFormat("mm:ss:SSS"));
-
-		XYLineAndShapeRenderer localXYLineAndShapeRendererL = new XYLineAndShapeRenderer(true, false);
-		localXYLineAndShapeRendererL.setSeriesStroke(0, new BasicStroke(1.0F,
-				0, 2));
-		// XYPlot localXYPlot = new XYPlot(localTimeSeriesCollectionL,
-		// localDateAxis, localNumberAxisL, localXYLineAndShapeRendererL);
-		XYPlot localXYPlot = new XYPlot();
-		TimeSeriesCollection localTimeSeriesCollectionL = new TimeSeriesCollection();
-
-		localXYPlot.setDataset(0, localTimeSeriesCollectionL);
-		localXYPlot.setRenderer(0, localXYLineAndShapeRendererL);
-		localXYPlot.setDomainAxis(localDateAxis);
-		localXYPlot.setRangeAxis(0, localNumberAxisL);
-		localDateAxis.setAutoRange(true);
-		localDateAxis.setLowerMargin(0.0D);
-		localDateAxis.setUpperMargin(0.0D);
-		localDateAxis.setTickLabelsVisible(true);
-		localNumberAxisL.setStandardTickUnits(NumberAxis
-				.createIntegerTickUnits());
-		JFreeChart localJFreeChart = new JFreeChart("", new Font("SansSerif", 1, 24),
-				localXYPlot, true);
-		ChartPanel chartPanel = new ChartPanel(localJFreeChart, true);
-	
-//		addTimeSeries(localTimeSeriesCollectionL);
-		return map;
-	}
-	
-
-	public synchronized boolean view() {
-		if (getRemoteDataService()==null) {
-			JOptionPane.showMessageDialog(GuiPackage.getInstance()
-					.getMainFrame(), JMeterUtils
-					.getResString("server_bench_connect_error"), JMeterUtils
-					.getResString("server_bench_error"),
-					JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss"); 
-		Date start=null;
-		Date end=null;
-		try {
-			start= sdf.parse("2010-07-13 01:44:00");
-			end= sdf.parse("2010-07-13 01:47:00");
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-		long st=start.getTime();
-		long en=end.getTime();
-		Map<String, ArrayList<HashMap<String, String>>> allAgent = getRemoteDataService().getProjectAgents("R");
-		for (String agent : allAgent.keySet()) {
-			ArrayList<HashMap<String, String>> monitorAgent = allAgent.get(agent);
-			for (Map<String, String> chart : monitorAgent) {
-				MonitorData monitors = null;
-//				monitors = getRemoteDataService().getMonitorDataByDuration(chart, st,en);
-				System.out.println(monitors);
-			}
-		}
-		return true;
-	}
-	
 	public synchronized void disConnect() {
 		running = false;
 	}
+	
 	public static void main(String[] args) {
 		long num=33289;
 		int el=(int)num%10000;

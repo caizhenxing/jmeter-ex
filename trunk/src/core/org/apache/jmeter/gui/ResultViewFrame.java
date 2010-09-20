@@ -41,11 +41,14 @@ import org.apache.jmeter.control.MonitorClientModel;
 import org.apache.jmeter.control.gui.ServerBenchGui;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
+import org.apache.jmeter.monitor.MonitorDataStat;
 import org.apache.jmeter.monitor.MonitorLine;
 import org.apache.jmeter.monitor.MonitorModel;
 import org.apache.jmeter.monitor.MonitorModelFactory;
 import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.util.JMeterUtils;
+import org.apache.jorphan.logging.LoggingManager;
+import org.apache.log.Logger;
 import org.jfree.chart.ChartPanel;
 import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
@@ -56,6 +59,8 @@ import com.alibaba.b2b.qa.monitor.MonitorProject;
 
 public class ResultViewFrame extends JFrame implements ActionListener,ItemListener,TreeSelectionListener{
 	
+	private static final Logger log = LoggingManager.getLoggerForClass();
+	private static double persent = 0D;
 	private static final long serialVersionUID = 1L;
 	private static int GAP = 8;
 	private static int VGAP = 3;
@@ -96,6 +101,15 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	private ServerBenchGui benchgui=null;
 	private MonitorClientModel model = null;
 	
+	static {
+		String value=JMeterUtils.getProperty("monitor.persent");
+		try{
+			persent=Double.parseDouble(value);
+		}catch (NumberFormatException e){
+			log.warn("the value of monitor.persent is invalid!use default value: 10");
+			persent=10D;
+		}
+	}
 	public void setServerBenchGui(ServerBenchGui benchgui){
 		this.benchgui=benchgui;
 	}
@@ -298,7 +312,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 			}
 		} else if(e.getSource()==view){
 //			if (checkDate()) {
-			long t = System.currentTimeMillis();
+//			long t = System.currentTimeMillis();
 			if (true) {
 				// 清空树和显示区域
 				int count=treeModel.getRootNode().getChildCount();
@@ -335,7 +349,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						MonitorModel monitorModel = MonitorModelFactory
 								.getMonitorModel(monitorAgent.getName());
 						if (monitorModel==null) {
-							System.out.println("Unkonw moniotr:"+ monitorAgent.getName());
+							log.warn("Unkonw moniotr:"+ monitorAgent.getName());
 							continue;
 						}
 						monitorModel.setPathName(ip + monitorAgent.getName());
@@ -361,25 +375,21 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 									monitorAgent, md,
 									monitorModel)).start();
 						}
-						monitorModel.setLineColor();
+						
 						// 初始化Tab面板
 						JPanel tp = new JPanel(new BorderLayout());
 						tp.add(monitorModel.getCheckBoxPanel(),BorderLayout.NORTH);
 						tp.add(monitorModel.getChartPanel(),BorderLayout.CENTER);
 						tp.add(monitorModel.getTablePanel(),BorderLayout.SOUTH);
 						tab.add(monitorAgent.getName(), tp);
-
-						// Thread t = new Thread(new
-						// ChartPanelCreater(monitorAgent,md));
-						// t.start();
-						// 设置ViewTabbedPane
 					}
 				}
+
 				// 展开所有树节点
 				for (int i = 0; i < tree.getRowCount(); i++) {
 					tree.expandRow(i);
 				}
-				System.out.println(System.currentTimeMillis()-t);
+//				System.out.println(System.currentTimeMillis()-t);
 //			    tree.setRootVisible(false);
 //				Map<String,ChartPanel> chartMap = model.getChartPanel((String)this.projects.getSelectedItem(),beginTime,endTime);
 			}
@@ -438,7 +448,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		private String ip = null;
 		private String line = null;
 		private List<String> lst = null;
-		private DataMergeService service = new DataMergeService(10D);
+		private DataMergeService service = null;
 
 		public ChartPanelCreater(String ip, String line,
 				MonitorAgent monitorAgent, MonitorData md,
@@ -448,6 +458,9 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 			this.monitorAgent = monitorAgent;
 			this.md = md;
 			this.monitorModel = monitorModel;
+			
+			// 设置可以容忍的百分比
+			service = new DataMergeService(ResultViewFrame.persent);
 			lst = Arrays.asList(md.getFields());
 		}
 
@@ -458,9 +471,10 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 				TimeSeries ts = new TimeSeries(line,
 						org.jfree.data.time.Second.class);
 				ts.setMaximumItemAge(50000);
+				MonitorDataStat mds=new MonitorDataStat();
 				List<String[]> results = md.getValues();
 				int nmb = lst.indexOf(line);
-				System.out.println(name+"'s count is: "+results.size());
+//				System.out.println(name+"'s count is: "+results.size());
 				int count=0;
 				for (Iterator<String[]> iterator4 = results.iterator(); iterator4
 						.hasNext();) {
@@ -471,11 +485,13 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						time = new Date(Long.parseLong(values[0]));
 					} catch (NumberFormatException ne) {
 						System.out.println("Error date value:");
+						log.error("Error date value:"+values[0]);
 					}
 					String type = MonitorGui.MONITOR_CONFIGURE.get(
 							monitorAgent.getName()).getDataType(line);
 					if (type.equals(MonitorModel.TYPE_LONG)) {
 						Long v = Long.parseLong(StringUtils.strip(strings));
+						mds.addData(v);
 						if (service.isInsertData(time,v,iterator4.hasNext())) {
 							ts.addOrUpdate(new Second(time), v);
 							count++;
@@ -489,14 +505,16 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 							v = Double.parseDouble(StringUtils
 									.strip(values[nmb]));
 						}
+						mds.addData(v);
 						if (service.isInsertData(time,v,iterator4.hasNext())) {
 							ts.addOrUpdate(new Second(time), v);
 							count++;
 						}
 					}
 				}
-				System.out.println(name+" 's draw count is: "+count);
-				monitorModel.addTimeSeries(name, ts);
+//				System.out.println(name+" 's draw count is: "+count);
+				monitorModel.addLazyTimeSeries(name, ts);
+				monitorModel.addRowToTable(name, mds);
 			}
 		}
 	}

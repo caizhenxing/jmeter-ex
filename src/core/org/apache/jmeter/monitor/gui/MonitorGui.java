@@ -2,14 +2,9 @@ package org.apache.jmeter.monitor.gui;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -79,10 +74,8 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 //			SaveService.JMXSAVER.toXML(MONITOR_CONFIGURE, outputStreamWriter);
 //			outputStreamWriter.close();
 //		} catch (FileNotFoundException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		} catch (IOException e) {
-//			// TODO Auto-generated catch block
 //			e.printStackTrace();
 //		}
 	}
@@ -162,7 +155,6 @@ public class MonitorGui extends AbstractJMeterGuiComponent{
 	}
 	
 	public String getLabelResource() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

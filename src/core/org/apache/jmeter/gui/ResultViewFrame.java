@@ -28,7 +28,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
@@ -49,7 +48,6 @@ import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
-import org.jfree.chart.ChartPanel;
 import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 
@@ -82,18 +80,17 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	private ViewTreeModel treeModel = null;
 	
 	// 更新按钮
-	private JButton update = new JButton("更新工程");
+	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
 	// 查看按钮
-	private JButton view = new JButton("开始查看");
+	private JButton view = new JButton(JMeterUtils.getResString("view_start"));
 	
-	private static SimpleDateFormat format= new  SimpleDateFormat("mm-dd hh:MM");
-	private JButton savegraph=new JButton("保存当前图片");
-	private JButton saveall = new JButton("保存所有图片");
-	private long beginTime=0;
-	private long endTime=0;
+	private static SimpleDateFormat format= new  SimpleDateFormat("yy-mm-dd hh:MM:ss");
+	private JButton savegraph=new JButton(JMeterUtils.getResString("save_cur_pic"));
+	private JButton saveall = new JButton(JMeterUtils.getResString("save_all_pic"));
+	private long beginTime = Long.MAX_VALUE;
+	private long endTime = Long.MIN_VALUE;
     private JScrollPane mainPanel=null;
     private JScrollPane treePanel = null;
-	private YccTab tab = new YccTab();
 	// 工程名对应的Report工程信息
 	private Map<String,MonitorProject> projectMap = new HashMap<String,MonitorProject>();
 	
@@ -104,6 +101,9 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	static {
 		String value=JMeterUtils.getProperty("monitor.persent");
 		try{
+			if (value == null) {
+				throw new NumberFormatException();
+			}
 			persent=Double.parseDouble(value);
 		}catch (NumberFormatException e){
 			log.warn("the value of monitor.persent is invalid!use default value: 10");
@@ -151,7 +151,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		savegraph.addActionListener(this);
 		saveall.addActionListener(this);
 		projects.addItemListener(this);
-		this.setTitle("历史数据查看器");
+		this.setTitle(JMeterUtils.getResString("view_history_title"));
 		this.setDefaultCloseOperation(HIDE_ON_CLOSE);
 		initGui();
 	}
@@ -167,13 +167,13 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		 leftPanel.add(Box.createVerticalStrut(VGAP));
 		 JPanel tmp = new JPanel(new BorderLayout());
 		 tmp = new JPanel(new BorderLayout());
-		 tmp.add(new JLabel("服务器URL："),BorderLayout.WEST);
+		 tmp.add(new JLabel(JMeterUtils.getResString("server_bench_url")),BorderLayout.WEST);
 		 tmp.add(url,BorderLayout.CENTER);
 		 url.setEditable(false);
 		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
 		 leftPanel.add(tmp);
 		 tmp = new JPanel(new BorderLayout());
-		 tmp.add(new JLabel("工程名字："),BorderLayout.WEST);
+		 tmp.add(new JLabel(JMeterUtils.getResString("server_bench_projects")),BorderLayout.WEST);
 		 tmp.add(projects,BorderLayout.CENTER);
 		 JPanel bp = new HorizontalPanel();
 		 bp.add(Box.createHorizontalStrut(GAP));
@@ -183,7 +183,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 //		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
 		 leftPanel.add(tmp);
 		 tmp = new JPanel(new BorderLayout());
-		 tmp.add(new JLabel("工程时段："),BorderLayout.WEST);
+		 tmp.add(new JLabel(JMeterUtils.getResString("server_bench_time_parts")),BorderLayout.WEST);
 		 tmp.add(times,BorderLayout.CENTER);
 		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
 		 leftPanel.add(tmp);
@@ -194,12 +194,12 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		 VerticalPanel midPanel = new VerticalPanel();
 		 midPanel.add(Box.createVerticalStrut(GAP));
 		 tmp = new JPanel(new BorderLayout());
-		 tmp.add(new JLabel("开始时间："),BorderLayout.WEST);
+		 tmp.add(new JLabel(JMeterUtils.getResString("start_time")),BorderLayout.WEST);
 		 tmp.add(fromTf,BorderLayout.CENTER);
 		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
 		 midPanel.add(tmp);
 		 tmp = new JPanel(new BorderLayout());
-		 tmp.add(new JLabel("结束时间："),BorderLayout.WEST);
+		 tmp.add(new JLabel(JMeterUtils.getResString("end_time")),BorderLayout.WEST);
 		 tmp.add(toTf,BorderLayout.CENTER);
 		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
 		 midPanel.add(tmp);
@@ -237,18 +237,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		this.getContentPane().add(treeAndMain, BorderLayout.CENTER);
 	}
 	
-	class YccTab extends JTabbedPane{
-		private static final long serialVersionUID = 1L;
-		JTabbedPane subTab = new JTabbedPane();
-		public void addSubTabPanel(String title,ChartPanel chart){
-			super.addTab(title, chart);
-		}
-		
-		public void removeAllSubTabPanel(){
-			super.removeAll();
-		}
-	}
-	
 	public static void main(String[] args) {
 		long i=System.currentTimeMillis();
 		ResultViewFrame r=new ResultViewFrame();
@@ -261,28 +249,27 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	private boolean checkDate() {
 		String from = fromTf.getText();
 		String to = toTf.getText();
-		// null验证
-		if (StringUtils.isEmpty(from)) {
-			// 开始日期为空
-			return false;
-		}
-		if (StringUtils.isEmpty(to)) {
-			// 结束日期为空
-			return false;
-		}
 
+		if (StringUtils.isBlank(from)&& StringUtils.isBlank(to)) {
+			return true;
+		} else if (StringUtils.isBlank(from) && StringUtils.isNotBlank(to)){
+			return false;
+		} else if (StringUtils.isNotBlank(from) && StringUtils.isBlank(to)){
+			return false;
+		} 
+		
 		try {
 			Date fromtime = format.parse(from);
 			beginTime = fromtime.getTime();
 		} catch (ParseException e) {
-			e.printStackTrace();
+			beginTime = Long.MAX_VALUE;
 			return false;
 		}
 		try {
 			Date totime = format.parse(to);
 			endTime = totime.getTime();
 		} catch (ParseException e) {
-			e.printStackTrace();
+			endTime = Long.MIN_VALUE;
 			return false;
 		}
 		return true;
@@ -311,7 +298,14 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						JOptionPane.ERROR_MESSAGE);
 			}
 		} else if(e.getSource()==view){
-//			if (checkDate()) {
+			if (checkDate()) {
+				JOptionPane.showMessageDialog(GuiPackage.getInstance()
+						.getMainFrame(), JMeterUtils
+						.getResString("view_date_erros")
+						+ model.getServiceUrl(), JMeterUtils
+						.getResString("server_bench_error"),
+						JOptionPane.ERROR_MESSAGE);
+			}
 //			long t = System.currentTimeMillis();
 			if (true) {
 				// 清空树和显示区域
@@ -321,6 +315,9 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 				}
 				mainPanel.setViewportView(null);
 				String item =(String)projects.getSelectedItem();
+				if (item==null||item.equals("")) {
+					return;
+				}
 				ReportTimeItem rt = (ReportTimeItem)times.getSelectedItem();
 				// 设定结束时间
 				MonitorProject pro = projectMap.get(item);
@@ -389,14 +386,13 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 				for (int i = 0; i < tree.getRowCount(); i++) {
 					tree.expandRow(i);
 				}
+
+				// 重新复原开始与结束时间
+				beginTime = Long.MAX_VALUE;
+				endTime = Long.MIN_VALUE;
 //				System.out.println(System.currentTimeMillis()-t);
 //			    tree.setRootVisible(false);
-//				Map<String,ChartPanel> chartMap = model.getChartPanel((String)this.projects.getSelectedItem(),beginTime,endTime);
 			}
-//			model.getAllDataForProject(agent, startTime, stopTime);
-//			startField.getText();
-//			endField.getText();
-//			model.view();
 		} else if(e.getSource()==savegraph){
 			System.out.println("savegraph");
 		} else if(e.getSource()==saveall){
@@ -430,7 +426,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	
 	@Override
 	public void valueChanged(TreeSelectionEvent e) {
-		// TODO Auto-generated method stub
 		ViewTreeNode selectedNode = (ViewTreeNode)tree.getLastSelectedPathComponent();
 		if (selectedNode==null) {
 			return;
@@ -483,6 +478,11 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 					Date time = null;
 					try {
 						time = new Date(Long.parseLong(values[0]));
+						// 判断time是否在指定的区间
+						if (time.getTime() < beginTime
+								|| time.getTime() > endTime) {
+							continue;
+						}
 					} catch (NumberFormatException ne) {
 						System.out.println("Error date value:");
 						log.error("Error date value:"+values[0]);
@@ -607,10 +607,10 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	     * @param slope2
 	     * @return
 	     */
-	    private double angle(double slope1, double slope2) {
-	        double tanAngle = Math.abs((slope2 - slope1) / (1 + slope1 * slope2));
-	        return Math.atan(tanAngle);
-	    }
+//	    private double angle(double slope1, double slope2) {
+//	        double tanAngle = Math.abs((slope2 - slope1) / (1 + slope1 * slope2));
+//	        return Math.atan(tanAngle);
+//	    }
 
 	    private void parseValue() {
 	        prevSlope = getSlope(firstPoint, secondPoint);
@@ -674,10 +674,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 				}
 			}
 			return value;
-		}
-		
-		public String getEndTime(){
-			return endTime;
 		}
 		
 		public String toString(){

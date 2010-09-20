@@ -130,6 +130,9 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	static {
 		String value=JMeterUtils.getProperty("monitor.format");
 		try {
+			if (value == null || value.equals("")) {
+				throw new IllegalArgumentException();
+			}
 			psf = new SimpleDateFormat(value);
 		} catch(IllegalArgumentException e) {
 			psf = new SimpleDateFormat("MM-dd hh:mm:ss");

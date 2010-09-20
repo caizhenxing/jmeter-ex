@@ -76,7 +76,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
 	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
 	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
-	private JButton view = new JButton("查看历史");
+	private JButton view = new JButton(JMeterUtils.getResString("view_history"));
 	private JButton configure = new JButton(JMeterUtils.getResString("server_bench_configure"));
 	private JButton show = new JButton(JMeterUtils.getResString("server_bench_watch"));
 	private JButton edit = new JButton(JMeterUtils.getResString("server_bench_edit"));

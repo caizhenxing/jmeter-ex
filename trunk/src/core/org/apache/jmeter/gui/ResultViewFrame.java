@@ -7,6 +7,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,6 +25,7 @@ import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -38,6 +42,7 @@ import javax.swing.tree.TreeSelectionModel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.jmeter.control.MonitorClientModel;
 import org.apache.jmeter.control.gui.ServerBenchGui;
+import org.apache.jmeter.gui.util.FileDialoger;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
 import org.apache.jmeter.monitor.MonitorDataStat;
@@ -84,11 +89,11 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	// 查看按钮
 	private JButton view = new JButton(JMeterUtils.getResString("view_start"));
 	
-	private static SimpleDateFormat format= new  SimpleDateFormat("yy-mm-dd hh:MM:ss");
+	private static SimpleDateFormat format= new  SimpleDateFormat("yy-MM-dd hh:mm:ss");
 	private JButton savegraph=new JButton(JMeterUtils.getResString("save_cur_pic"));
 	private JButton saveall = new JButton(JMeterUtils.getResString("save_all_pic"));
-	private long beginTime = Long.MAX_VALUE;
-	private long endTime = Long.MIN_VALUE;
+	private long beginTime = Long.MIN_VALUE;
+	private long endTime = Long.MAX_VALUE;
     private JScrollPane mainPanel=null;
     private JScrollPane treePanel = null;
 	// 工程名对应的Report工程信息
@@ -251,6 +256,8 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		String to = toTf.getText();
 
 		if (StringUtils.isBlank(from)&& StringUtils.isBlank(to)) {
+			beginTime = Long.MIN_VALUE;
+			endTime = Long.MAX_VALUE;
 			return true;
 		} else if (StringUtils.isBlank(from) && StringUtils.isNotBlank(to)){
 			return false;
@@ -262,14 +269,14 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 			Date fromtime = format.parse(from);
 			beginTime = fromtime.getTime();
 		} catch (ParseException e) {
-			beginTime = Long.MAX_VALUE;
+			beginTime = Long.MIN_VALUE;
 			return false;
 		}
 		try {
 			Date totime = format.parse(to);
 			endTime = totime.getTime();
 		} catch (ParseException e) {
-			endTime = Long.MIN_VALUE;
+			endTime = Long.MAX_VALUE;
 			return false;
 		}
 		return true;
@@ -298,11 +305,13 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						JOptionPane.ERROR_MESSAGE);
 			}
 		} else if(e.getSource()==view){
-			if (checkDate()) {
+			if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_info_view"),JMeterUtils.getResString("confirm_title_view"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
+				return;
+			}
+			if (!checkDate()) {
 				JOptionPane.showMessageDialog(GuiPackage.getInstance()
 						.getMainFrame(), JMeterUtils
-						.getResString("view_date_erros")
-						+ model.getServiceUrl(), JMeterUtils
+						.getResString("view_date_erros"), JMeterUtils
 						.getResString("server_bench_error"),
 						JOptionPane.ERROR_MESSAGE);
 			}
@@ -370,7 +379,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 							
 							new Thread(new ChartPanelCreater(tmp, line,
 									monitorAgent, md,
-									monitorModel)).start();
+									monitorModel,beginTime,endTime)).start();
 						}
 						
 						// 初始化Tab面板
@@ -386,17 +395,69 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 				for (int i = 0; i < tree.getRowCount(); i++) {
 					tree.expandRow(i);
 				}
-
-				// 重新复原开始与结束时间
-				beginTime = Long.MAX_VALUE;
-				endTime = Long.MIN_VALUE;
 //				System.out.println(System.currentTimeMillis()-t);
 //			    tree.setRootVisible(false);
 			}
-		} else if(e.getSource()==savegraph){
-			System.out.println("savegraph");
-		} else if(e.getSource()==saveall){
-			System.out.println("saveall");
+		} else if (e.getSource() == savegraph) {
+			ViewTreeNode node = (ViewTreeNode) tree
+					.getLastSelectedPathComponent();
+			if (node == null) {
+				return;
+			}
+			ViewTabbedPane tab = node.getTabbedPanel();
+			if (tab == null) {
+				return;
+			}
+			JPanel p = (JPanel) tab.getSelectedComponent();
+			String name = tab.getTitleAt(tab.getSelectedIndex());
+			JFileChooser chooser = FileDialoger.promptToSaveFile(name + ".jpg");
+			if (chooser == null) {
+				return;
+			}
+			File out = new File(chooser.getSelectedFile().getAbsolutePath());
+			ResultViewFrame.saveGraphForJPanel(p,out);
+			JOptionPane.showMessageDialog(null, JMeterUtils
+					.getResString("save_success"), JMeterUtils
+					.getResString("table_visualizer_success"),
+					JOptionPane.CLOSED_OPTION);
+		} else if (e.getSource() == saveall) {
+			ViewTreeNode node = (ViewTreeNode) tree
+					.getLastSelectedPathComponent();
+			if (node == null) {
+				return;
+			}
+			ViewTabbedPane tab = node.getTabbedPanel();
+			if (tab == null) {
+				return;
+			}
+			JFileChooser chooser = new JFileChooser();
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			chooser.showDialog(this,"OK");
+			if (chooser == null) {
+				return;
+			}
+			int count = node.getTabbedPanel().getComponentCount();
+			for (int i = 0; i < count; i++) {
+				JPanel p = (JPanel) node.getTabbedPanel().getComponent(i);
+				String name = node.getTabbedPanel().getTitleAt(i);
+				File out = new File(chooser.getSelectedFile().getAbsolutePath()+File.separator+name+".jpg");
+				ResultViewFrame.saveGraphForJPanel(p,out);
+			}
+			JOptionPane.showMessageDialog(null, JMeterUtils
+					.getResString("save_success"), JMeterUtils
+					.getResString("table_visualizer_success"),
+					JOptionPane.CLOSED_OPTION);
+		}
+	}
+	
+	public static void saveGraphForJPanel(JPanel p,File out){
+		BufferedImage bi = (BufferedImage) p.createImage(p.getWidth(),
+				p.getHeight());
+		p.paint(bi.getGraphics());
+		try {
+			javax.imageio.ImageIO.write(bi, "jpg", out);
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 	}
 	
@@ -442,17 +503,22 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		private MonitorModel monitorModel = null;
 		private String ip = null;
 		private String line = null;
+		private boolean goon = true;
 		private List<String> lst = null;
 		private DataMergeService service = null;
+		private long beginTime = Long.MIN_VALUE;
+		private long endTime = Long.MAX_VALUE;
 
 		public ChartPanelCreater(String ip, String line,
 				MonitorAgent monitorAgent, MonitorData md,
-				MonitorModel monitorModel) {
+				MonitorModel monitorModel,long beginTime,long endTime) {
 			this.ip = ip;
 			this.line = line;
 			this.monitorAgent = monitorAgent;
 			this.md = md;
 			this.monitorModel = monitorModel;
+			this.endTime = endTime;
+			this.beginTime = beginTime;
 			
 			// 设置可以容忍的百分比
 			service = new DataMergeService(ResultViewFrame.persent);
@@ -479,10 +545,12 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 					try {
 						time = new Date(Long.parseLong(values[0]));
 						// 判断time是否在指定的区间
-						if (time.getTime() < beginTime
-								|| time.getTime() > endTime) {
+						if (time.getTime() < beginTime){
 							continue;
 						}
+						if (goon && time.getTime() >= endTime) {
+							goon = false;
+						} 
 					} catch (NumberFormatException ne) {
 						System.out.println("Error date value:");
 						log.error("Error date value:"+values[0]);
@@ -492,7 +560,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 					if (type.equals(MonitorModel.TYPE_LONG)) {
 						Long v = Long.parseLong(StringUtils.strip(strings));
 						mds.addData(v);
-						if (service.isInsertData(time,v,iterator4.hasNext())) {
+						if (service.isInsertData(time, v, iterator4.hasNext() && goon)) {
 							ts.addOrUpdate(new Second(time), v);
 							count++;
 						}
@@ -506,7 +574,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 									.strip(values[nmb]));
 						}
 						mds.addData(v);
-						if (service.isInsertData(time,v,iterator4.hasNext())) {
+						if (service.isInsertData(time,v,iterator4.hasNext() && goon)) {
 							ts.addOrUpdate(new Second(time), v);
 							count++;
 						}

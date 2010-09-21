@@ -33,6 +33,7 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 
 import org.apache.jmeter.control.AgentServer;
+import org.apache.jmeter.gui.util.YccCustomTextField;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.gui.layout.VerticalLayout;
 
@@ -149,7 +150,8 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		// interval
 		tmpPanel = Box.createHorizontalBox();
 		tmpPanel.add(new JLabel(JMeterUtils.getResString("interval")));
-		interTF=new JTextField(10);
+		interTF = new YccCustomTextField(2, 0, 99);
+		interTF.setColumns(10);
 		tmpPanel.add(interTF);
 		tmpPanel.add(new JLabel(JMeterUtils.getResString("second")));
 		tmpPanel.add(Box.createHorizontalStrut(12));
@@ -178,7 +180,8 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		// time
 		tmpPanel = Box.createHorizontalBox();
 		tmpPanel.add(new JLabel(JMeterUtils.getResString("monitor_count")));
-		timeTF=new JTextField(10);
+		timeTF = new YccCustomTextField(7, 0, 1296000);
+		timeTF.setColumns(10);
 		tmpPanel.add(timeTF);
 		tmpPanel.add(new JLabel(JMeterUtils.getResString("count")));
 		tmpPanel.add(Box.createHorizontalStrut(12));
@@ -221,7 +224,8 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 				projectPanel.add(jb);
 				projectPanel.add(Box.createHorizontalStrut(10));
 				projectPanel.add(new JLabel(JMeterUtils.getResString("process_id")));
-				JTextField tmpTx=new JTextField(10);
+				JTextField tmpTx=new YccCustomTextField(10);
+				tmpTx.setColumns(10);
 				projectPanel.add(tmpTx);
 				prossTxMap.put(AGENTS[i], tmpTx);
 				projectPanel.add(Box.createHorizontalStrut(10));
@@ -428,12 +432,16 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	public boolean checkInput(){
 		int interval =JMeterUtils.StringToInt(interTF.getText());
 		long times=JMeterUtils.StringToInt(timeTF.getText());
+		
+		// 无项目名
 		if (proTF.getText().equals("")) {
 			JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_project_error"), JMeterUtils.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
 			proTF.requestFocus();
 			return false;
 		}
+		
+		// 间隔时间小于0或没有
 		if (interval<=0) {
 			JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_interval_error"), JMeterUtils.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
@@ -441,6 +449,8 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 			interTF.requestFocus();
 			return false;
 		}
+		
+		// 取样次数小于30次
 		if (times<30L) {
 			JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_times_error"), JMeterUtils.getResString("server_bench_error"),
 					JOptionPane.ERROR_MESSAGE);
@@ -448,6 +458,16 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 			timeTF.requestFocus();
 			return false;
 		}
+		
+		// 取样时间超过15天
+		if (interval*times>15*3600) {
+			JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_times_total_error"), JMeterUtils.getResString("server_bench_error"),
+					JOptionPane.ERROR_MESSAGE);
+			timeTF.selectAll();
+			timeTF.requestFocus();
+			return false;
+		}
+		
 		// 没有选择任何Agent
 		boolean select = false;
 		for (int j = 0; j < AGENTS.length; j++) {
@@ -461,7 +481,8 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 					JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		// 选择了PID但为输入PID进程号
+		
+		// 选择了PID但未输入PID进程号
 		if (cbMap.get(AgentCommand.AGENT_PIDIO).isSelected()){
 			if (JMeterUtils.StringToLong(prossTxMap.get(AgentCommand.AGENT_PIDIO).getText())==0) {
 				JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_pid_error"), JMeterUtils.getResString("server_bench_error"),
@@ -481,6 +502,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 				return false;
 			}
 		}
+		
 		if (cbMap.get(AgentCommand.AGENT_JSTAT).isSelected()){
 			if (JMeterUtils.StringToLong(prossTxMap.get(AgentCommand.AGENT_JSTAT).getText())==0) {
 				JOptionPane.showMessageDialog(null,JMeterUtils.getResString("check_pid_error"), JMeterUtils.getResString("server_bench_error"),

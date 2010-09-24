@@ -1,7 +1,9 @@
 package org.apache.jmeter.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -23,6 +25,7 @@ import java.util.Map;
 
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -36,12 +39,14 @@ import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jmeter.control.MonitorClientModel;
 import org.apache.jmeter.control.gui.ServerBenchGui;
+import org.apache.jmeter.gui.tree.JMeterCellRenderer;
 import org.apache.jmeter.gui.util.FileDialoger;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
@@ -50,6 +55,7 @@ import org.apache.jmeter.monitor.MonitorLine;
 import org.apache.jmeter.monitor.MonitorModel;
 import org.apache.jmeter.monitor.MonitorModelFactory;
 import org.apache.jmeter.monitor.gui.MonitorGui;
+import org.apache.jmeter.server.gui.ServerGui;
 import org.apache.jmeter.util.JMeterUtils;
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
@@ -231,6 +237,25 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		tree=new JTree(treeModel);
 		tree.addTreeSelectionListener(this);
 		tree.setShowsRootHandles(true);
+		DefaultTreeCellRenderer rend = new JMeterCellRenderer();
+		rend.setFont(new Font("Dialog", Font.PLAIN, 11));
+		tree.setCellRenderer(new DefaultTreeCellRenderer() {
+			private static final long serialVersionUID = 1L;
+			public Component getTreeCellRendererComponent(JTree tree,
+					Object value, boolean sel, boolean expanded, boolean leaf,
+					int row, boolean hasFocus) {
+				super.getTreeCellRendererComponent(tree, value, sel, expanded,
+						leaf, row, hasFocus);
+				if (row !=0 && leaf) {
+					ImageIcon icon = GUIFactory.getIcon(ServerGui.class);
+					setIcon(icon);
+				} else {
+					ImageIcon icon = GUIFactory.getIcon(ResultViewFrame.class);
+					setIcon(icon);
+				}
+				return this;
+			}
+		});
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION );
 		treePanel = new JScrollPane(tree);
 		treePanel.setMinimumSize(new Dimension(100, 0));
@@ -305,6 +330,9 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						JOptionPane.ERROR_MESSAGE);
 			}
 		} else if(e.getSource()==view){
+			if (this.projects.getSelectedItem()==null || times.getSelectedItem()==null) {
+				return;
+			}
 			if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_info_view"),JMeterUtils.getResString("confirm_title_view"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
 				return;
 			}

@@ -72,7 +72,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 //	private JTextField startField = new JTextField(1);
 //	private JTextField endField = new JTextField(1);
 	private JTextField ipchoice=new JTextField(10);
-	private ResultViewFrame resultFrame=new ResultViewFrame();
+	private ResultViewFrame resultFrame=null;
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
 	private JButton connect = new JButton(JMeterUtils.getResString("server_bench_connect"));
 	private JButton disConnect = new JButton(JMeterUtils.getResString("server_bench_disconnect"));
@@ -174,7 +174,6 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		setBorder(makeBorder());
 
 //		add(makeTitlePanel());	// jex003D 删除了Title面板
-		resultFrame.setServerBenchGui(this);
 
 		// URL
 		VerticalPanel mainPanel = new VerticalPanel();
@@ -536,6 +535,11 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			}
 		} else if (e.getSource() == view){
 			setHistoryButtonEnable(false);
+			// resultFrame的lazy初始化
+			if (resultFrame == null) {
+				resultFrame = new ResultViewFrame();
+				resultFrame.setServerBenchGui(this);
+			}
 			resultFrame.setMonitorClientModel(model);
 			resultFrame.showFrame();
 		} else if (e.getSource() == choice){

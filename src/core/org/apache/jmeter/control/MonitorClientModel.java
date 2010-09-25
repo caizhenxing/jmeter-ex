@@ -380,11 +380,17 @@ public class MonitorClientModel implements Runnable {
 		for (String agent : agents.keySet()) {
 			ArrayList<MonitorAgent> monitorAgent = agents.get(agent);
 			for (MonitorAgent chart : monitorAgent) {
-				String chartName = agent + "$$" + chart.getName();
+				String tmp = chart.getName();
+				if (tmp.startsWith("pid_cpu")) {
+					tmp="pid_cpu";
+				} else if (tmp.startsWith("pid_io")){
+					tmp="pid_io";
+				}
+				String chartName = agent + "$$" + tmp;
 				agentMap.put(chartName, chart);
 			}
 		}
-
+		
 		// 为每一个Agent生成ServerGui
 		GuiPackage guiPackage = GuiPackage.getInstance();
 		JMeterTreeNode benchNode = guiPackage.getCurrentNode();
@@ -397,7 +403,16 @@ public class MonitorClientModel implements Runnable {
 			guiPackage.getTreeModel().removeNodeFromParent(tmpNode);
 			guiPackage.removeNode(testElement);
 		}
+		
+		// 记录是否含有jmeter数据
+		boolean hasJmeterData = false;
 		for (String agent : agents.keySet()) {
+			// 如果是jmeter则忽略，后面再处理
+			if (agent.equals("jmeter")) {
+				hasJmeterData = true;
+				continue;
+			}
+			
 			// 初始化Gui
 			// 新建ServerGui
 			JMeterTreeNode serverNode = addAgentToTree(benchNode, agent,
@@ -484,6 +499,57 @@ public class MonitorClientModel implements Runnable {
 					this.linespecMap.put(chartName, mr);
 					guiList.add(com);
 				}
+			}
+		}
+		
+		// 处理jmeter数据
+		if (hasJmeterData) {
+			JMeterTreeNode dataNode = addAgentToTree(benchNode, "Result Monitor",
+			"org.apache.jmeter.monitor.gui.JmeterResultGui");
+			ArrayList<MonitorAgent> lst =agents.get("jmeter");
+			// 当前只支持总响应时间和tps
+			if (dataNode.getUserObject() instanceof Monitor) {
+				MonitorModel model = MonitorModelFactory
+						.getMonitorModel(category);
+				Monitor mr = (Monitor) dataNode.getUserObject();
+				mr.setMonitorModel(model);
+				model.setPathName(chartName);
+				model.setHost(agent);
+				model.setCategory(category);
+				model.setTitle(category);
+				model.setNumberAxis(category);
+				model.initSecondValueAxis(category);
+
+				// 显示的指标
+				String tmp = chartName + "$$";
+				Map<String, MonitorLine> lines=MonitorGui.MONITOR_CONFIGURE.get(category).getLines();
+				for (Iterator<String> iterator2 = lines.keySet().iterator(); iterator2
+						.hasNext();) {
+					String line=iterator2.next();
+					String name = tmp + line;
+					// System.out.println(fs[j]);
+					if (!MonitorGui.MONITOR_CONFIGURE.get(category).getShowType(line).equals("-")) {
+						TimeSeries ts = new TimeSeries(line,
+								org.jfree.data.time.Second.class);
+						ts.setMaximumItemAge(periods);
+						model.addTimeSeries(name, ts);
+					}
+				}
+				model.setLineColor();
+
+				// 将model的组件追加到Gui上
+				MonitorGui com = (MonitorGui) GuiPackage.getInstance()
+						.getGui(dataNode.getTestElement());
+				com.getMainPanel()
+						.add(mr.toString(), model.getChartPanel());
+				com.getCheckBoxPanel().add(mr.toString(),
+						model.getCheckBoxPanel());
+				com.getTablePanel().add(mr.toString(),
+						model.getTablePanel());
+
+				// 缓存Monitor与MonitorGui
+				this.linespecMap.put(chartName, mr);
+				guiList.add(com);
 			}
 		}
 		return true;

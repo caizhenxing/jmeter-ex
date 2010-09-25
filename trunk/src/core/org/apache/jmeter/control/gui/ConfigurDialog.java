@@ -48,6 +48,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	private JTextField pwdTF=null;
 	private JTextField interTF=null;
 	private JTextField timeTF=null;
+	private JTextField jmeterTF=null;
 	private JPanel mainPanel=null;
 	private JPanel controlPanel=null;
 	private List<JButton> prossBT = new ArrayList<JButton>();
@@ -76,6 +77,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		AgentCommand.AGENT_IO,
 		AgentCommand.AGENT_PIDCPU,
 		AgentCommand.AGENT_NET,
+		AgentCommand.AGENT_JMETER,
 	};
 	
 	public ConfigurDialog(){
@@ -89,8 +91,8 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		this.setModal(true);
 		this.setResizable(false);
 		this.setTitle(JMeterUtils.getResString("agent_configure_dialog"));
-		this.setSize(500, 550);
-		this.setLocation(400, 200);
+		this.setSize(500, 570);
+		this.setLocation(400, 220);
 	}
 	
 	public void init(){
@@ -233,12 +235,22 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 				prossBT.add(tmpBT);
 				projectPanel.add(tmpBT);
 				cbPanel.add(projectPanel);
+			} else if(AGENTS[i].equals(AgentCommand.AGENT_JMETER)){
+				// JmeterEx路径配置
+				Box jmeterPanel = Box.createHorizontalBox();
+				jmeterPanel.add(jb);
+				jmeterPanel.add(Box.createHorizontalStrut(10));
+				jmeterPanel.add(new JLabel("JmeterEx所在目录："));
+				jmeterPanel.add(Box.createHorizontalStrut(10));
+				jmeterTF = new JTextField(20);
+				jmeterPanel.add(jmeterTF);
+				cbPanel.add(jmeterPanel);
 			} else {
 				cbPanel.add(jb);
 			}
 		}
-		
 		cfPanel.add(cbPanel);
+		
 		mainPanel.add(controlPanel, BorderLayout.NORTH);
 		mainPanel.add(cfPanel, BorderLayout.CENTER);
 		this.getContentPane().add(mainPanel, BorderLayout.CENTER);
@@ -312,6 +324,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		pwdTF.setText("");
 		interTF.setText("");
 		timeTF.setText("");
+		jmeterTF.setText("");
 		for (int j = 0; j < AGENTS.length; j++) {
 			cbMap.get(AGENTS[j]).setSelected(false);
 		}
@@ -333,6 +346,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		interTF.setEditable(editable);
 		timeTF.setText(String.valueOf(as.getTimes()));
 		timeTF.setEditable(editable);
+		jmeterTF.setEditable(editable);
 		jbcustom.setEnabled(editable);
 		jbfiftin.setEnabled(editable);
 		jbthirty.setEnabled(editable);

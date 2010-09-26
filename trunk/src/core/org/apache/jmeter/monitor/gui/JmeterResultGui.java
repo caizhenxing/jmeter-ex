@@ -5,13 +5,21 @@ import java.util.Collection;
 import javax.swing.JPopupMenu;
 
 import org.apache.jmeter.gui.AbstractJMeterGuiComponent;
-import org.apache.jmeter.monitor.Monitor;
+import org.apache.jmeter.monitor.JmeterResult;
 import org.apache.jmeter.testelement.TestElement;
 
 public class JmeterResultGui extends AbstractJMeterGuiComponent{
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * construct method
+	 * 
+	 */
+	public JmeterResultGui() {
+		super();
+	}
+	
 	@Override
 	public JPopupMenu createPopupMenu() {
 		// TODO Auto-generated method stub
@@ -20,7 +28,7 @@ public class JmeterResultGui extends AbstractJMeterGuiComponent{
 
 	@Override
 	public TestElement createTestElement() {
-		Monitor monitor = new Monitor();
+		JmeterResult monitor = new JmeterResult();
 		modifyTestElement(monitor);
 		return monitor;
 	}
@@ -39,8 +47,7 @@ public class JmeterResultGui extends AbstractJMeterGuiComponent{
 
 	@Override
 	public void modifyTestElement(TestElement element) {
-		// TODO Auto-generated method stub
-		
+		super.configureTestElement(element);
 	}
 	
 }

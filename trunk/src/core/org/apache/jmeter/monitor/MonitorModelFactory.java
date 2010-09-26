@@ -22,6 +22,8 @@ public class MonitorModelFactory {
 			return new PIdMonitorModel();
 		} else if (type.equals("net")) {
 			return new NetMonitorModel();
+		} else if (type.equals("jmeter")) {
+			return new JmeterMonitorModel();
 		} else {
 			return null;
 		}

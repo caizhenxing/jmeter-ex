@@ -73,9 +73,9 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	private static SimpleDateFormat psf = null;
 	private ChartPanel chartPanel = null;
 	
-	private JPanel checkboxPanel = new JPanel();
+	protected JPanel checkboxPanel = new JPanel();
 	
-	private JPanel tablePanel = new JPanel(new BorderLayout());
+	protected JPanel tablePanel = new JPanel(new BorderLayout());
 	
 	protected Map<String, TimeSeries> dataMap = new HashMap<String, TimeSeries>();
 	
@@ -112,7 +112,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	
 	private JLabel info = new JLabel();
 	
-	private transient ObjectTableModel model;
+	protected transient ObjectTableModel model;
 	
 	private JTable myJTable = null;
 	
@@ -347,7 +347,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 		tableRowMap.put(tmp[2], mds);
 	}
 	
-	private JCheckBox createChooseCheckBox(String labelResourceName, Color color) {
+	protected JCheckBox createChooseCheckBox(String labelResourceName, Color color) {
 		JCheckBox checkBox = new JCheckBox(labelResourceName);
 		checkBox.setSelected(true);
 		checkBox.addItemListener(this);

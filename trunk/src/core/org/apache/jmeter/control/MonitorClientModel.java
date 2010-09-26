@@ -381,12 +381,14 @@ public class MonitorClientModel implements Runnable {
 			ArrayList<MonitorAgent> monitorAgent = agents.get(agent);
 			for (MonitorAgent chart : monitorAgent) {
 				String tmp = chart.getName();
-				if (tmp.startsWith("pid_cpu")) {
+				String chartName = "";
+				if (chart.getMachineIp().equals("jmeter")){
+				} else if (tmp.startsWith("pid_cpu")) {
 					tmp="pid_cpu";
 				} else if (tmp.startsWith("pid_io")){
 					tmp="pid_io";
-				}
-				String chartName = agent + "$$" + tmp;
+				} 
+				chartName = agent + "$$" + tmp;
 				agentMap.put(chartName, chart);
 			}
 		}
@@ -504,52 +506,56 @@ public class MonitorClientModel implements Runnable {
 		
 		// 处理jmeter数据
 		if (hasJmeterData) {
-			JMeterTreeNode dataNode = addAgentToTree(benchNode, "Result Monitor",
-			"org.apache.jmeter.monitor.gui.JmeterResultGui");
-			ArrayList<MonitorAgent> lst =agents.get("jmeter");
-			// 当前只支持总响应时间和tps
-			if (dataNode.getUserObject() instanceof Monitor) {
-				MonitorModel model = MonitorModelFactory
-						.getMonitorModel(category);
-				Monitor mr = (Monitor) dataNode.getUserObject();
-				mr.setMonitorModel(model);
-				model.setPathName(chartName);
-				model.setHost(agent);
-				model.setCategory(category);
-				model.setTitle(category);
-				model.setNumberAxis(category);
-				model.initSecondValueAxis(category);
+			// 追加Jmeter根节点
+			JMeterTreeNode rootNode = addAgentToTree(benchNode,
+					"Result Monitor",
+					"org.apache.jmeter.monitor.gui.JmeterResultGui");
 
-				// 显示的指标
-				String tmp = chartName + "$$";
-				Map<String, MonitorLine> lines=MonitorGui.MONITOR_CONFIGURE.get(category).getLines();
-				for (Iterator<String> iterator2 = lines.keySet().iterator(); iterator2
-						.hasNext();) {
-					String line=iterator2.next();
-					String name = tmp + line;
-					// System.out.println(fs[j]);
-					if (!MonitorGui.MONITOR_CONFIGURE.get(category).getShowType(line).equals("-")) {
-						TimeSeries ts = new TimeSeries(line,
-								org.jfree.data.time.Second.class);
-						ts.setMaximumItemAge(periods);
-						model.addTimeSeries(name, ts);
-					}
+			ArrayList<MonitorAgent> lst = agents.get("jmeter");
+			// 遍历所有监控单元，当前只支持总响应时间和tps
+			for (Iterator<MonitorAgent> iterator = lst.iterator(); iterator
+					.hasNext();) {
+				MonitorAgent monitorAgent = iterator.next();
+				JMeterTreeNode dataNode = addAgentToTree(rootNode, monitorAgent
+						.getName(), "org.apache.jmeter.monitor.gui.MonitorGui");
+				String tmp = "jmeter" + "$$";
+				String name = tmp + monitorAgent.getName();
+				if (dataNode.getUserObject() instanceof Monitor) {
+					MonitorModel model = MonitorModelFactory
+							.getMonitorModel("jmeter");
+					Monitor mr = (Monitor) dataNode.getUserObject();
+					mr.setMonitorModel(model);
+					model.setPathName("jmeter");
+					model.setHost("jmeter");
+					model.setCategory(name);
+					model.setTitle("jmeter");
+					model.setNumberAxis("jmeter");
+					model.initSecondValueAxis("jmeter");
+//					TimeSeries ts = new TimeSeries(JMeterUtils
+//							.getResString("curve_results_throughput"),
+//							org.jfree.data.time.Second.class);
+//					ts.setMaximumItemAge(periods);
+//					model.addTimeSeries(tmp+"tps", ts);
+					TimeSeries ts = new TimeSeries("avgTime",
+							org.jfree.data.time.Second.class);
+					ts.setMaximumItemAge(periods);
+					model.addTimeSeries(tmp+"avgTime", ts);
+					// model.setLineColor();
+					//
+					// 将model的组件追加到Gui上
+					MonitorGui com = (MonitorGui) GuiPackage.getInstance()
+							.getGui(dataNode.getTestElement());
+					com.getMainPanel()
+							.add(mr.toString(), model.getChartPanel());
+					com.getCheckBoxPanel().add(mr.toString(),
+							model.getCheckBoxPanel());
+					com.getTablePanel().add(mr.toString(),
+							model.getTablePanel());
+
+					// 缓存Monitor与MonitorGui
+					this.linespecMap.put(name, mr);
+					// guiList.add(com);
 				}
-				model.setLineColor();
-
-				// 将model的组件追加到Gui上
-				MonitorGui com = (MonitorGui) GuiPackage.getInstance()
-						.getGui(dataNode.getTestElement());
-				com.getMainPanel()
-						.add(mr.toString(), model.getChartPanel());
-				com.getCheckBoxPanel().add(mr.toString(),
-						model.getCheckBoxPanel());
-				com.getTablePanel().add(mr.toString(),
-						model.getTablePanel());
-
-				// 缓存Monitor与MonitorGui
-				this.linespecMap.put(chartName, mr);
-				guiList.add(com);
 			}
 		}
 		return true;

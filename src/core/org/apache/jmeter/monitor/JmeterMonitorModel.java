@@ -13,18 +13,6 @@ import org.jfree.data.time.TimeSeries;
 
 public class JmeterMonitorModel extends MonitorModel{
 	private static final Logger log = LoggingManager.getLoggerForClass();
-	public synchronized void addTimeSeries(String name, TimeSeries ts) {
-		dataMap.put(name, ts);
-		String[] tmp = name.split("\\$\\$");
-		JCheckBox jb = super.createChooseCheckBox(tmp[1], Color.BLACK);
-		super.checkboxPanel.add(jb);
-		cbMap.put(jb, tmp[1]);
-		// 增加列表行
-		MonitorDataStat mds=new MonitorDataStat();
-		mds.setLabel(tmp[1]);
-		model.insertRow(mds, model.getRowCount());
-		tableRowMap.put(tmp[1], mds);
-	}
 	
 	public void updateGui(String category, String[] fs, String[] strings) {
 			updateAverageTime(strings);

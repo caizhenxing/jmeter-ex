@@ -744,7 +744,7 @@
           <java.lang.String>stdDevTime</java.lang.String>
           <org.apache.jmeter.monitor.MonitorLine>
             <name>stdDevTime</name>
-            <showType>2</showType>
+            <showType>1</showType>
             <lineType></lineType>
             <lineColor>ORANGE</lineColor>
             <dataType>Long</dataType>

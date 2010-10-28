@@ -240,7 +240,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 				Box jmeterPanel = Box.createHorizontalBox();
 				jmeterPanel.add(jb);
 				jmeterPanel.add(Box.createHorizontalStrut(10));
-				jmeterPanel.add(new JLabel("JmeterEx所在目录："));
+				jmeterPanel.add(new JLabel("JmeterEx的bin目录："));
 				jmeterPanel.add(Box.createHorizontalStrut(10));
 				jmeterTF = new JTextField(20);
 				jmeterPanel.add(jmeterTF);

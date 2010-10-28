@@ -160,7 +160,7 @@ public class MonitorClientModel implements Runnable {
 		}
 	}
 
-	public boolean startAgent(RemoteAgent agent, List<String> items, String param) {
+	public boolean startAgent(RemoteAgent agent, List<String> items, List<String> param) {
 		// 启动工程
 		String result = "";
 		boolean res = true;
@@ -180,9 +180,16 @@ public class MonitorClientModel implements Runnable {
 			for (Iterator<String> iterator = items.iterator(); iterator
 					.hasNext();) {
 				try {
-					result = getRemoteControllerService().startAgent(agent,
-							iterator.next(), agent.getInterval(),
-							agent.getCount(), param);
+					String name = iterator.next();
+					if (name.equals("jmeter")) {
+						result = getRemoteControllerService().startAgent(agent,
+								name, agent.getInterval(),
+								agent.getCount(), param.get(1));
+					} else {
+						result = getRemoteControllerService().startAgent(agent,
+								name, agent.getInterval(),
+								agent.getCount(), param.get(0));
+					}
 					if (!result.toUpperCase().contains("SUCCESS")) {
 						res = false;
 						log.error("Start agent failed:agent name is "
@@ -383,6 +390,7 @@ public class MonitorClientModel implements Runnable {
 				String tmp = chart.getName();
 				String chartName = "";
 				if (chart.getMachineIp().equals("jmeter")){
+					tmp="avgTime";
 				} else if (tmp.startsWith("pid_cpu")) {
 					tmp="pid_cpu";
 				} else if (tmp.startsWith("pid_io")){
@@ -504,7 +512,7 @@ public class MonitorClientModel implements Runnable {
 			}
 		}
 		
-		// 处理jmeter数据
+		// 处理jmeter的model
 		if (hasJmeterData) {
 			// 追加Jmeter根节点
 			JMeterTreeNode rootNode = addAgentToTree(benchNode,
@@ -519,7 +527,6 @@ public class MonitorClientModel implements Runnable {
 				JMeterTreeNode dataNode = addAgentToTree(rootNode, monitorAgent
 						.getName(), "org.apache.jmeter.monitor.gui.MonitorGui");
 				String tmp = "jmeter" + "$$";
-				String name = tmp + monitorAgent.getName();
 				if (dataNode.getUserObject() instanceof Monitor) {
 					MonitorModel model = MonitorModelFactory
 							.getMonitorModel("jmeter");
@@ -527,7 +534,7 @@ public class MonitorClientModel implements Runnable {
 					mr.setMonitorModel(model);
 					model.setPathName("jmeter");
 					model.setHost("jmeter");
-					model.setCategory(name);
+					model.setCategory("jmeter");
 					model.setTitle("jmeter");
 					model.setNumberAxis("jmeter");
 					model.initSecondValueAxis("jmeter");
@@ -536,10 +543,19 @@ public class MonitorClientModel implements Runnable {
 //							org.jfree.data.time.Second.class);
 //					ts.setMaximumItemAge(periods);
 //					model.addTimeSeries(tmp+"tps", ts);
-					TimeSeries ts = new TimeSeries("avgTime",
-							org.jfree.data.time.Second.class);
-					ts.setMaximumItemAge(periods);
-					model.addTimeSeries(tmp+"avgTime", ts);
+
+					Map<String, MonitorLine> lines=MonitorGui.MONITOR_CONFIGURE.get("jmeter").getLines();
+					for (Iterator<String> iterator2 = lines.keySet().iterator(); iterator2.hasNext();) {
+						String line=iterator2.next();
+						String name = tmp + line;
+						// System.out.println(fs[j]);
+						if (!MonitorGui.MONITOR_CONFIGURE.get("jmeter").getShowType(line).equals("-")) {
+							TimeSeries ts = new TimeSeries(line,
+									org.jfree.data.time.Second.class);
+							ts.setMaximumItemAge(periods);
+							model.addTimeSeries(name, ts);
+						}
+					}
 					// model.setLineColor();
 					//
 					// 将model的组件追加到Gui上
@@ -553,7 +569,7 @@ public class MonitorClientModel implements Runnable {
 							model.getTablePanel());
 
 					// 缓存Monitor与MonitorGui
-					this.linespecMap.put(name, mr);
+					this.linespecMap.put(tmp+"avgTime", mr);
 					// guiList.add(com);
 				}
 			}
@@ -630,7 +646,19 @@ public class MonitorClientModel implements Runnable {
 		}
 	}
 
+	/*
+	 * 取得正在运行的工程名字
+	 */
 	public List<String> getProjects(String url) throws MalformedURLException {
+//		List<String> res=new ArrayList<String>();
+//		List<MonitorProject> lst =getRemoteDataService().getAllMonitorProject();
+//		for (Iterator<MonitorProject> iterator = lst.iterator(); iterator.hasNext();) {
+//			MonitorProject monitorProject = iterator.next();
+//			if (monitorProject.isRun()) {
+//				res.add(monitorProject.getProjectName());
+//			}
+//		}
+//		return res;
 		return getRemoteDataService().getProjects();
 	}
 

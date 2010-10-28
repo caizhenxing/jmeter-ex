@@ -15,6 +15,7 @@ public class AgentServer implements Comparable<AgentServer>{
 	private String port = "";
 	private String password = "";;
 	private String project = "";
+	private String jmeterPath = "";
 	private Integer interval = Integer.valueOf(0);
 	private Long times = Long.valueOf(0L);
 	private String items = "";
@@ -23,6 +24,14 @@ public class AgentServer implements Comparable<AgentServer>{
 	private String startTime= "";
 	private String endTime= "";
 	private JRadioButton rbitem= null;
+
+	public String getJmeterPath() {
+		return jmeterPath;
+	}
+
+	public void setJmeterPath(String jmeterPath) {
+		this.jmeterPath = jmeterPath;
+	}
 
 	public void setRbItem(JRadioButton rbitem){
 		this.rbitem=rbitem;

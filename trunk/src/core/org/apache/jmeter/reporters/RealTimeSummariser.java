@@ -91,7 +91,7 @@ public class RealTimeSummariser extends Summariser {
 			// 时间戳
 			sb.append(System.currentTimeMillis()).
 			// 标签
-			append(",").append(sv.getLabel()).
+			append(",").append(sv.getLabel().hashCode()).
 			// 个数
 			append(",").append(sv.getCount()).
 			// 平均响应时间

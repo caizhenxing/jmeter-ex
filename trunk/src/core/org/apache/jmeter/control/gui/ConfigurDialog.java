@@ -284,6 +284,10 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		return new ArrayList<JTextField>(prossTxMap.values()).get(0).getText();
 	}
 	
+	public String getJmeterPath(){
+		return jmeterTF.getText();
+	}
+	
 	public String getInterval(){
 		return interTF.getText();
 	}

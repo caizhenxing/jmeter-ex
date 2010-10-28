@@ -13,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -210,7 +211,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		});
 		
 		// rangeField.setText("10.249.129.159:8080");
-		rangeField.setText("10.249.128.13:8080");
+//		rangeField.setText("10.249.128.13:8080");
+		rangeField.setText("10.20.136.1:8080");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);
@@ -422,6 +424,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			String inter=confDialog.getInterval();
 			String time=confDialog.getTimes();
 			String project=confDialog.getProject();
+			String jmeterPath=confDialog.getJmeterPath();
 			int interval =JMeterUtils.StringToInt(inter);
 			long times=JMeterUtils.StringToInt(time);
 			List<String> lst=confDialog.getCheckBoxValue();
@@ -437,6 +440,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			tmpAgent.setTimes(times);
 			tmpAgent.setProject(project);
 			tmpAgent.setPid(pid);
+			tmpAgent.setJmeterPath(jmeterPath);
 			tmpAgent.setState(AgentServer.READY);
 			agentTable.repaint();
 			confDialog.setVisible(false);
@@ -468,7 +472,10 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 					ra.setCount(as.getTimes());
 					ra.setInterval(as.getInterval());
 					ra.setRunAgents(as.getItemAsList());
-					done=model.startAgent(ra, as.getItemAsList(),as.getPid());
+					List<String> params=new ArrayList<String>();
+					params.add(as.getPid());
+					params.add(as.getJmeterPath());
+					done=model.startAgent(ra, as.getItemAsList(),params);
 				} else {
 					continue;
 				}

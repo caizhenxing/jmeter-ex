@@ -14,19 +14,6 @@ import org.jfree.data.time.TimeSeries;
 public class JmeterMonitorModel extends MonitorModel{
 	private static final Logger log = LoggingManager.getLoggerForClass();
 	public synchronized void addTimeSeries(String name, TimeSeries ts) {
-//		if (MonitorGui.MONITOR_CONFIGURE.get(category).getYAxisCount() == 1) {
-			localTimeSeriesCollectionL.addSeries(ts);
-//		} else {
-//			String[] tmp = name.split("\\$\\$");
-//			String item = tmp[2];
-//			String state = MonitorGui.MONITOR_CONFIGURE.get(category).getShowType(item);
-//			if (state.equals("1")) {
-//				localTimeSeriesCollectionL.addSeries(ts);
-//			} else if(state.equals("2")) {
-//				localTimeSeriesCollectionR.addSeries(ts);
-//			} else {
-//			}
-//		}
 		dataMap.put(name, ts);
 		String[] tmp = name.split("\\$\\$");
 		JCheckBox jb = super.createChooseCheckBox(tmp[1], Color.BLACK);
@@ -40,21 +27,41 @@ public class JmeterMonitorModel extends MonitorModel{
 	}
 	
 	public void updateGui(String category, String[] fs, String[] strings) {
-		for (int j = 1; j < fs.length; j++) {
-			String name = pathName + "$$" + fs[j];
-			TimeSeries ts = dataMap.get(name);
-			if (ts == null) {
-				continue;
-			}
-
-			Date time = null;
-			try {
-				time = new Date(Long.parseLong(strings[0]));
-			} catch (NumberFormatException e) {
-				log.error("Error date value:" + strings[j]);
-			}
-			Long v = Long.parseLong(StringUtils.strip(strings[j]));
-			updateGui(ts, new Second(time), v);
-		}
+			updateAverageTime(strings);
+			updateTps(strings);
+			updateErrNum(strings);
+			updateStdDevTime(strings);
 	}
+	
+	private void updateGui(TimeSeries ts,String value){
+		Date time = null;
+		try {
+			time = new Date(Long.parseLong(value));
+		} catch (NumberFormatException e) {
+			log.error("Error date value:" + value);
+		}
+		Long v = Long.parseLong(StringUtils.strip(value));
+		updateGui(ts, new Second(time), v);
+	}
+	
+	private void updateAverageTime(String[] strings){
+		TimeSeries ts = dataMap.get("jmeter$$avgTime");
+		updateGui(ts,strings[2]);
+	}
+	
+	private void updateTps(String[] strings){
+		TimeSeries ts = dataMap.get("jmeter$$avgTps");
+	}
+	
+	private void updateErrNum(String[] strings){
+		TimeSeries ts = dataMap.get("jmeter$$errNum");
+		updateGui(ts,strings[8]);
+	}
+	
+	private void updateStdDevTime(String[] strings){
+		TimeSeries ts = dataMap.get("jmeter$$stdDevTime");
+		updateGui(ts,strings[3]);
+	}
+	
+	
 }

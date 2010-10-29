@@ -526,7 +526,7 @@ public class MonitorClientModel implements Runnable {
 				MonitorAgent monitorAgent = iterator.next();
 				JMeterTreeNode dataNode = addAgentToTree(rootNode, monitorAgent
 						.getName(), "org.apache.jmeter.monitor.gui.MonitorGui");
-				String tmp = "$$jmeter" + "$$";
+				String tmp = "jmeter" + "$$";
 				if (dataNode.getUserObject() instanceof Monitor) {
 					MonitorModel model = MonitorModelFactory
 							.getMonitorModel("jmeter");

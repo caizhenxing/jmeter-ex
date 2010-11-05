@@ -6,9 +6,11 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.text.DecimalFormat;
+//import java.util.HashMap;
+//import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -25,30 +27,52 @@ import org.apache.jmeter.visualizers.SummariserSamplingStatCalculator;
 public class TotalSampleSummariser extends Summariser {
 	private static final long serialVersionUID = 1L;
 	private transient volatile PrintWriter writer= null;
+	private transient volatile PrintWriter labelWriter = null;
+	private SummariserSamplingStatCalculator sv = null;
+	private String totalName = null;
 	private WriteTimer myTask=null;
-	private Map<String,SummariserSamplingStatCalculator> labelMap = new HashMap<String,SummariserSamplingStatCalculator>();
+	private DecimalFormat df=new DecimalFormat("#.0000");
+//	private Map<String,SummariserSamplingStatCalculator> labelMap = new HashMap<String,SummariserSamplingStatCalculator>();
 	public TotalSampleSummariser(String s) {
 		super(s);
 		try {
-			writer = new PrintWriter(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream("JmeterTotalData.tmp",
+			writer = new PrintWriter(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream("JmeterRealTime.tmp",
 			        false)), SaveService.getFileEncoding("UTF-8")), true);
+			InetAddress addr = InetAddress.getLocalHost();
+			String ip = addr.getHostAddress().toString();
+			if (ip==null || ip.equals("")) {
+				ip= "jmeter result";
+			}
+			totalName = ip;
+			sv = new SummariserSamplingStatCalculator(totalName);
+			labelWriter = new PrintWriter(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream("JmeterSample.tmp",
+					false)), SaveService.getFileEncoding("UTF-8")), true);
+			labelWriter.print(totalName.hashCode());
+			labelWriter.print(",");
+			labelWriter.println(totalName);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}finally{
+			if (labelWriter!=null) {
+				labelWriter.close();
+			}
 		}
 		myTask = new WriteTimer();
 		Timer timer = new Timer(true);
-		timer.schedule(myTask,5000,5000);
+		timer.schedule(myTask,3000,3000);
 	}
 
 	public void sampleOccurred(SampleEvent e) {
 		SampleResult s = e.getResult();
-		SummariserSamplingStatCalculator sv = labelMap.get(s.getSampleLabel());
-		if (sv==null){
-			sv = new SummariserSamplingStatCalculator(s.getSampleLabel());
-			labelMap.put(s.getSampleLabel(), sv);
-		}
+//		SummariserSamplingStatCalculator sv = labelMap.get(s.getSampleLabel());
+//		if (sv==null){
+//			sv = new SummariserSamplingStatCalculator(s.getSampleLabel());
+//			labelMap.put(s.getSampleLabel(), sv);
+//		}
 
 		// 将新的结果加至SampleVisualizer
 		synchronized (sv) {
@@ -59,13 +83,13 @@ public class TotalSampleSummariser extends Summariser {
 	}
 	
 	public void testEnded(String host) {
-		for (Iterator<String> iterator = labelMap.keySet().iterator(); iterator
-				.hasNext();) {
-			SummariserSamplingStatCalculator sv = labelMap.get(iterator.next());
+//		for (Iterator<String> iterator = labelMap.keySet().iterator(); iterator
+//				.hasNext();) {
+//			SummariserSamplingStatCalculator sv = labelMap.get(iterator.next());
 			synchronized (sv) {
 				writer.println(format(sv));
 			}
-		}
+//		}
 		writer.flush();
 		writer.close();
 		myTask.cancel();
@@ -77,11 +101,11 @@ public class TotalSampleSummariser extends Summariser {
 			// 时间戳
 			sb.append(System.currentTimeMillis()).
 			// 标签
-			append(",").append(sv.getLabel()).
+			append(",").append(sv.getLabel().hashCode()).
 			// 个数
 			append(",").append(sv.getCount()).
 			// 平均响应时间
-			append(",").append(sv.getMean()).
+			append(",").append(df.format(sv.getMean())).
 			// 最大响应时间
 			append(",").append(sv.getMax()).
 			// 最小响应时间
@@ -89,9 +113,9 @@ public class TotalSampleSummariser extends Summariser {
 			// 错误数
 			append(",").append(sv.getErrorCount()).
 			// 标准方差
-			append(",").append(sv.getStandardDeviation())
+			append(",").append(df.format(sv.getStandardDeviation()))
 			// 平方和
-			.append(",").append(sv.getSqurSum());
+			.append(",").append(df.format(sv.getSqurSum()));
 		}
 		return sb.toString();
 	}
@@ -100,14 +124,14 @@ public class TotalSampleSummariser extends Summariser {
 
 		@Override
 		public void run() {
-			for (Iterator<String> iterator = labelMap.keySet().iterator(); iterator
-					.hasNext();) {
-				SummariserSamplingStatCalculator sv = labelMap.get(iterator
-						.next());
+//			for (Iterator<String> iterator = labelMap.keySet().iterator(); iterator
+//					.hasNext();) {
+//				SummariserSamplingStatCalculator sv = labelMap.get(iterator
+//						.next());
 				synchronized (sv) {
 					writer.println(format(sv));
 				}
-			}
+//			}
 			writer.flush();
 		}
 	}

@@ -5,13 +5,13 @@ import java.text.DecimalFormat;
 
 public class MonitorDataStat {
 
-	String label = "";
-	BigDecimal min = new BigDecimal(Long.MAX_VALUE);
-	BigDecimal max = BigDecimal.ZERO;
-	BigDecimal last = BigDecimal.ZERO;
-	BigDecimal average = BigDecimal.ZERO;
-	BigDecimal total=BigDecimal.ZERO;
-	BigDecimal count=BigDecimal.ZERO;
+	private String label = "";
+	private BigDecimal min = new BigDecimal(Long.MAX_VALUE);
+	private BigDecimal max = BigDecimal.ZERO;
+	private BigDecimal last = BigDecimal.ZERO;
+	private BigDecimal average = BigDecimal.ZERO;
+	private BigDecimal total=BigDecimal.ZERO;
+	private BigDecimal count=BigDecimal.ZERO;
 	public static DecimalFormat df = new java.text.DecimalFormat(
 			"#0.00");
 
@@ -27,6 +27,10 @@ public class MonitorDataStat {
 		count=count.add(BigDecimal.ONE);
 		average=total.divide(count,2,BigDecimal.ROUND_HALF_UP);
 		last=t;
+	}
+	
+	public void addData(String[] d){
+
 	}
 	
 	public String getLabel() {

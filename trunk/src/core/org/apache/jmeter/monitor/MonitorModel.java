@@ -114,7 +114,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 	
 	protected transient ObjectTableModel model;
 	
-	private JTable myJTable = null;
+	protected JTable myJTable = null;
 	
 	private static final String[] COLUMNS = { "jf_name", "spline_visualizer_average",
 		"spline_visualizer_minimum", "spline_visualizer_maximum", "jf_last", };
@@ -140,8 +140,8 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 		}
 	}
 	
-	public MonitorModel(){
-		// 初始化列表
+	// 初始化列表
+	protected void initTable(){
 		model = new ObjectTableModel(COLUMNS, MonitorDataStat.class, new Functor[] {
 			new Functor("getLabel"), new Functor("getAverage"),
 			new Functor("getMin"), new Functor("getMax"),
@@ -156,7 +156,10 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 		RendererUtils.applyRenderers(myJTable, RENDERERS);
 		JScrollPane myScrollPane = new JScrollPane(myJTable);
 		tablePanel.add(myScrollPane,BorderLayout.CENTER);
-		
+	}
+	
+	public MonitorModel(){
+		initTable();
 		DateAxis localDateAxis = new DateAxis(JMeterUtils
 				.getResString("monitor_time"));
 
@@ -341,10 +344,15 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 		checkboxPanel.add(jb);
 		cbMap.put(jb, tmp[2]);
 		// 增加列表行
+		addLineToTable(tmp[2]);
+	}
+	
+	public synchronized void addLineToTable(String name){
+		// 增加列表行
 		MonitorDataStat mds=new MonitorDataStat();
-		mds.setLabel(tmp[2]);
+		mds.setLabel(name);
 		model.insertRow(mds, model.getRowCount());
-		tableRowMap.put(tmp[2], mds);
+		tableRowMap.put(name, mds);
 	}
 	
 	protected JCheckBox createChooseCheckBox(String labelResourceName, Color color) {

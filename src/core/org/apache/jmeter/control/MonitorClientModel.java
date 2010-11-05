@@ -13,7 +13,9 @@ import javax.swing.JOptionPane;
 import org.apache.jmeter.exceptions.IllegalUserActionException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
+import org.apache.jmeter.monitor.JmeterMonitorDataStat;
 import org.apache.jmeter.monitor.Monitor;
+import org.apache.jmeter.monitor.MonitorDataStat;
 import org.apache.jmeter.monitor.MonitorLine;
 import org.apache.jmeter.monitor.MonitorModel;
 import org.apache.jmeter.monitor.MonitorModelFactory;
@@ -533,11 +535,12 @@ public class MonitorClientModel implements Runnable {
 					Monitor mr = (Monitor) dataNode.getUserObject();
 					mr.setMonitorModel(model);
 					model.setPathName("jmeter");
-					model.setHost("jmeter");
+					model.setHost(monitorAgent.getName());
 					model.setCategory("jmeter");
 					model.setTitle("jmeter");
 					model.setNumberAxis("jmeter");
 					model.initSecondValueAxis("jmeter");
+					model.addLineToTable(monitorAgent.getName());
 //					TimeSeries ts = new TimeSeries(JMeterUtils
 //							.getResString("curve_results_throughput"),
 //							org.jfree.data.time.Second.class);

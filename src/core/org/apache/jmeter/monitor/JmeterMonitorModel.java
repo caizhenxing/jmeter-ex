@@ -1,19 +1,48 @@
 package org.apache.jmeter.monitor;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import javax.swing.JCheckBox;
+import javax.swing.JScrollPane;
+import javax.swing.table.TableCellRenderer;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jmeter.gui.util.HeaderAsPropertyRenderer;
+import org.apache.jmeter.gui.util.YccCustomTable;
 import org.apache.jmeter.monitor.gui.MonitorGui;
+import org.apache.jorphan.gui.NumberRenderer;
+import org.apache.jorphan.gui.ObjectTableModel;
+import org.apache.jorphan.gui.RendererUtils;
 import org.apache.jorphan.logging.LoggingManager;
+import org.apache.jorphan.reflect.Functor;
 import org.apache.log.Logger;
 import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 
 public class JmeterMonitorModel extends MonitorModel{
 	private static final Logger log = LoggingManager.getLoggerForClass();
+	
+	
+	private static final String[] COLUMNS = { "jf_name",
+			"aggregate_report_count", "aggregate_graph_response_time",
+			"aggregate_report_min", "aggregate_report_max",
+			"aggregate_report_stddev", "aggregate_report_error%",
+			"aggregate_report_rate" };
+	
+	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
+			null, // Label
+			null, // count
+			null, // respone time
+			null, // Min
+			null, // Max
+			null, // stddev
+			new NumberRenderer("#0.00%"), // error
+			null, // tps
+	};
 	
 	public synchronized void addTimeSeries(String name, TimeSeries ts) {
 		if (MonitorGui.MONITOR_CONFIGURE.get(category).getYAxisCount() == 1) {
@@ -34,18 +63,40 @@ public class JmeterMonitorModel extends MonitorModel{
 		JCheckBox jb = createChooseCheckBox(tmp[1], Color.BLACK);
 		checkboxPanel.add(jb);
 		cbMap.put(jb, tmp[1]);
-		// å¢žåŠ åˆ—è¡¨è¡Œ
-		MonitorDataStat mds=new MonitorDataStat();
-		mds.setLabel(tmp[1]);
-		model.insertRow(mds, model.getRowCount());
-		tableRowMap.put(tmp[1], mds);
 	}
 	
+	public synchronized void addLineToTable(String name){
+		// Ôö¼ÓÁÐ±íÐÐ
+		JmeterMonitorDataStat mds=new JmeterMonitorDataStat();
+		mds.setLabel(name);
+		model.insertRow(mds, model.getRowCount());
+		tableRowMap.put(name, mds);
+	}
+	
+	// ³õÊ¼»¯ÁÐ±í
+	protected void initTable(){
+		model = new ObjectTableModel(COLUMNS, JmeterMonitorDataStat.class, new Functor[] {
+			new Functor("getLabel"), new Functor("getCount"),
+			new Functor("getResponeTime"), new Functor("getMinValue"),
+			new Functor("getMaxValue"), new Functor("getStddev"),new Functor("getError"),new Functor("getTps")}, new Functor[] { null, null, null,
+			null, null, null, null, null }, new Class[] { String.class, BigDecimal.class,BigDecimal.class,
+			BigDecimal.class, BigDecimal.class, BigDecimal.class,BigDecimal.class,BigDecimal.class,BigDecimal.class });
+		 
+		myJTable = new YccCustomTable(model);
+		myJTable.getTableHeader().setDefaultRenderer(
+				new HeaderAsPropertyRenderer());
+		myJTable.setPreferredScrollableViewportSize(new Dimension(500, 100));
+		RendererUtils.applyRenderers(myJTable, RENDERERS);
+		JScrollPane myScrollPane = new JScrollPane(myJTable);
+		tablePanel.add(myScrollPane,BorderLayout.CENTER);
+	}
+
 	public void updateGui(String category, String[] fs, String[] strings) {
 			updateAverageTime(strings);
 			updateTps(strings);
-			updateErrNum(strings);
-			updateStdDevTime(strings);
+			// ¸üÐÂ±í
+			tableRowMap.get(super.getHost()).addData(strings);
+			myJTable.repaint();
 	}
 	
 	private void updateGui(TimeSeries ts,String value,String t){
@@ -59,6 +110,10 @@ public class JmeterMonitorModel extends MonitorModel{
 		updateGui(ts, new Second(time), v);
 	}
 	
+	public synchronized void updateGui(TimeSeries ts, Second s, Number v) {
+		ts.addOrUpdate(s, v);
+	}
+	
 	private void updateAverageTime(String[] strings){
 		TimeSeries ts = dataMap.get("jmeter$$avgTime");
 		updateGui(ts,strings[2],strings[0]);
@@ -67,16 +122,4 @@ public class JmeterMonitorModel extends MonitorModel{
 	private void updateTps(String[] strings){
 		TimeSeries ts = dataMap.get("jmeter$$avgTps");
 	}
-	
-	private void updateErrNum(String[] strings){
-		TimeSeries ts = dataMap.get("jmeter$$errNum");
-		updateGui(ts,strings[8],strings[0]);
-	}
-	
-	private void updateStdDevTime(String[] strings){
-		TimeSeries ts = dataMap.get("jmeter$$stdDevTime");
-		updateGui(ts,strings[3],strings[0]);
-	}
-	
-	
 }

@@ -728,28 +728,6 @@
             <dataType>Long</dataType>
           </org.apache.jmeter.monitor.MonitorLine>
         </java.util.Map_-Entry>
-		<!--错误数-->
-        <java.util.Map_-Entry>
-          <java.lang.String>errNum</java.lang.String>
-          <org.apache.jmeter.monitor.MonitorLine>
-            <name>errNum</name>
-            <showType>2</showType>
-            <lineType></lineType>
-            <lineColor>GREEN</lineColor>
-            <dataType>Long</dataType>
-          </org.apache.jmeter.monitor.MonitorLine>
-        </java.util.Map_-Entry>
-		<!--标准方差-->
-        <java.util.Map_-Entry>
-          <java.lang.String>stdDevTime</java.lang.String>
-          <org.apache.jmeter.monitor.MonitorLine>
-            <name>stdDevTime</name>
-            <showType>1</showType>
-            <lineType></lineType>
-            <lineColor>ORANGE</lineColor>
-            <dataType>Long</dataType>
-          </org.apache.jmeter.monitor.MonitorLine>
-        </java.util.Map_-Entry>
       </lines>
     </org.apache.jmeter.monitor.MonitorCatogory>
   </java.util.Map_-Entry>

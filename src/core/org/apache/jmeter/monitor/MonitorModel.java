@@ -314,6 +314,10 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 		cbMap.put(jb, tmp[2]);
 	}
 	
+	public ObjectTableModel getTableModel(){
+		return model;
+	}
+	
 	/**
 	 * 在查看历史的时候将已经计算好的结果输出至表格上
 	 * @since jex003A

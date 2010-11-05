@@ -50,6 +50,8 @@ import org.apache.jmeter.gui.tree.JMeterCellRenderer;
 import org.apache.jmeter.gui.util.FileDialoger;
 import org.apache.jmeter.gui.util.HorizontalPanel;
 import org.apache.jmeter.gui.util.VerticalPanel;
+import org.apache.jmeter.monitor.JmeterMonitorDataStat;
+import org.apache.jmeter.monitor.JmeterMonitorModel;
 import org.apache.jmeter.monitor.MonitorDataStat;
 import org.apache.jmeter.monitor.MonitorLine;
 import org.apache.jmeter.monitor.MonitorModel;
@@ -365,12 +367,62 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 				} else {
 					rt.setEndTime("");
 				}
-				
+
 				// 取得所有的监控项
 				Map<String, ArrayList<MonitorAgent>>  agentMap = model.getProjectMonitorAgentsWithReportTime(item, rt.getTime());
 				for (Iterator<String> iterator = agentMap.keySet().iterator(); iterator
 						.hasNext();) {
 					String ip = iterator.next();
+					if (ip.equals("jmeter")) {
+						// 单独处理Jmeter监控
+						ViewTreeNode serverNode = new  ViewTreeNode(ip);
+						ViewTabbedPane tab = new ViewTabbedPane();
+						serverNode.setTabbedPanel(tab);
+						treeModel.insertNodeInto(serverNode, treeModel.getRootNode(), treeModel.getRootNode().getChildCount());
+						ArrayList<MonitorAgent> aglst= agentMap.get(ip);
+						System.out.println(aglst);
+						for (Iterator<MonitorAgent> iterator2 = aglst.iterator(); iterator2
+						.hasNext();) {
+							MonitorAgent monitorAgent = iterator2.next();
+							MonitorModel monitorModel = MonitorModelFactory
+							.getMonitorModel(monitorAgent.getMachineIp());
+							if (monitorModel==null) {
+								log.warn("Unkonw moniotr:"+ monitorAgent.getName());
+								continue;
+							}
+							JmeterMonitorModel jmeterMonitorModel=(JmeterMonitorModel)monitorModel;
+							jmeterMonitorModel.setPathName(ip + monitorAgent.getName());
+							jmeterMonitorModel.setHost(monitorAgent.getName());
+							jmeterMonitorModel.setCategory(ip);
+							jmeterMonitorModel.setTitle("jmeter");
+							jmeterMonitorModel.setNumberAxis("jmeter");
+							jmeterMonitorModel.initSecondValueAxis("jmeter");
+							// 显示的指标
+							String tmp = ip +"$$"+ monitorAgent.getName() + "$$";
+							Map<String, MonitorLine> lines = MonitorGui.MONITOR_CONFIGURE
+									.get(ip).getLines();
+							// 取得所有数据
+							MonitorData md = model.getMonitorDataByDuration(
+									monitorAgent, rt.getTimeValue(), rt
+									.getEndTimeValue());
+							// 取得直线
+							for (Iterator<String> iterator3 = lines.keySet()
+									.iterator(); iterator3.hasNext();) {
+								String line = iterator3.next();
+								new Thread(new JmeterChartPanelCreater(tmp, line,
+										monitorAgent, md,
+										jmeterMonitorModel,beginTime,endTime)).start();
+							}
+							
+							// 初始化Tab面板
+							JPanel tp = new JPanel(new BorderLayout());
+							tp.add(jmeterMonitorModel.getCheckBoxPanel(),BorderLayout.NORTH);
+							tp.add(jmeterMonitorModel.getChartPanel(),BorderLayout.CENTER);
+							tp.add(jmeterMonitorModel.getTablePanel(),BorderLayout.SOUTH);
+							tab.add(monitorAgent.getName(), tp);
+						}
+						continue;
+					}
 					// 添加Server树节点
 					ViewTreeNode serverNode = new  ViewTreeNode(ip);
 					ViewTabbedPane tab = new ViewTabbedPane();
@@ -418,7 +470,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						tab.add(monitorAgent.getName(), tp);
 					}
 				}
-
+				
 				// 展开所有树节点
 				for (int i = 0; i < tree.getRowCount(); i++) {
 					tree.expandRow(i);
@@ -525,6 +577,80 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		mainPanel.setViewportView(selectedNode.getTabbedPanel());
 	}
 	
+	class JmeterChartPanelCreater implements Runnable {
+		private MonitorAgent monitorAgent = null;
+		private MonitorData md = null;
+		private JmeterMonitorModel monitorModel = null;
+		private String ip = null;
+		private String line = null;
+		private boolean goon = true;
+		private List<String> lst = null;
+		private DataMergeService service = null;
+		private long beginTime = Long.MIN_VALUE;
+		private long endTime = Long.MAX_VALUE;
+
+		public JmeterChartPanelCreater(String ip, String line,
+				MonitorAgent monitorAgent, MonitorData md,
+				JmeterMonitorModel monitorModel,long beginTime,long endTime) {
+			this.ip = ip;
+			this.line = line;
+			this.monitorAgent = monitorAgent;
+			this.md = md;
+			this.monitorModel = monitorModel;
+			this.endTime = endTime;
+			this.beginTime = beginTime;
+			
+			// 设置可以容忍的百分比
+			service = new DataMergeService(ResultViewFrame.persent);
+			lst = Arrays.asList(md.getFields());
+		}
+
+		public void run() {
+			String name = ip + line;
+			if (!MonitorGui.MONITOR_CONFIGURE.get("jmeter").getShowType(line).equals(
+					"-")) {
+				TimeSeries ts = new TimeSeries(line,
+						org.jfree.data.time.Second.class);
+				ts.setMaximumItemAge(50000);
+				JmeterMonitorDataStat mds = new JmeterMonitorDataStat();
+				List<String[]> results = md.getValues();
+				int nmb = lst.indexOf(line);
+				// System.out.println(name+"'s count is: "+results.size());
+				int count = 0;
+				for (Iterator<String[]> iterator4 = results.iterator(); iterator4
+						.hasNext();) {
+					String[] values = iterator4.next();
+					String strings = values[nmb];
+					Date time = null;
+					try {
+						time = new Date(Long.parseLong(values[0]));
+						// 判断time是否在指定的区间
+						if (time.getTime() < beginTime) {
+							continue;
+						}
+						if (goon && time.getTime() >= endTime) {
+							goon = false;
+						}
+					} catch (NumberFormatException ne) {
+						System.out.println("Error date value:");
+						log.error("Error date value:" + values[0]);
+					}
+					Long v = Long.parseLong(StringUtils.strip(strings));
+					mds.addData(values);
+					if (service.isInsertData(time, v, iterator4.hasNext()
+							&& goon)) {
+						ts.addOrUpdate(new Second(time), v);
+						count++;
+					}
+				}
+				// System.out.println(name+" 's draw count is: "+count);
+				monitorModel.addLazyTimeSeries(name, ts);
+				if (monitorModel.getTableModel().getRowCount()==0) {
+					monitorModel.addRowToTable(name, mds);
+				}
+			}
+		}
+	}
 	class ChartPanelCreater implements Runnable {
 		private MonitorAgent monitorAgent = null;
 		private MonitorData md = null;

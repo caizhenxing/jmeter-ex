@@ -115,7 +115,9 @@ public class TotalSampleSummariser extends Summariser {
 			// 标准方差
 			append(",").append(df.format(sv.getStandardDeviation()))
 			// 平方和
-			.append(",").append(df.format(sv.getSqurSum()));
+			.append(",").append(df.format(sv.getSqurSum()))
+			// TPS
+			.append(",").append(df.format(sv.getMaxThroughput()));
 		}
 		return sb.toString();
 	}

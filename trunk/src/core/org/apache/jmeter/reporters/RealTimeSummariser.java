@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -27,6 +28,7 @@ public class RealTimeSummariser extends Summariser {
 	private transient volatile PrintWriter writer= null;
 	private transient volatile PrintWriter labelWriter= null;
 	private WriteTimer myTask=null;
+	private DecimalFormat df=new DecimalFormat("#.0000");
 	private Map<Integer,SummariserSamplingStatCalculator> labelMap = new HashMap<Integer,SummariserSamplingStatCalculator>();
 	private Map<Integer,String> labelCode = new HashMap<Integer,String>();
 	public RealTimeSummariser(String s) {
@@ -105,7 +107,9 @@ public class RealTimeSummariser extends Summariser {
 			// 标准方差
 			append(",").append(sv.getStandardDeviation()).
 			// 平方和
-			append(",").append(sv.getSqurSum());
+			append(",").append(sv.getSqurSum())
+	         // TPS
+            .append(",").append(df.format(sv.getMaxThroughput()));
 		}
 		return sb.toString();
 	}

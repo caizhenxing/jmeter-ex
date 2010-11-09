@@ -381,6 +381,23 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			stopProject.setEnabled(true);
 		// 获取Agent
 		} else if (e.getSource() == configure){
+			boolean hasReady = false;
+			for (Iterator<Integer> iterator = agentSeverContainer.keySet()
+					.iterator(); iterator.hasNext();) {
+				AgentServer as = agentSeverContainer.get(iterator.next());
+				if (as.getState().equals(AgentServer.READY)) {
+					hasReady = true;
+					break;
+				}
+			}
+			if (hasReady) {
+				if (!(JOptionPane.showConfirmDialog(null, JMeterUtils
+						.getResString("has_ready_warn"), JMeterUtils
+						.getResString("confirm_title_ready"),
+						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)) {
+					return ;
+				}
+			}
 			model.setServiceUrl(rangeField.getText());
 			updateAgentList();
 		// 获取进程
@@ -525,15 +542,15 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		} else if (e.getSource() == stopProject){
 			int rowI = agentTable.getSelectedRow();
 			if (rowI != -1) {
-				if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_stop_project"),JMeterUtils.getResString("confirm_title_stop"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
-					return;
-				}
 				AgentServer as = agentSeverContainer.get(rowI);
 				if (!as.getState().equals(AgentServer.RUN)||(as.getProject()==null||as.getProject().equals(""))) {
 					JOptionPane.showMessageDialog(null, JMeterUtils
 							.getResString("error_no_project"), JMeterUtils
 							.getResString("server_bench_error"),
 							JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_stop_project"),JMeterUtils.getResString("confirm_title_stop"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
 					return;
 				}
 				RemoteAgent ra =model.getRemoteAgentMap().get(as);
@@ -584,22 +601,23 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		}
 	}
 	
-	private boolean updateAgentList(){
-		boolean res=false;
-		List<AgentServer> aglst=null;
+	private boolean updateAgentList() {
+		boolean res = false;
+		List<AgentServer> aglst = null;
 		agentSeverContainer.clear();
 		tableModel.clearData();
 		try {
-			aglst=model.configure();
+			aglst = model.configure();
 		} catch (MalformedURLException e1) {
 			return res;
-		} catch (UndeclaredThrowableException e1){
+		} catch (UndeclaredThrowableException e1) {
 			return res;
 		}
-		if (aglst!=null) {
+		if (aglst != null) {
 			Collections.sort(aglst);
-			for (Iterator<AgentServer> iterator = aglst.iterator(); iterator.hasNext();) {
-				AgentServer as =iterator.next();
+			for (Iterator<AgentServer> iterator = aglst.iterator(); iterator
+					.hasNext();) {
+				AgentServer as = iterator.next();
 				agentSeverContainer.put(tableModel.getRowCount(), as);
 				tableModel.insertRow(as, tableModel.getRowCount());
 			}

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jmeter.testelement.AbstractTestElement;
+import org.apache.jmeter.util.JMeterUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -57,8 +58,16 @@ public class Server extends AbstractTestElement implements Serializable {
 			parseMemInfo(memoryinfo);
 			String osinfo = jsonObject.getString("os");
 			parseOSInfo(osinfo);
+//			String netinfo = jsonObject.getString("net");
+//			parseNetInfo(netinfo);
 		} catch (JSONException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	private void parseNetInfo(String info){
+		if (info == null ||info.equals("null")||StringUtils.isBlank(info)) {
+			return;
 		}
 	}
 	
@@ -75,10 +84,10 @@ public class Server extends AbstractTestElement implements Serializable {
 			kv.put(tmp[0].trim(), tmp[1].trim());
 		}
 		StringBuilder sb = new StringBuilder();
-		sb.append("处理器数量：").append(kv.get("processor count")).append(NEW_LINE)
-				.append("型号：").append(kv.get("model name")).append(NEW_LINE)
-				.append("主频：").append(kv.get("cpu MHz")).append(" MHz").append(NEW_LINE)
-				.append("L2缓存大小：").append(kv.get("cache size"));
+		sb.append(JMeterUtils.getResString("processor_count")).append(kv.get("processor count")).append(NEW_LINE)
+				.append(JMeterUtils.getResString("processor_type")).append(kv.get("model name")).append(NEW_LINE)
+				.append(JMeterUtils.getResString("frequency")).append(kv.get("cpu MHz")).append(" MHz").append(NEW_LINE)
+				.append(JMeterUtils.getResString("l2_cache_size")).append(kv.get("cache size"));
 		cpu_info=sb.toString();
 	}
 	
@@ -93,7 +102,7 @@ public class Server extends AbstractTestElement implements Serializable {
 			kv.put(tmp[0], tmp[1].trim());
 		}
 		StringBuilder sb = new StringBuilder();
-		sb.append("内存大小：").append(kv.get("MemTotal"));
+		sb.append(JMeterUtils.getResString("memory_size")).append(kv.get("MemTotal"));
 		mem_info=sb.toString();
 	}
 	
@@ -112,9 +121,9 @@ public class Server extends AbstractTestElement implements Serializable {
 			}
 			String[] tmp = items[i].split(":");
 			if (tmp[0].trim().equals("tmpfs")) {
-				sb1.append("虚拟内存：").append(tmp[1]).append(NEW_LINE);
+				sb1.append(JMeterUtils.getResString("swap")).append(tmp[1]).append(NEW_LINE);
 			} else {
-				sb.append("磁盘 -").append(count).append(" ：").append(tmp[0].trim()).append(":").append(tmp[1]).append(NEW_LINE);
+				sb.append(JMeterUtils.getResString("disk")).append(count).append(" : ").append(tmp[0].trim()).append(":").append(tmp[1]).append(NEW_LINE);
 				count++;
 			}
 		}
@@ -127,7 +136,7 @@ public class Server extends AbstractTestElement implements Serializable {
 			return;
 		}
 		StringBuilder sb = new StringBuilder();
-		sb.append("操作系统信息：").append(info).append(NEW_LINE);
+		sb.append(JMeterUtils.getResString("version")).append(info).append(NEW_LINE);
 		os_info=sb.toString();
 	}
 }

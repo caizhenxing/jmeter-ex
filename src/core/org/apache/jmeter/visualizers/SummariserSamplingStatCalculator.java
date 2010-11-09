@@ -21,8 +21,15 @@ public class SummariserSamplingStatCalculator extends SamplingStatCalculator {
      * Records a sample.
      */
     public Sample addSample(SampleResult res) {
-        long eCount;
-        long endTime;
+        long rtime = 0L;
+        long cmean = 0L;
+        long cstdv = 0L;
+        long cmedian = 0L;
+        long cpercent = 0L;
+        long eCount = 0L;
+        long endTime = 0L;
+        ;
+        boolean rbool = false;
         double throughput;
         synchronized (calculator) {
             long byteslength = res.getBytes();
@@ -47,7 +54,14 @@ public class SummariserSamplingStatCalculator extends SamplingStatCalculator {
             throughput = ((double) calculator.getCount() / (double) howLongRunning) * 1000.0;
             maxThroughput = throughput;
         }
-        return null;
+
+        synchronized (storedValues) {
+            int count = storedValues.size() + 1;
+            Sample s = new Sample(null, rtime, cmean, cstdv, cmedian, cpercent, throughput, eCount,
+                    rbool, count, endTime);
+            storedValues.add(s);
+            return s;
+        }
     }
 
     public void addSamples(SamplingStatCalculator ssc) {

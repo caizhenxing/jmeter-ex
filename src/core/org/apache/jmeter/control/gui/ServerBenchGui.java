@@ -299,8 +299,9 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		actPanel.add(edit);
 		actPanel.add(Box.createHorizontalStrut(20));
 		actPanel.add(startBT);
-		actPanel.add(Box.createHorizontalStrut(20));
-		actPanel.add(stop);
+		// 不再使用停止Agent
+//		actPanel.add(Box.createHorizontalStrut(20));    // jex003D
+//		actPanel.add(stop);                             // jex003D
 		actPanel.add(Box.createHorizontalStrut(20));
 		actPanel.add(stopProject);
 		add(actPanel);

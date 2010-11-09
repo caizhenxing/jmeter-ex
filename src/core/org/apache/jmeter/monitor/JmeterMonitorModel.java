@@ -29,7 +29,7 @@ public class JmeterMonitorModel extends MonitorModel{
 	
 	private static final String[] COLUMNS = { "jf_name",
 			"aggregate_report_count", "aggregate_graph_response_time",
-			"aggregate_report_min", "aggregate_report_max",
+			"aggregate_report_max", "aggregate_report_min",
 			"aggregate_report_stddev", "aggregate_report_error%",
 			"aggregate_report_rate" };
 	
@@ -41,7 +41,7 @@ public class JmeterMonitorModel extends MonitorModel{
 			null, // Max
 			null, // stddev
 			new NumberRenderer("#0.00%"), // error
-			null, // tps
+			new NumberRenderer("#0.00"), // tps
 	};
 	
 	public synchronized void addTimeSeries(String name, TimeSeries ts) {
@@ -64,23 +64,33 @@ public class JmeterMonitorModel extends MonitorModel{
 		checkboxPanel.add(jb);
 		cbMap.put(jb, tmp[1]);
 	}
-	
+
+    /**
+     * 在查看历史的时候将已经计算好的结果输出至表格上
+     * @since jex003A
+     */
+    public synchronized void addRowToTable(String name,MonitorDataStat mds){
+        String[] tmp = name.split("\\$\\$");
+        mds.setLabel(tmp[1]);
+        model.insertRow(mds, model.getRowCount());
+    }
+
 	public synchronized void addLineToTable(String name){
-		// �����б���
+	    // 增加列表行
 		JmeterMonitorDataStat mds=new JmeterMonitorDataStat();
 		mds.setLabel(name);
 		model.insertRow(mds, model.getRowCount());
 		tableRowMap.put(name, mds);
 	}
 	
-	// ��ʼ���б�
+	// 初始化列表
 	protected void initTable(){
 		model = new ObjectTableModel(COLUMNS, JmeterMonitorDataStat.class, new Functor[] {
 			new Functor("getLabel"), new Functor("getCount"),
 			new Functor("getResponeTime"), new Functor("getMinValue"),
 			new Functor("getMaxValue"), new Functor("getStddev"),new Functor("getError"),new Functor("getTps")}, new Functor[] { null, null, null,
 			null, null, null, null, null }, new Class[] { String.class, BigDecimal.class,BigDecimal.class,
-			BigDecimal.class, BigDecimal.class, BigDecimal.class,BigDecimal.class,BigDecimal.class,BigDecimal.class });
+			BigDecimal.class, BigDecimal.class, BigDecimal.class,BigDecimal.class,BigDecimal.class,Double.class });
 		 
 		myJTable = new YccCustomTable(model);
 		myJTable.getTableHeader().setDefaultRenderer(
@@ -94,7 +104,7 @@ public class JmeterMonitorModel extends MonitorModel{
 	public void updateGui(String category, String[] fs, String[] strings) {
 			updateAverageTime(strings);
 			updateTps(strings);
-			// ���±�
+			// 更新表
 			tableRowMap.get(super.getHost()).addData(strings);
 			myJTable.repaint();
 	}
@@ -121,5 +131,14 @@ public class JmeterMonitorModel extends MonitorModel{
 	
 	private void updateTps(String[] strings){
 		TimeSeries ts = dataMap.get("jmeter$$avgTps");
+//		updateGui(ts,strings[10],strings[0]);
+	      Date time = null;
+	        try {
+	            time = new Date(Long.parseLong(strings[0]));
+	        } catch (NumberFormatException e) {
+	            log.error("Error date value:" + strings[0]);
+	        }
+	        Double v = Double.parseDouble(StringUtils.strip(strings[7]));
+	        updateGui(ts, new Second(time), v);
 	}
 }

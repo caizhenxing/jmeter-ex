@@ -110,6 +110,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	// 用于查看历史按钮活性设置的回调
 	private ServerBenchGui benchgui=null;
 	private MonitorClientModel model = null;
+	private boolean hasTotal = false;
 	
 	static {
 		String value=JMeterUtils.getProperty("monitor.persent");
@@ -380,7 +381,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						serverNode.setTabbedPanel(tab);
 						treeModel.insertNodeInto(serverNode, treeModel.getRootNode(), treeModel.getRootNode().getChildCount());
 						ArrayList<MonitorAgent> aglst= agentMap.get(ip);
-						System.out.println(aglst);
 						for (Iterator<MonitorAgent> iterator2 = aglst.iterator(); iterator2
 						.hasNext();) {
 							MonitorAgent monitorAgent = iterator2.next();
@@ -635,19 +635,33 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						System.out.println("Error date value:");
 						log.error("Error date value:" + values[0]);
 					}
-					Long v = Long.parseLong(StringUtils.strip(strings));
-					mds.addData(values);
-					if (service.isInsertData(time, v, iterator4.hasNext()
-							&& goon)) {
-						ts.addOrUpdate(new Second(time), v);
-						count++;
-					}
+					if (line.equals("avgTime")) {
+					    Long v = Long.parseLong(StringUtils.strip(strings));
+					    mds.addData(values);
+					    if (service.isInsertData(time, v, iterator4.hasNext()
+					            && goon)) {
+					        ts.addOrUpdate(new Second(time), v);
+					        count++;
+					    }
+                    } else if (line.equals("avgTps")){
+                        Double v = Double.parseDouble(StringUtils.strip(strings));
+                        mds.addData(values);
+                        if (service.isInsertData(time, v, iterator4.hasNext()
+                                && goon)) {
+                            ts.addOrUpdate(new Second(time), v);
+                            count++;
+                        }
+                    }
 				}
 				// System.out.println(name+" 's draw count is: "+count);
 				monitorModel.addLazyTimeSeries(name, ts);
-				if (monitorModel.getTableModel().getRowCount()==0) {
-					monitorModel.addRowToTable(name, mds);
-				}
+				// 只保留一个总结果
+				synchronized (this) {
+				    if (!hasTotal) {
+				        monitorModel.addRowToTable(name, mds);
+				        hasTotal=true;
+				    }
+                }
 			}
 		}
 	}

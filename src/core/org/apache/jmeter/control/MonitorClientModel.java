@@ -13,9 +13,7 @@ import javax.swing.JOptionPane;
 import org.apache.jmeter.exceptions.IllegalUserActionException;
 import org.apache.jmeter.gui.GuiPackage;
 import org.apache.jmeter.gui.tree.JMeterTreeNode;
-import org.apache.jmeter.monitor.JmeterMonitorDataStat;
 import org.apache.jmeter.monitor.Monitor;
-import org.apache.jmeter.monitor.MonitorDataStat;
 import org.apache.jmeter.monitor.MonitorLine;
 import org.apache.jmeter.monitor.MonitorModel;
 import org.apache.jmeter.monitor.MonitorModelFactory;
@@ -67,6 +65,9 @@ public class MonitorClientModel implements Runnable {
 	private List<MonitorGui> guiList = new ArrayList<MonitorGui>();
 	private HessianProxyFactory factory = new HessianProxyFactory();
 	private String pid = "";
+	
+	// 缓存agent，取数据时使用
+	private Map<String, MonitorAgent> agentMap = new HashMap<String, MonitorAgent>();
 
 	public void modifiedServerURL(){
 		modified=true;
@@ -87,9 +88,6 @@ public class MonitorClientModel implements Runnable {
 		}
 		return remoteControllerService;
 	}
-	
-	// 缓存agent，取数据时使用
-	private Map<String, MonitorAgent> agentMap = new HashMap<String, MonitorAgent>();
 
 	public MonitorClientModel() {
 		String value=JMeterUtils.getProperty("monitor.interval");
@@ -573,7 +571,6 @@ public class MonitorClientModel implements Runnable {
 
 					// 缓存Monitor与MonitorGui
 					this.linespecMap.put(tmp+"avgTime", mr);
-					// guiList.add(com);
 				}
 			}
 		}
@@ -653,16 +650,19 @@ public class MonitorClientModel implements Runnable {
 	 * 取得正在运行的工程名字
 	 */
 	public List<String> getProjects(String url) throws MalformedURLException {
-//		List<String> res=new ArrayList<String>();
-//		List<MonitorProject> lst =getRemoteDataService().getAllMonitorProject();
-//		for (Iterator<MonitorProject> iterator = lst.iterator(); iterator.hasNext();) {
-//			MonitorProject monitorProject = iterator.next();
-//			if (monitorProject.isRun()) {
-//				res.add(monitorProject.getProjectName());
-//			}
-//		}
-//		return res;
-		return getRemoteDataService().getProjects();
+		List<String> res=new ArrayList<String>();
+		List<MonitorProject> lst =getRemoteDataService().getAllMonitorProject();
+		for (Iterator<MonitorProject> iterator = lst.iterator(); iterator.hasNext();) {
+			MonitorProject monitorProject = iterator.next();
+			if (monitorProject.isRun()) {
+				res.add(monitorProject.getProjectName());
+			}
+		}
+		if (res.isEmpty()) {
+		    res.add(JMeterUtils.getResString("no_running_projects"));
+        }
+		return res;
+//		return getRemoteDataService().getProjects();    // jex003D
 	}
 
 	public synchronized void disConnect() {

@@ -2,6 +2,7 @@ package org.apache.jmeter.control.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -31,6 +32,7 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 
 import org.apache.jmeter.control.AgentServer;
 import org.apache.jmeter.gui.util.YccCustomTextField;
@@ -91,7 +93,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		this.setModal(true);
 		this.setResizable(false);
 		this.setTitle(JMeterUtils.getResString("agent_configure_dialog"));
-		this.setSize(500, 570);
+		this.setSize(600, 570);
 		this.setLocation(400, 220);
 	}
 	
@@ -121,7 +123,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		cfPanel.setBorder(BorderFactory.createTitledBorder(JMeterUtils.getResString("configure_item")));
 		// port
 		Box tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel(JMeterUtils.getResString("item_port")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("item_port")));
 		portTF=new JTextField(10);
 		portTF.setEditable(false);
 		tmpPanel.add(portTF);
@@ -129,7 +131,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		
 		// IP
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel(JMeterUtils.getResString("item_ip")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("item_ip")));
 		ipTF=new JTextField(10);
 		ipTF.setEditable(false);
 		tmpPanel.add(ipTF);
@@ -137,21 +139,21 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		
 		// Project
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel(JMeterUtils.getResString("project_name")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("project_name")));
 		proTF=new JTextField(10);
 		tmpPanel.add(proTF);
 		cfPanel.add(tmpPanel);
 		
 		// Password
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel(JMeterUtils.getResString("password_item")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("password_item")));
 		pwdTF=new JTextField(10);
 		tmpPanel.add(pwdTF);
 		cfPanel.add(tmpPanel);
 		
 		// interval
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel(JMeterUtils.getResString("interval")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("interval")));
 		interTF = new YccCustomTextField(2, 0, 99);
 		interTF.setColumns(10);
 		tmpPanel.add(interTF);
@@ -160,28 +162,29 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		jbcustom.addItemListener(this);
 		bg.add(jbcustom);
 		tmpPanel.add(jbcustom);
-		tmpPanel.add(new JLabel("自定义"));
+		tmpPanel.add(new JLabel(JMeterUtils.getResString("customized")));
 		tmpPanel.add(Box.createHorizontalStrut(3));
 		jbfiftin.addItemListener(this);
 		bg.add(jbfiftin);
 		tmpPanel.add(jbfiftin);
-		tmpPanel.add(new JLabel("15分钟"));
+		String minute = JMeterUtils.getResString("minute");
+		tmpPanel.add(new JLabel("15 "+minute));
 		tmpPanel.add(Box.createHorizontalStrut(3));
 		jbthirty.addItemListener(this);
 		tmpPanel.add(jbthirty);
 		bg.add(jbthirty);
-		tmpPanel.add(new JLabel("30分钟"));
+		tmpPanel.add(new JLabel("30 "+minute));
 		tmpPanel.add(Box.createHorizontalStrut(3));
 		jbfortyfive.addItemListener(this);
 		tmpPanel.add(jbfortyfive);
 		bg.add(jbfortyfive);
-		tmpPanel.add(new JLabel("45分钟"));
+		tmpPanel.add(new JLabel("45 "+minute));
 		tmpPanel.add(Box.createHorizontalStrut(3));
 		cfPanel.add(tmpPanel);
 		
 		// time
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(new JLabel(JMeterUtils.getResString("monitor_count")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("monitor_count")));
 		timeTF = new YccCustomTextField(7, 0, 1296000);
 		timeTF.setColumns(10);
 		tmpPanel.add(timeTF);
@@ -190,27 +193,28 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		jbhour.addItemListener(this);
 		tmpPanel.add(jbhour);
 		bg.add(jbhour);
-		tmpPanel.add(new JLabel("1小时"));
+		tmpPanel.add(new JLabel("1 "+ JMeterUtils.getResString("hour")));
 		tmpPanel.add(Box.createHorizontalStrut(3));
 		jbday.addItemListener(this);
 		tmpPanel.add(jbday);
 		bg.add(jbday);
-		tmpPanel.add(new JLabel("1天"));
+		String day = JMeterUtils.getResString("day");
+		tmpPanel.add(new JLabel("1 "+day));
 		tmpPanel.add(Box.createHorizontalStrut(3));
 		jbthreeday.addItemListener(this);
 		tmpPanel.add(jbthreeday);
 		bg.add(jbthreeday);
-		tmpPanel.add(new JLabel("3天"));
+		tmpPanel.add(new JLabel("3 "+day));
 		tmpPanel.add(Box.createHorizontalStrut(3));
 		jbfiveday.addItemListener(this);
 		tmpPanel.add(jbfiveday);
 		bg.add(jbfiveday);
-		tmpPanel.add(new JLabel("5天"));
+		tmpPanel.add(new JLabel("5 "+day));
 		tmpPanel.add(Box.createHorizontalStrut(3));
 		jbsevenday.addItemListener(this);
 		tmpPanel.add(jbsevenday);
 		bg.add(jbsevenday);
-		tmpPanel.add(new JLabel("7天"));
+		tmpPanel.add(new JLabel("7 "+day));
 		cfPanel.add(tmpPanel);
 		
 		
@@ -240,7 +244,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 				Box jmeterPanel = Box.createHorizontalBox();
 				jmeterPanel.add(jb);
 				jmeterPanel.add(Box.createHorizontalStrut(10));
-				jmeterPanel.add(new JLabel("JmeterEx的bin目录："));
+				jmeterPanel.add(new JLabel(JMeterUtils.getResString("jmeter_path")));
 				jmeterPanel.add(Box.createHorizontalStrut(10));
 				jmeterTF = new JTextField(20);
 				jmeterPanel.add(jmeterTF);
@@ -254,6 +258,12 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		mainPanel.add(controlPanel, BorderLayout.NORTH);
 		mainPanel.add(cfPanel, BorderLayout.CENTER);
 		this.getContentPane().add(mainPanel, BorderLayout.CENTER);
+	}
+	
+	private JLabel getLabel(String name){
+		JLabel tmp = new JLabel(name,SwingConstants.RIGHT);
+		tmp.setPreferredSize(new Dimension(82, 15));
+		return tmp;
 	}
 	
 	public void addLiseners(ActionListener al){

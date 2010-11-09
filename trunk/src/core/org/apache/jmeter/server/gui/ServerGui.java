@@ -40,9 +40,16 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 	public static final String MEMORY_INFO = "mem_info";
 	public static final String DISK_INFO = "disk_info";
 	public static final String NET_INFO = "net_info";
+	public static final String OS_INFO = "os_info";
+	private static int CPU_PANEL_HEGHT = 100; // jex003A
+	private static int MEMORY_PANEL_HEGHT = 80; // jex003A
+	private static int DISK_PANEL_HEGHT = 150; // jex003A
+	private static int NET_PANEL_HEGHT = 80; // jex003A
+	private static int OS_PANEL_HEGHT = 80; // jex003A
+	private static Map<String,Integer> HIGHT_MAP=new HashMap<String,Integer>();
 	public Map<String,JTextArea> tamap=new HashMap<String,JTextArea>();
 	public static final int WEITH = 600;
-	public static final int HIGHT = 120;
+//	public static final int HIGHT = 120;	// jex003D
 	private Color c=new Color(238, 238, 238);
 //	private Server server =null;
 	/**
@@ -94,7 +101,8 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 			setHardDriveInfo(CPU_INFO, s.getCpuInfo());
 			setHardDriveInfo(MEMORY_INFO, s.getMemoryInfo());
 			setHardDriveInfo(DISK_INFO, s.getDiskInfo());
-			setHardDriveInfo(NET_INFO, s.getOsInfo());
+			setHardDriveInfo(NET_INFO, s.getNetInfo());
+			setHardDriveInfo(OS_INFO, s.getOsInfo());
 		}
 	}
 
@@ -132,6 +140,7 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		add(getItemPanel(MEMORY_INFO));
 		add(getItemPanel(DISK_INFO));
 		add(getItemPanel(NET_INFO));
+		add(getItemPanel(OS_INFO));
 	}
 
 	private JPanel getItemPanel(String item) {
@@ -144,7 +153,7 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		sc.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		sc.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		tamap.put(item, ta);
-		sc.setPreferredSize(new Dimension(WEITH, HIGHT));
+		sc.setPreferredSize(new Dimension(WEITH, HIGHT_MAP.get(item)));	// jex003C
 		tmpPanel.add(sc,BorderLayout.CENTER);
 		return tmpPanel;
 	}
@@ -160,6 +169,14 @@ public class ServerGui  extends AbstractJMeterGuiComponent implements ItemListen
 		Box box = Box.createVerticalBox();
 		box.add(makeTitlePanel());
 		add(box, BorderLayout.NORTH);
+		
+		// jex003A begin
+		HIGHT_MAP.put(CPU_INFO, CPU_PANEL_HEGHT);
+		HIGHT_MAP.put(MEMORY_INFO, MEMORY_PANEL_HEGHT);
+		HIGHT_MAP.put(DISK_INFO, DISK_PANEL_HEGHT);
+		HIGHT_MAP.put(NET_INFO, NET_PANEL_HEGHT);
+		HIGHT_MAP.put(OS_INFO, OS_PANEL_HEGHT);
+		// jex003A end
 	}
 	
 	public void setHardDriveInfo(String type,String Info){

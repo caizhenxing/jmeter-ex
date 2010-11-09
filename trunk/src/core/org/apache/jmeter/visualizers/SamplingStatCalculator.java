@@ -39,7 +39,7 @@ public class SamplingStatCalculator {
 
     protected final StatCalculator calculator = new StatCalculator();
 
-    private final List storedValues = new Vector();
+    protected final List storedValues = new Vector(); // jex003C
 
     protected double maxThroughput;
 

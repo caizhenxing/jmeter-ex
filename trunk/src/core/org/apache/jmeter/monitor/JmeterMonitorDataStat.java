@@ -12,7 +12,7 @@ public class JmeterMonitorDataStat extends MonitorDataStat {
 	private BigDecimal maxValue;
 	private BigDecimal stddev;
 	private BigDecimal error;
-	private BigDecimal tps;
+	private Double tps;
 
 	public void addData(String[] strs){
 		// count
@@ -22,11 +22,8 @@ public class JmeterMonitorDataStat extends MonitorDataStat {
 		maxValue=new BigDecimal(Long.parseLong(StringUtils.strip(strs[5])));
 		stddev=new BigDecimal(Long.parseLong(StringUtils.strip(strs[3])));
 		BigDecimal errNum=new BigDecimal(Long.parseLong(StringUtils.strip(strs[8])));
-		if (!errNum.equals(BigDecimal.ZERO)) {
-			System.out.println(errNum);
-		}
 		error=errNum.divide(count,2,BigDecimal.ROUND_HALF_UP);
-		tps=new BigDecimal(Long.parseLong(StringUtils.strip(strs[8])));
+		tps=new Double(Double.parseDouble(StringUtils.strip(strs[7])));
 	}
 	
 	public String getLabel() {
@@ -85,11 +82,11 @@ public class JmeterMonitorDataStat extends MonitorDataStat {
 		this.error = error;
 	}
 
-	public BigDecimal getTps() {
+	public Double getTps() {
 		return tps;
 	}
 
-	public void setTps(BigDecimal tps) {
+	public void setTps(Double tps) {
 		this.tps = tps;
 	}
 

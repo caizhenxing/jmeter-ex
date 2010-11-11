@@ -41,9 +41,19 @@ import org.apache.jorphan.gui.layout.VerticalLayout;
 
 import com.alibaba.b2b.qa.monitor.AgentCommand;
 
-
+/**
+ * 
+ * TODO Comment of ConfigurDialog
+ * @author chenchao.yecc
+ * @since jex002A
+ *
+ */
 public class ConfigurDialog extends JDialog implements ItemListener,ActionListener{
 	private static final long serialVersionUID = 1L;
+	private static final int ITEM_WEIGHT = 82;
+	private static final int ITEM_HIGHT = 15;
+	private static final int BOX_WEIGHT = 195;
+	private static final int BOX_HIGHT = 15;
 	private JTextField portTF=null;
 	private JTextField ipTF=null;
 	private JTextField proTF=null;
@@ -123,7 +133,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		cfPanel.setBorder(BorderFactory.createTitledBorder(JMeterUtils.getResString("configure_item")));
 		// port
 		Box tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(getLabel(JMeterUtils.getResString("item_port")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("item_port"),ITEM_WEIGHT,ITEM_HIGHT));
 		portTF=new JTextField(10);
 		portTF.setEditable(false);
 		tmpPanel.add(portTF);
@@ -131,7 +141,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		
 		// IP
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(getLabel(JMeterUtils.getResString("item_ip")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("item_ip"),ITEM_WEIGHT,ITEM_HIGHT));
 		ipTF=new JTextField(10);
 		ipTF.setEditable(false);
 		tmpPanel.add(ipTF);
@@ -139,21 +149,21 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		
 		// Project
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(getLabel(JMeterUtils.getResString("project_name")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("project_name"),ITEM_WEIGHT,ITEM_HIGHT));
 		proTF=new JTextField(10);
 		tmpPanel.add(proTF);
 		cfPanel.add(tmpPanel);
 		
 		// Password
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(getLabel(JMeterUtils.getResString("password_item")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("password_item"),ITEM_WEIGHT,ITEM_HIGHT));
 		pwdTF=new JTextField(10);
 		tmpPanel.add(pwdTF);
 		cfPanel.add(tmpPanel);
 		
 		// interval
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(getLabel(JMeterUtils.getResString("interval")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("interval"),ITEM_WEIGHT,ITEM_HIGHT));
 		interTF = new YccCustomTextField(2, 0, 99);
 		interTF.setColumns(10);
 		tmpPanel.add(interTF);
@@ -184,7 +194,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		
 		// time
 		tmpPanel = Box.createHorizontalBox();
-		tmpPanel.add(getLabel(JMeterUtils.getResString("monitor_count")));
+		tmpPanel.add(getLabel(JMeterUtils.getResString("monitor_count"),ITEM_WEIGHT,ITEM_HIGHT));
 		timeTF = new YccCustomTextField(7, 0, 1296000);
 		timeTF.setColumns(10);
 		tmpPanel.add(timeTF);
@@ -260,9 +270,9 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 		this.getContentPane().add(mainPanel, BorderLayout.CENTER);
 	}
 	
-	private JLabel getLabel(String name){
+	private JLabel getLabel(String name,int weight,int hight){
 		JLabel tmp = new JLabel(name,SwingConstants.RIGHT);
-		tmp.setPreferredSize(new Dimension(82, 15));
+		tmp.setPreferredSize(new Dimension(weight, hight));
 		return tmp;
 	}
 	
@@ -318,6 +328,7 @@ public class ConfigurDialog extends JDialog implements ItemListener,ActionListen
 	
 	private JCheckBox createChooseCheckBox(String labelResourceName, Color color) {
 		JCheckBox checkBox = new JCheckBox(labelResourceName);
+		checkBox.setPreferredSize(new Dimension(BOX_WEIGHT,BOX_HIGHT));
 		checkBox.setSelected(false);
 		checkBox.addItemListener(this);
 		checkBox.setForeground(color);

@@ -68,6 +68,12 @@ import com.alibaba.b2b.qa.monitor.MonitorAgent;
 import com.alibaba.b2b.qa.monitor.MonitorData;
 import com.alibaba.b2b.qa.monitor.MonitorProject;
 
+/**
+ * 结果查看Frame
+ * @author chenchao.yecc
+ * @since jex003A
+ *
+ */
 public class ResultViewFrame extends JFrame implements ActionListener,ItemListener,TreeSelectionListener{
 	
 	private static final Logger log = LoggingManager.getLoggerForClass();
@@ -97,7 +103,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	// 查看按钮
 	private JButton view = new JButton(JMeterUtils.getResString("view_start"));
 	
-	private static SimpleDateFormat format= new  SimpleDateFormat("yy-MM-dd hh:mm:ss");
+	private static SimpleDateFormat format= new  SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	private JButton savegraph=new JButton(JMeterUtils.getResString("save_cur_pic"));
 	private JButton saveall = new JButton(JMeterUtils.getResString("save_all_pic"));
 	private long beginTime = Long.MIN_VALUE;
@@ -110,7 +116,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	// 用于查看历史按钮活性设置的回调
 	private ServerBenchGui benchgui=null;
 	private MonitorClientModel model = null;
-	private boolean hasTotal = false;
 	
 	static {
 		String value=JMeterUtils.getProperty("monitor.persent");
@@ -210,10 +215,12 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		 tmp = new JPanel(new BorderLayout());
 		 tmp.add(new JLabel(JMeterUtils.getResString("start_time")),BorderLayout.WEST);
 		 tmp.add(fromTf,BorderLayout.CENTER);
+		 fromTf.setToolTipText(JMeterUtils.getResString("date_format")+"yyyy-MM-dd hh:mm:ss");
 		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
 		 midPanel.add(tmp);
 		 tmp = new JPanel(new BorderLayout());
 		 tmp.add(new JLabel(JMeterUtils.getResString("end_time")),BorderLayout.WEST);
+		 toTf.setToolTipText(JMeterUtils.getResString("date_format")+"yyyy-MM-dd hh:mm:ss");
 		 tmp.add(toTf,BorderLayout.CENTER);
 		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
 		 midPanel.add(tmp);
@@ -226,7 +233,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		 bp.add(view);
 		 bp.add(Box.createHorizontalStrut(GAP));
 		 midPanel.add(bp);
-		 
+
 		 upPanel.add(midPanel,BorderLayout.CENTER);
 		 
 		// 图形区域
@@ -653,14 +660,10 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
                         }
                     }
 				}
-				// System.out.println(name+" 's draw count is: "+count);
 				monitorModel.addLazyTimeSeries(name, ts);
 				// 只保留一个总结果
 				synchronized (this) {
-				    if (!hasTotal) {
 				        monitorModel.addRowToTable(name, mds);
-				        hasTotal=true;
-				    }
                 }
 			}
 		}
@@ -755,131 +758,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		}
 	}
 	
-	class DataMergeService {
-	    private double          acceptAngle;                               //可以接受的误差度数  
-
-	    private DataPoint       firstPoint    = null;
-	    private DataPoint       secondPoint   = null;
-	    private double          prevSlope;
-	    private double          preLineValue;
-
-	    public DataMergeService(double angle){
-	    	this.acceptAngle=angle;
-	    }
-	    
-	    public void setAcceptAngle(double acceptAngle) {
-	        this.acceptAngle = acceptAngle;
-	    }
-
-	    public double getAcceptAngle() {
-	        return acceptAngle;
-	    }
-
-	    /**
-	     * 增加数据点
-	     * 
-	     * @param time
-	     * @param value
-	     */
-	    public boolean isInsertData(Date time, double value, boolean last) {
-	        DataPoint point = new DataPoint();
-	        point.setTime(time.getTime());
-	        point.setValue(value);
-	        return addData(point,last);
-	    }
-
-	    /**
-	     * 增加数据点
-	     * 
-	     * @param point
-	     */
-	    private boolean addData(DataPoint point,boolean last) {
-	        if (null != firstPoint && null != secondPoint) {
-	            //计算按照原先斜率得到的第三个点坐标
-	            DataPoint point3 = new DataPoint();
-	            point3.setTime(point.getTime());
-	            double value = preLineValue + prevSlope * point.getTime();
-	            point3.setValue(value);
-
-//	            double slope2 = getSlope(secondPoint, point);
-
-//	            double angle = Math.toDegrees(angle(prevSlope, slope2));
-	            double angle = Math.abs(((point.getValue()-value)/value)*100);
-
-	            if (angle <= acceptAngle) { //如果误差在可接受范围内
-	                secondPoint = point3;
-	                if (last) {
-	                	return false;
-					} else {
-						return true;
-					}
-	            } else {
-//	                System.out.println(angle);
-//	                mergeDataList.add(copyPoint(secondPoint));
-	                firstPoint = secondPoint;
-	                secondPoint = point;
-	                parseValue();
-	                return true;
-	            }
-	        } else {
-	            if (null == firstPoint) {
-	                firstPoint = point;
-//	                mergeDataList.add(point);
-	                return true;
-	            } else if (null == secondPoint) {
-	                secondPoint = point;
-	                parseValue();
-	                return true;
-	            } else {
-	            	return false;
-	            }
-	        }
-	    }
-
-	    /**
-	     * 根据2个直线的斜率算出夹角
-	     * 
-	     * @param slope1
-	     * @param slope2
-	     * @return
-	     */
-//	    private double angle(double slope1, double slope2) {
-//	        double tanAngle = Math.abs((slope2 - slope1) / (1 + slope1 * slope2));
-//	        return Math.atan(tanAngle);
-//	    }
-
-	    private void parseValue() {
-	        prevSlope = getSlope(firstPoint, secondPoint);
-	        preLineValue = getLineValue(firstPoint, secondPoint);
-	    }
-
-	    /**
-	     * 得到2个点之间的斜率
-	     * 
-	     * @param point1
-	     * @param point2
-	     * @return
-	     */
-	    private double getSlope(DataPoint point1, DataPoint point2) {
-	        return (point2.getValue() - point1.getValue()) / (point2.getTime() - point1.getTime());
-	    }
-
-	    /**
-	     * 得到2个点表达式的常量
-	     * 
-	     * @param point1
-	     * @param point2
-	     * @return
-	     */
-	    private double getLineValue(DataPoint point1, DataPoint point2) {
-	        double y1 = point1.getValue();
-	        double y2 = point2.getValue();
-	        long x1 = point1.getTime();
-	        long x2 = point2.getTime();
-	        return (x1 * y2 - x2 * y1) / (x1 - x2);
-	    }
-	}
-
 	private static class ReportTimeItem{
 		private static SimpleDateFormat reportFormat= new  SimpleDateFormat("yyyyMMddHHmmss");
 		String time="";
@@ -928,7 +806,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		public String getTime(){
 			return time;
 		}
-		
+
 		private static String getConvertDate(String str){
 			StringBuilder sb=new StringBuilder();
 			sb.append(str.subSequence(0, 4)).append("-").append(str.subSequence(4, 6)).append("-").append(str.subSequence(6, 8));

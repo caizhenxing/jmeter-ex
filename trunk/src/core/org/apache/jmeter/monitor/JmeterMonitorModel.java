@@ -66,13 +66,22 @@ public class JmeterMonitorModel extends MonitorModel{
 	}
 
     /**
-     * 在查看历史的时候将已经计算好的结果输出至表格上
+     * 在查看历史的时候将已经计算好的结果输出至表格上，Jmeter专用
      * @since jex003A
      */
     public synchronized void addRowToTable(String name,MonitorDataStat mds){
         String[] tmp = name.split("\\$\\$");
+        boolean hasInTable = false;
         mds.setLabel(tmp[1]);
-        model.insertRow(mds, model.getRowCount());
+        for (int i = 0; i < model.getRowCount(); i++) {
+			if (tmp[1].equals(model.getValueAt(i, 0))) {
+				hasInTable = true;
+				break;
+			}
+		}
+        if (!hasInTable) {
+        	model.insertRow(mds, model.getRowCount());
+		}
     }
 
 	public synchronized void addLineToTable(String name){

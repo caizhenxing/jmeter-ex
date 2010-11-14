@@ -390,7 +390,7 @@ public class MonitorClientModel implements Runnable {
 				String tmp = chart.getName();
 				String chartName = "";
 				if (chart.getMachineIp().equals("jmeter")){
-					tmp="avgTime";
+//					tmp=chart.getName();
 				} else if (tmp.startsWith("pid_cpu")) {
 					tmp="pid_cpu";
 				} else if (tmp.startsWith("pid_io")){
@@ -570,7 +570,7 @@ public class MonitorClientModel implements Runnable {
 							model.getTablePanel());
 
 					// 缓存Monitor与MonitorGui
-					this.linespecMap.put(tmp+"avgTime", mr);
+					this.linespecMap.put(tmp+model.getHost(), mr);
 				}
 			}
 		}

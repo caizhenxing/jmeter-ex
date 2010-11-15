@@ -495,7 +495,7 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 			return;
 		}
 		saveAsFile(chooser.getSelectedFile().getAbsolutePath());
-		JOptionPane.showMessageDialog(null, "保存成功", "完成",
+		JOptionPane.showMessageDialog(null, JMeterUtils.getResString("save_success"), JMeterUtils.getResString("info_success"),
 				JOptionPane.INFORMATION_MESSAGE);
 	}
 
@@ -513,9 +513,9 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 			// ChartUtilities.writeChartAsJPEG(out, chart, 500, 400);
 			out.flush();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			log.error("Error in create imagee:", e);
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error("Error in create imagee:", e);
 		} finally {
 			if (out != null) {
 				try {
@@ -525,20 +525,5 @@ public abstract class MonitorModel implements ItemListener, ActionListener{
 				}
 			}
 		}
-//		File out = new File(outputPath);
-//
-//		// 保存为jpg
-//		JMeterGUIComponent gp = GuiPackage.getInstance().getCurrentGui();
-//		if (gp instanceof JPanel) {
-//			JPanel p = (JPanel) gp;
-//			BufferedImage bi = (BufferedImage) p.createImage(p.getWidth(), p
-//					.getHeight());
-//			p.paint(bi.getGraphics());
-//			try {
-//				javax.imageio.ImageIO.write(bi, "jpg", out);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
 	}
 }

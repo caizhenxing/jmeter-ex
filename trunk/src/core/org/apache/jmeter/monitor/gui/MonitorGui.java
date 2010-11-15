@@ -26,7 +26,6 @@ import org.apache.jmeter.testelement.TestElement;
  *
  */
 public class MonitorGui extends AbstractJMeterGuiComponent{
-
 	
 	private static final long serialVersionUID = 1L;
 	

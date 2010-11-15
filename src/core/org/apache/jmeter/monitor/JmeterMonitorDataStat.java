@@ -4,6 +4,12 @@ import java.math.BigDecimal;
 
 import org.apache.commons.lang.StringUtils;
 
+/**
+ * Monitor data of jmeter
+ * @author chenchao.yecc
+ * @version jex003A
+ *
+ */
 public class JmeterMonitorDataStat extends MonitorDataStat {
 	private String label = null;
 	private BigDecimal count;

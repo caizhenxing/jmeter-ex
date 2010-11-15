@@ -7,6 +7,12 @@ import javax.swing.JPanel;
 import org.apache.jmeter.testelement.AbstractTestElement;
 import org.jfree.chart.ChartPanel;
 
+/**
+ * Test element of jmeter result 
+ * @author chenchao.yecc
+ * @version jex003A
+ *
+ */
 public class JmeterResult extends AbstractTestElement implements Serializable {
 	private static final long serialVersionUID = 1L;
 

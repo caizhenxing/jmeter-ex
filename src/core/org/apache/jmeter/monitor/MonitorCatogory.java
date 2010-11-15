@@ -3,6 +3,12 @@ package org.apache.jmeter.monitor;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Monitor 配置单元
+ * @author chenchao.yecc
+ * @version jex003A
+ *
+ */
 public class MonitorCatogory {
 
 	// 分类名字

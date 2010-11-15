@@ -7,6 +7,12 @@ import org.apache.jmeter.monitor.gui.MonitorGui;
 import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 
+/**
+ * Monitor Model of Net
+ * @since jex002A
+ * @author chenchao.yecc
+ *
+ */
 public class NetMonitorModel extends MonitorModel {
 
 	public void updateGui(String category, String[] fs, String[] strings) {

@@ -145,6 +145,7 @@ public class MonitorClientModel implements Runnable {
 		}
 	}
 
+	@Deprecated
 	public void stopAgent(RemoteAgent agent) {
 		try {
 			String[] items = new String[agent.getRunAgents().size()];
@@ -201,7 +202,8 @@ public class MonitorClientModel implements Runnable {
 			}
 			Thread.sleep(3000);
 		} catch (AgentConnectionError e) {
-			e.printStackTrace();
+			log.error("Start project failed:project name is "
+					+ agent.getRunProject(),e);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -270,7 +272,7 @@ public class MonitorClientModel implements Runnable {
 			.create(RemoteControllerService.class, HTTP_HEADER + serviceUrl
 					+ CONTROL_SERVER);
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			log.error("Can't init the remote controller service",e);
 		}
 	}
 	
@@ -280,7 +282,7 @@ public class MonitorClientModel implements Runnable {
 			.create(RemoteDataService.class, HTTP_HEADER + serviceUrl
 					+ DATA_SERVER);
 		} catch (MalformedURLException e) {
-			e.printStackTrace();
+			log.error("Can't init the data controller service",e);
 		}
 	}
 	
@@ -359,7 +361,7 @@ public class MonitorClientModel implements Runnable {
 			try {
 					this.fetchChartData();
 			} catch (Exception e) {
-				System.out.println("Can't get data from remote machine!");
+				log.error("Error in fetch the data from controller service",e);
 			}
 		}
 	}
@@ -539,11 +541,6 @@ public class MonitorClientModel implements Runnable {
 					model.setNumberAxis("jmeter");
 					model.initSecondValueAxis("jmeter");
 					model.addLineToTable(monitorAgent.getName());
-//					TimeSeries ts = new TimeSeries(JMeterUtils
-//							.getResString("curve_results_throughput"),
-//							org.jfree.data.time.Second.class);
-//					ts.setMaximumItemAge(periods);
-//					model.addTimeSeries(tmp+"tps", ts);
 
 					Map<String, MonitorLine> lines=MonitorGui.MONITOR_CONFIGURE.get("jmeter").getLines();
 					for (Iterator<String> iterator2 = lines.keySet().iterator(); iterator2.hasNext();) {

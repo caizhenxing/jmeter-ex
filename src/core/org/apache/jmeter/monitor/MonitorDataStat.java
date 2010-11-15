@@ -3,6 +3,12 @@ package org.apache.jmeter.monitor;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
+/**
+ * Monitor data
+ * @author chenchao.yecc
+ * @version jex002A
+ *
+ */
 public class MonitorDataStat {
 
 	private String label = "";

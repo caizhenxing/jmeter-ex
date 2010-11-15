@@ -19,9 +19,9 @@ public class Monitor extends AbstractTestElement implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private MonitorModel monitor = null;
-	
+
 	private JPanel checkboxPanel = new JPanel();
-	
+
 	private ChartPanel chartPanel = new ChartPanel(null);
 
 	public Monitor() {
@@ -35,17 +35,17 @@ public class Monitor extends AbstractTestElement implements Serializable {
 	public void setMonitorModel(MonitorModel monitor) {
 		this.monitor = monitor;
 		checkboxPanel = monitor.getCheckBoxPanel();
-		chartPanel=monitor.getChartPanel();
+		chartPanel = monitor.getChartPanel();
 	}
-	
-	public void setChartPanel(ChartPanel chartPanel){
-		this.chartPanel=chartPanel;
+
+	public void setChartPanel(ChartPanel chartPanel) {
+		this.chartPanel = chartPanel;
 	}
-	
+
 	public ChartPanel getChartPanel() {
 		return chartPanel;
 	}
-	
+
 	public JPanel getCheckBoxPanel() {
 		return checkboxPanel;
 	}

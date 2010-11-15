@@ -1,5 +1,11 @@
 package org.apache.jmeter.monitor;
 
+/**
+ * 创建监控模型
+ * @since jex002A
+ * @author chenchao.yecc
+ *
+ */
 public class MonitorModelFactory {
 	public static MonitorModel getMonitorModel(String type){
 		if (type.equals("file")) {

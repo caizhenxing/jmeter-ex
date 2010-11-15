@@ -1,5 +1,11 @@
 package org.apache.jmeter.monitor;
 
+/**
+ * Monitor 配置单元
+ * @author chenchao.yecc
+ * @version jex002A
+ *
+ */
 public class MonitorLine {
 
 	// 名字

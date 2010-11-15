@@ -521,24 +521,26 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		} else if (e.getSource() == show){
 			openModifyDialog(false);
 		} else if (e.getSource() == stop){
-			int rowI = agentTable.getSelectedRow();
-			if (rowI != -1) {
-				AgentServer as = agentSeverContainer.get(rowI);
-				if (!as.getState().equals(AgentServer.RUN)) {
-					JOptionPane.showMessageDialog(null, JMeterUtils
-							.getResString("error_stop_agent"), JMeterUtils
-							.getResString("server_bench_error"),
-							JOptionPane.ERROR_MESSAGE);
-					return;
-				}
-				if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_stop_monitor"),JMeterUtils.getResString("confirm_title_stop"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
-					return;
-				}
-				RemoteAgent ra =model.getRemoteAgentMap().get(as);
-				model.stopAgent(ra);
-				updateAgentList();
-				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("stop_agent"),JMeterUtils.getResString("info_success"), JOptionPane.INFORMATION_MESSAGE);
-			}
+			// jex003D begin
+//			int rowI = agentTable.getSelectedRow();
+//			if (rowI != -1) {
+//				AgentServer as = agentSeverContainer.get(rowI);
+//				if (!as.getState().equals(AgentServer.RUN)) {
+//					JOptionPane.showMessageDialog(null, JMeterUtils
+//							.getResString("error_stop_agent"), JMeterUtils
+//							.getResString("server_bench_error"),
+//							JOptionPane.ERROR_MESSAGE);
+//					return;
+//				}
+//				if (!(JOptionPane.showConfirmDialog(null, JMeterUtils.getResString("confirm_stop_monitor"),JMeterUtils.getResString("confirm_title_stop"),JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION)) {
+//					return;
+//				}
+//				RemoteAgent ra =model.getRemoteAgentMap().get(as);
+//				model.stopAgent(ra);
+//				updateAgentList();
+//				JOptionPane.showMessageDialog(null, JMeterUtils.getResString("stop_agent"),JMeterUtils.getResString("info_success"), JOptionPane.INFORMATION_MESSAGE);
+//			}
+		// jex003D end
 		} else if (e.getSource() == stopProject){
 			int rowI = agentTable.getSelectedRow();
 			if (rowI != -1) {

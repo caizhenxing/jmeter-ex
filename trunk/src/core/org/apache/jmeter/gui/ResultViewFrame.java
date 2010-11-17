@@ -103,7 +103,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	// 查看按钮
 	private JButton view = new JButton(JMeterUtils.getResString("view_start"));
 	
-	private static SimpleDateFormat format= new  SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	private static SimpleDateFormat format= new  SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private JButton savegraph=new JButton(JMeterUtils.getResString("save_cur_pic"));
 	private JButton saveall = new JButton(JMeterUtils.getResString("save_all_pic"));
 	private long beginTime = Long.MIN_VALUE;
@@ -591,6 +591,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		private String ip = null;
 		private String line = null;
 		private boolean goon = true;
+		private boolean isLast = false;
 		private List<String> lst = null;
 		private DataMergeService service = null;
 		private long beginTime = Long.MIN_VALUE;
@@ -635,9 +636,15 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						if (time.getTime() < beginTime) {
 							continue;
 						}
-						if (goon && time.getTime() >= endTime) {
+						if (time.getTime() >= endTime) {
+						    if (!goon) {
+						        isLast = true;
+                            }
 							goon = false;
 						}
+						if (isLast) {
+                            break;
+                        }
 					} catch (NumberFormatException ne) {
 						System.out.println("Error date value:");
 						log.error("Error date value:" + values[0]);
@@ -675,6 +682,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		private String ip = null;
 		private String line = null;
 		private boolean goon = true;
+		private boolean isLast = false;
 		private List<String> lst = null;
 		private DataMergeService service = null;
 		private long beginTime = Long.MIN_VALUE;
@@ -690,6 +698,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 			this.monitorModel = monitorModel;
 			this.endTime = endTime;
 			this.beginTime = beginTime;
+			this.goon = true;
 			
 			// 设置可以容忍的百分比
 			service = new DataMergeService(ResultViewFrame.persent);
@@ -719,9 +728,15 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 						if (time.getTime() < beginTime){
 							continue;
 						}
-						if (goon && time.getTime() >= endTime) {
-							goon = false;
-						} 
+						if (time.getTime() >= endTime) {
+                            if (!goon) {
+                                isLast = true;
+                            }
+                            goon = false;
+                        }
+                        if (isLast) {
+                            break;
+                        }
 					} catch (NumberFormatException ne) {
 						System.out.println("Error date value:");
 						log.error("Error date value:"+values[0]);

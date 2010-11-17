@@ -74,7 +74,7 @@ public class MonitorClientModel implements Runnable {
 	}
 	
 	public RemoteDataService getRemoteDataService(){
-		if (remoteDataService == null||modified) {
+		if (modified || remoteDataService == null) {
 			initDataService();
 			modified=false;
 		}

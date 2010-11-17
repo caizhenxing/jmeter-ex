@@ -211,8 +211,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		});
 		
 		// rangeField.setText("10.249.129.159:8080");
-//		rangeField.setText("10.249.128.13:8080");
-		rangeField.setText("10.20.136.1:8080");
+		rangeField.setText("10.249.128.13:8080");
+//		rangeField.setText("10.20.136.1:8080");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);

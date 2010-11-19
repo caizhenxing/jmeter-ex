@@ -1,3 +1,5 @@
+package org.apache.jmeter.control.gui;
+
 /**
  * Project: Jmeter-Ex
  * 
@@ -11,11 +13,10 @@
  * Alibaba Company. ("Confidential Information").  You shall not
  * disclose such Confidential Information and shall use it only in
  * accordance with the terms of the license agreement you entered into
- * with Alibaba.com.
+ * witorg.apache.jmeter.control.guiapache.jmeter.control.guiyout;
  */
-package org.apache.jmeter.control.gui;
-
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -32,40 +33,50 @@ import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.jmeter.util.JMeterUtils;
 
 /**
  * TODO Comment of CustomAgentListDialog
  * @author chenchao.yecc
  *
  */
-public class CustomAgentListDialog extends JDialog implements ActionListener{
-
-    private static final long serialVersionUID = 1L;
-    private JButton okBtn = new JButton("确定");
+public class CustomItemListDialog extends JDialog implements ActionListener{
+	private static final long serialVersionUID = 1L;
+    private JButton okBtn = new JButton(JMeterUtils.getResString("confirm"));
     private List<String> agentList = new ArrayList<String>();
     private JTextArea area = new JTextArea();
+    private JLabel infoLbl = new JLabel();
+   
+    public void setInfo(String info){
+    	this.infoLbl.setText(info);
+    }
+    
+	public void setTitle(String title) {
+		super.setTitle(title);
+	}
     
     public List<String> getCustomizedAgentList(){
         return agentList;
     }
     
-    public CustomAgentListDialog(){
-        initGui();
-        init();
+    public CustomItemListDialog(){
+    	initGui();
+    	init();
     }
     
     private void initGui(){
         JPanel textPanel = new JPanel(new BorderLayout());
         area.setLineWrap(true);
         JScrollPane scrollPanel=new JScrollPane(area);
-        textPanel.add(new JLabel("添加Agent的IP地址，每行一个"),BorderLayout.NORTH);
+        textPanel.add(infoLbl,BorderLayout.NORTH);
         textPanel.add(scrollPanel,BorderLayout.CENTER);
-        textPanel.add(okBtn,BorderLayout.SOUTH);
+        JPanel pane=new JPanel(new FlowLayout(FlowLayout.CENTER));
         okBtn.addActionListener(this);
+        pane.add(okBtn);
+        textPanel.add(pane,BorderLayout.SOUTH);
         ActionListener actionListener＿Esc = new ActionListener() {
             public void actionPerformed(ActionEvent actionEvent) {
-                CustomAgentListDialog.this.setVisible(false);
-            }
+                CustomItemListDialog.this.setVisible(false);   }
         };
         this.getRootPane().registerKeyboardAction(actionListener＿Esc,
                 KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
@@ -73,7 +84,7 @@ public class CustomAgentListDialog extends JDialog implements ActionListener{
         this.getContentPane().add(textPanel, BorderLayout.CENTER);
         this.setModal(true);
         this.setResizable(false);
-        this.setTitle("添加自定义显示的Agent");
+        super.setTitle("");
         this.setSize(400, 300);
         this.setLocation(400, 220);
     }
@@ -90,7 +101,6 @@ public class CustomAgentListDialog extends JDialog implements ActionListener{
         String text = area.getText();
         String[] tmp = text.split("\n");
         for (int i = 0; i < tmp.length; i++) {
-            System.out.println(tmp[i]);
             if (!StringUtils.isEmpty(tmp[i])) {
                 agentList.add(tmp[i]);
             }

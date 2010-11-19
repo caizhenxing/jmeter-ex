@@ -7,6 +7,8 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -26,6 +28,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -35,6 +38,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -65,13 +70,11 @@ import com.alibaba.b2b.qa.monitor.RemoteAgent;
  * @since jex002A
  * @author chenchao.yecc
  */
-public class ServerBenchGui extends AbstractJMeterGuiComponent implements ActionListener,KeyListener{
+public class ServerBenchGui extends AbstractJMeterGuiComponent implements ActionListener,KeyListener,ItemListener{
 	
 	private static final long serialVersionUID = 1L;
 	private JComboBox com = new JComboBox();
 	private JTextField rangeField = new JTextField(58);
-//	private JTextField startField = new JTextField(1);
-//	private JTextField endField = new JTextField(1);
 	private JTextField ipchoice=new JTextField(10);
 	private ResultViewFrame resultFrame=null;
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
@@ -85,7 +88,10 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton stopProject = new JButton(JMeterUtils.getResString("server_bench_stop_pro"));
 	private JButton startBT = new JButton(JMeterUtils.getResString("server_bench_start"));
 	private JButton choice=new JButton(JMeterUtils.getResString("find"));
+	private JButton customBtn=new JButton("自定义Agent");
+	private JCheckBox customCbx=new JCheckBox("仅显示自定义Agent");
 	private ConfigurDialog confDialog = new ConfigurDialog();
+	private CustomAgentListDialog customizedDialog = new CustomAgentListDialog();
 	private ProcessListDialog proDialog=new ProcessListDialog();
 	private MonitorClientModel model = new MonitorClientModel();
 	private Map<Integer,AgentServer> agentSeverContainer = new HashMap<Integer,AgentServer>();
@@ -286,6 +292,13 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		ipchoice.addKeyListener(this);
 		choice.addActionListener(this);
 		jp.add(choice);
+		
+		JPanel subjp = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		subjp.add(customCbx);
+		customCbx.addItemListener(this);
+		subjp.add(customBtn);
+		customBtn.addActionListener(this);
+		jp.add(subjp);
 		add(jp);
 		add(myScrollPane);
 
@@ -571,6 +584,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			resultFrame.showFrame();
 		} else if (e.getSource() == choice){
 			findItemFromTable(ipchoice.getText());
+		} else if (e.getSource() == customBtn){   // jex003A
+		    customizedDialog.setVisible(true);
 		}
 	}
 	
@@ -617,9 +632,15 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		}
 		if (aglst != null) {
 			Collections.sort(aglst);
+			List<String> agentList=customizedDialog.getCustomizedAgentList();
 			for (Iterator<AgentServer> iterator = aglst.iterator(); iterator
 					.hasNext();) {
 				AgentServer as = iterator.next();
+				if (customCbx.isSelected()) {
+				    if (!agentList.contains(as.getAddress())) {
+                        continue;
+                    }
+                }
 				agentSeverContainer.put(tableModel.getRowCount(), as);
 				tableModel.insertRow(as, tableModel.getRowCount());
 			}
@@ -672,4 +693,19 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	@Override
 	public void keyTyped(KeyEvent e) {
 	}
+
+    /* (non-Javadoc)
+     * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
+     */
+    @Override
+    public void itemStateChanged(ItemEvent e) {
+        if (e.getSource() == customCbx) {
+            if(customCbx.isSelected()){
+                System.out.println("select");
+            } else {
+                System.out.println("not select");
+            }
+        }
+        
+    }
 }

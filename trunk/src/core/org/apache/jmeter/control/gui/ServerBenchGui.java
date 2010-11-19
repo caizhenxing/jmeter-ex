@@ -7,8 +7,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -38,8 +36,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -70,7 +66,7 @@ import com.alibaba.b2b.qa.monitor.RemoteAgent;
  * @since jex002A
  * @author chenchao.yecc
  */
-public class ServerBenchGui extends AbstractJMeterGuiComponent implements ActionListener,KeyListener,ItemListener{
+public class ServerBenchGui extends AbstractJMeterGuiComponent implements ActionListener,KeyListener{
 	
 	private static final long serialVersionUID = 1L;
 	private JComboBox com = new JComboBox();
@@ -88,10 +84,10 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton stopProject = new JButton(JMeterUtils.getResString("server_bench_stop_pro"));
 	private JButton startBT = new JButton(JMeterUtils.getResString("server_bench_start"));
 	private JButton choice=new JButton(JMeterUtils.getResString("find"));
-	private JButton customBtn=new JButton("自定义Agent");
-	private JCheckBox customCbx=new JCheckBox("仅显示自定义Agent");
+	private JButton customBtn=new JButton(JMeterUtils.getResString("customized_agent"));
+	private JCheckBox customCbx=new JCheckBox(JMeterUtils.getResString("customized_agent_only"));
+	private CustomItemListDialog customizedAgentDialog = new CustomItemListDialog();
 	private ConfigurDialog confDialog = new ConfigurDialog();
-	private CustomAgentListDialog customizedDialog = new CustomAgentListDialog();
 	private ProcessListDialog proDialog=new ProcessListDialog();
 	private MonitorClientModel model = new MonitorClientModel();
 	private Map<Integer,AgentServer> agentSeverContainer = new HashMap<Integer,AgentServer>();
@@ -295,8 +291,9 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		
 		JPanel subjp = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		subjp.add(customCbx);
-		customCbx.addItemListener(this);
 		subjp.add(customBtn);
+		customizedAgentDialog.setInfo(JMeterUtils.getResString("ip_for_each_row"));
+		customizedAgentDialog.setTitle(JMeterUtils.getResString("add_customized_agent_ip"));
 		customBtn.addActionListener(this);
 		jp.add(subjp);
 		add(jp);
@@ -585,7 +582,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		} else if (e.getSource() == choice){
 			findItemFromTable(ipchoice.getText());
 		} else if (e.getSource() == customBtn){   // jex003A
-		    customizedDialog.setVisible(true);
+		    customizedAgentDialog.setVisible(true);
 		}
 	}
 	
@@ -632,7 +629,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		}
 		if (aglst != null) {
 			Collections.sort(aglst);
-			List<String> agentList=customizedDialog.getCustomizedAgentList();
+			List<String> agentList=customizedAgentDialog.getCustomizedAgentList();
 			for (Iterator<AgentServer> iterator = aglst.iterator(); iterator
 					.hasNext();) {
 				AgentServer as = iterator.next();
@@ -693,19 +690,4 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	@Override
 	public void keyTyped(KeyEvent e) {
 	}
-
-    /* (non-Javadoc)
-     * @see java.awt.event.ItemListener#itemStateChanged(java.awt.event.ItemEvent)
-     */
-    @Override
-    public void itemStateChanged(ItemEvent e) {
-        if (e.getSource() == customCbx) {
-            if(customCbx.isSelected()){
-                System.out.println("select");
-            } else {
-                System.out.println("not select");
-            }
-        }
-        
-    }
 }

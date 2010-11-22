@@ -85,7 +85,6 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 	private JButton startBT = new JButton(JMeterUtils.getResString("server_bench_start"));
 	private JButton choice=new JButton(JMeterUtils.getResString("find"));
 	private JButton customBtn=new JButton(JMeterUtils.getResString("customized_agent"));
-	private JCheckBox customCbx=new JCheckBox(JMeterUtils.getResString("customized_agent_only"));
 	private CustomItemListDialog customizedAgentDialog = new CustomItemListDialog();
 	private ConfigurDialog confDialog = new ConfigurDialog();
 	private ProcessListDialog proDialog=new ProcessListDialog();
@@ -290,7 +289,6 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		jp.add(choice);
 		
 		JPanel subjp = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		subjp.add(customCbx);
 		subjp.add(customBtn);
 		customizedAgentDialog.setInfo(JMeterUtils.getResString("ip_for_each_row"));
 		customizedAgentDialog.setTitle(JMeterUtils.getResString("add_customized_agent_ip"));
@@ -633,7 +631,7 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 			for (Iterator<AgentServer> iterator = aglst.iterator(); iterator
 					.hasNext();) {
 				AgentServer as = iterator.next();
-				if (customCbx.isSelected()) {
+				if (!agentList.isEmpty()) {
 				    if (!agentList.contains(as.getAddress())) {
                         continue;
                     }

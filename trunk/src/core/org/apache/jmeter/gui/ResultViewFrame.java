@@ -3,6 +3,7 @@ package org.apache.jmeter.gui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,6 +46,7 @@ import javax.swing.tree.TreeSelectionModel;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.jmeter.control.MonitorClientModel;
+import org.apache.jmeter.control.gui.CustomItemListDialog;
 import org.apache.jmeter.control.gui.ServerBenchGui;
 import org.apache.jmeter.gui.tree.JMeterCellRenderer;
 import org.apache.jmeter.gui.util.FileDialoger;
@@ -93,7 +95,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	// 结束时间
 	private JTextField toTf = new JTextField(12);
 	// 服务器URL
-	private JTextField url = new JTextField(30);
+	private JTextField url = new JTextField(15);
 	// 树
 	private JTree tree;
 	private ViewTreeModel treeModel = null;
@@ -102,6 +104,8 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 	private JButton update = new JButton(JMeterUtils.getResString("server_bench_update"));
 	// 查看按钮
 	private JButton view = new JButton(JMeterUtils.getResString("view_start"));
+	private JButton filter = new JButton(JMeterUtils.getResString("project_filter"));
+	private CustomItemListDialog customizedProjectDialog = new CustomItemListDialog();
 	
 	private static SimpleDateFormat format= new  SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private JButton savegraph=new JButton(JMeterUtils.getResString("save_cur_pic"));
@@ -187,7 +191,14 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		 JPanel tmp = new JPanel(new BorderLayout());
 		 tmp = new JPanel(new BorderLayout());
 		 tmp.add(new JLabel(JMeterUtils.getResString("server_bench_url")),BorderLayout.WEST);
-		 tmp.add(url,BorderLayout.CENTER);
+		 JPanel filterPanel = new JPanel(new FlowLayout());
+		 filterPanel.add(url);
+		 filterPanel.add(filter);
+		 filter.addActionListener(this);
+//		 filterPanel.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
+		 tmp.add(filterPanel,BorderLayout.CENTER);
+		 customizedProjectDialog.setInfo(JMeterUtils.getResString("project_for_each_row"));
+		 customizedProjectDialog.setTitle(JMeterUtils.getResString("add_customized_projec"));
 		 url.setEditable(false);
 		 tmp.add(Box.createHorizontalStrut(GAP),BorderLayout.EAST);
 		 leftPanel.add(tmp);
@@ -208,7 +219,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		 leftPanel.add(tmp);
 		 leftPanel.add(Box.createVerticalStrut(VGAP));
 		 upPanel.add(leftPanel,BorderLayout.WEST);
-		 
+
 		 // 中间面板
 		 VerticalPanel midPanel = new VerticalPanel();
 		 midPanel.add(Box.createVerticalStrut(GAP));
@@ -323,11 +334,17 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 			// 取最新的工程列表
 			projectModel.removeAllElements();
 			timeMap.clear();
+			List<String> nameList = this.customizedProjectDialog.getCustomizedAgentList();
 			try {
 				List<MonitorProject> monitors=model.getAllMonitorProject();
 				for (Iterator<MonitorProject> iterator = monitors.iterator(); iterator
 						.hasNext();) {
 					MonitorProject monitorProject = iterator.next();
+					if (!nameList.isEmpty()) {
+						if (!nameList.contains(monitorProject.getProjectName())) {
+							continue;
+						}
+					}
 					projectMap.put(monitorProject.getProjectName(), monitorProject);
 					projectModel.addElement(monitorProject.getProjectName());
 				}
@@ -534,6 +551,8 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 					.getResString("save_success"), JMeterUtils
 					.getResString("table_visualizer_success"),
 					JOptionPane.CLOSED_OPTION);
+		} else if (e.getSource() == filter) {
+			customizedProjectDialog.setVisible(true);
 		}
 	}
 	

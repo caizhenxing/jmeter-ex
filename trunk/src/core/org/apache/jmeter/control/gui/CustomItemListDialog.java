@@ -43,6 +43,7 @@ import org.apache.jmeter.util.JMeterUtils;
 public class CustomItemListDialog extends JDialog implements ActionListener{
 	private static final long serialVersionUID = 1L;
     private JButton okBtn = new JButton(JMeterUtils.getResString("confirm"));
+    private JButton clearBtn = new JButton(JMeterUtils.getResString("clear_all"));
     private List<String> agentList = new ArrayList<String>();
     private JTextArea area = new JTextArea();
     private JLabel infoLbl = new JLabel();
@@ -72,6 +73,8 @@ public class CustomItemListDialog extends JDialog implements ActionListener{
         textPanel.add(scrollPanel,BorderLayout.CENTER);
         JPanel pane=new JPanel(new FlowLayout(FlowLayout.CENTER));
         okBtn.addActionListener(this);
+        clearBtn.addActionListener(this);
+        pane.add(clearBtn);
         pane.add(okBtn);
         textPanel.add(pane,BorderLayout.SOUTH);
         ActionListener actionListener＿Esc = new ActionListener() {
@@ -98,13 +101,18 @@ public class CustomItemListDialog extends JDialog implements ActionListener{
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        String text = area.getText();
-        String[] tmp = text.split("\n");
-        for (int i = 0; i < tmp.length; i++) {
-            if (!StringUtils.isEmpty(tmp[i])) {
-                agentList.add(tmp[i]);
-            }
-        }
-        this.setVisible(false);
+    	if (e.getSource() == okBtn) {
+    		agentList.clear();
+    		String text = area.getText();
+    		String[] tmp = text.split("\n");
+    		for (int i = 0; i < tmp.length; i++) {
+    			if (!StringUtils.isEmpty(tmp[i])) {
+    				agentList.add(StringUtils.trim(tmp[i]));
+    			}
+    		}
+    		this.setVisible(false);
+		} else if (e.getSource() == clearBtn){
+			area.setText("");
+		}
     }
 }

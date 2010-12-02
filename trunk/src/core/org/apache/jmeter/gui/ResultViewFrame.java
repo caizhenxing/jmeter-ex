@@ -328,7 +328,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		return true;
 	}
 	
-	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource()==update){
 			// 取最新的工程列表
@@ -567,7 +566,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		}
 	}
 	
-	@Override
 	public void itemStateChanged(ItemEvent e) {
 		if (e.getSource()==projects) {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -591,7 +589,6 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 		}
 	}
 	
-	@Override
 	public void valueChanged(TreeSelectionEvent e) {
 		ViewTreeNode selectedNode = (ViewTreeNode)tree.getLastSelectedPathComponent();
 		if (selectedNode==null) {

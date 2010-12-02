@@ -36,7 +36,8 @@ public class JmeterMonitorModel extends MonitorModel {
 	private static final String[] COLUMNS = { "jf_name",
 			"aggregate_report_count", "aggregate_graph_response_time",
 			"aggregate_report_max", "aggregate_report_min",
-			"aggregate_report_stddev", "aggregate_report_error%",
+//			"aggregate_report_stddev", 
+			"aggregate_report_error%",
 			"aggregate_report_rate" };
 
 	private static final TableCellRenderer[] RENDERERS = new TableCellRenderer[] {
@@ -45,7 +46,7 @@ public class JmeterMonitorModel extends MonitorModel {
 			null, // respone time
 			null, // Min
 			null, // Max
-			null, // stddev
+//			null, // stddev
 			new NumberRenderer("#0.00%"), // error
 			new NumberRenderer("#0.00"), // tps
 	};
@@ -112,12 +113,16 @@ public class JmeterMonitorModel extends MonitorModel {
 				new Functor[] { new Functor("getLabel"),
 						new Functor("getCount"), new Functor("getResponeTime"),
 						new Functor("getMinValue"), new Functor("getMaxValue"),
-						new Functor("getStddev"), new Functor("getError"),
+//						new Functor("getStddev"),
+						new Functor("getError"),
 						new Functor("getTps") }, new Functor[] { null, null,
-						null, null, null, null, null, null }, new Class[] {
+						null, null, null, 
+//						null, 
+						null, null }, new Class[] {
 						String.class, BigDecimal.class, BigDecimal.class,
 						BigDecimal.class, BigDecimal.class, BigDecimal.class,
-						BigDecimal.class, BigDecimal.class, Double.class });
+//						BigDecimal.class,
+						BigDecimal.class, Double.class });
 
 		myJTable = new YccCustomTable(model);
 		myJTable.getTableHeader().setDefaultRenderer(

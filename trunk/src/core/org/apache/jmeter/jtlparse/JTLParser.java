@@ -626,8 +626,8 @@ public class JTLParser extends DefaultHandler {
 		final JTLParser parser = new JTLParser();
 //		parser.setJmeterLogFile("D:\\Tools\\jakarta-jmeter-2.3.4\\bin\\q20.jtl");
 //		parser.setJmeterLogFile("D:\\Project\\Jmeter-Ex\\res.jtl");
-		parser.setJmeterLogFile("D:\\Project\\Jmeter-Ex\\50.csv");
-		parser.setSaveFile("d:\\res-xml.txt");
+		parser.setJmeterLogFile("D:\\gaolixiadan.jtl");
+		parser.setSaveFile("d:\\res-xml.html");
 		parser.parse();
 		System.out.println(System.currentTimeMillis()-start);
 		System.out.println("Over");

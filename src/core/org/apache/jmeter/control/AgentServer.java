@@ -145,7 +145,6 @@ public class AgentServer implements Comparable<AgentServer>{
 		return Arrays.asList(items.split(","));
 	}
 
-	@Override
 	public int compareTo(AgentServer as) {
 		String anotherString = as.address;
 		int len1 = address.length();

@@ -791,9 +791,7 @@ public class JMeter implements JMeterPlugin {
                 tree.add(tree.getArray()[0], logger);
             }
 //            RealTimeSummariser realsummary = new RealTimeSummariser("s");	// jex002A
-            TotalSampleSummariser totalsummary = new TotalSampleSummariser("t");	// jex003A
 //            tree.add(tree.getArray()[0], realsummary);	// jex002A
-            tree.add(tree.getArray()[0], totalsummary);	// jex003A
             String summariserName = JMeterUtils.getPropDefault("summariser.name", "");//$NON-NLS-1$
             if (summariserName.length() > 0) {
                 log.info("Creating summariser <" + summariserName + ">");
@@ -801,6 +799,8 @@ public class JMeter implements JMeterPlugin {
                 Summariser summer = new Summariser(summariserName);
                 tree.add(tree.getArray()[0], summer);
             }
+            TotalSampleSummariser totalsummary = new TotalSampleSummariser("t");	// jex003A
+            tree.add(tree.getArray()[0], totalsummary);	// jex003A
             List engines = new LinkedList();
             tree.add(tree.getArray()[0], new ListenToTest(parent, (remoteStart && remoteStop) ? engines : null));
             println("Created the tree successfully using "+testFile);

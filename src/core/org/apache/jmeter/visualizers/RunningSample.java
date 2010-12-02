@@ -85,7 +85,7 @@ public class RunningSample {
         this.runningSum = src.runningSum;
     }
 
-    private void init() {
+    protected void init() {
         counter = 0L;
         runningSum = 0L;
         max = Long.MIN_VALUE;

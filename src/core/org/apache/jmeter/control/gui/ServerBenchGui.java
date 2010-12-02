@@ -192,19 +192,16 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		// 用户修改URL后重新取得连接
 		rangeField.getDocument().addDocumentListener(new DocumentListener() {
 
-			@Override
 			public void changedUpdate(DocumentEvent e) {
 				model.modifiedServerURL();
 				model.setServiceUrl(rangeField.getText());
 			}
 
-			@Override
 			public void insertUpdate(DocumentEvent e) {
 				model.modifiedServerURL();
 				model.setServiceUrl(rangeField.getText());
 			}
 
-			@Override
 			public void removeUpdate(DocumentEvent e) {
 				model.modifiedServerURL();
 				model.setServiceUrl(rangeField.getText());
@@ -212,8 +209,8 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		});
 		
 		// rangeField.setText("10.249.129.159:8080");
-		rangeField.setText("10.249.128.13:8080");
-//		rangeField.setText("10.20.136.1:8080");
+//		rangeField.setText("10.249.128.13:8080");
+		rangeField.setText("10.20.136.1:8080");
 		urlsPanel.add(rangeField);
 
 		mainPanel.add(urlsPanel);
@@ -667,11 +664,9 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		}
 	}
 
-	@Override
 	public void keyPressed(KeyEvent e) {
 	}
 	
-	@Override
 	// 键盘事件
 	public void keyReleased(KeyEvent e) {
 		if (e.getSource()==ipchoice) {
@@ -685,7 +680,6 @@ public class ServerBenchGui extends AbstractJMeterGuiComponent implements Action
 		}
 	}
 	
-	@Override
 	public void keyTyped(KeyEvent e) {
 	}
 }

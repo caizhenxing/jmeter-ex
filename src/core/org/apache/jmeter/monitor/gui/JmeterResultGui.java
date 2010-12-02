@@ -20,32 +20,27 @@ public class JmeterResultGui extends AbstractJMeterGuiComponent{
 		super();
 	}
 	
-	@Override
 	public JPopupMenu createPopupMenu() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public TestElement createTestElement() {
 		JmeterResult monitor = new JmeterResult();
 		modifyTestElement(monitor);
 		return monitor;
 	}
 
-	@Override
 	public String getLabelResource() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public Collection getMenuCategories() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	@Override
 	public void modifyTestElement(TestElement element) {
 		super.configureTestElement(element);
 	}

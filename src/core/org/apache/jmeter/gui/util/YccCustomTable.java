@@ -29,7 +29,6 @@ public class YccCustomTable extends JTable {
         addColumnResizeListener();
         this.addMouseMotionListener(new MouseMotionListener() {
 
-            @Override
             public void mouseDragged(MouseEvent e) {
             }
 

@@ -727,7 +727,7 @@ public class ResultViewFrame extends JFrame implements ActionListener,ItemListen
 					.getShowType(line).equals("-")) {
 				TimeSeries ts = new TimeSeries(line,
 						org.jfree.data.time.Second.class);
-				ts.setMaximumItemAge(50000);
+				ts.setMaximumItemAge(50000*30);
 				MonitorDataStat mds=new MonitorDataStat();
 				List<String[]> results = md.getValues();
 				int nmb = lst.indexOf(line);

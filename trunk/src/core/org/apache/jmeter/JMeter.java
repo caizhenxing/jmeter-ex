@@ -118,6 +118,7 @@ public class JMeter implements JMeterPlugin {
     private static final int VERSION_OPT        = 'v';// $NON-NLS-1$
     private static final int PARSEFILE_OPT      = 'c';// jex002A
     private static final int SAVERESULT_OPT     = 'd';// jex002A
+    private static final int GROUP_OPT     	    = 'g';// jex004A
 
     private static final int SYSTEM_PROPERTY    = 'D';// $NON-NLS-1$
     private static final int JMETER_GLOBAL_PROP = 'G';// $NON-NLS-1$
@@ -204,6 +205,8 @@ public class JMeter implements JMeterPlugin {
             "the path of jtl(txt) file"),
             new CLOptionDescriptor("saveresultfile", CLOptionDescriptor.ARGUMENT_REQUIRED, SAVERESULT_OPT,
             "the directory of saving the result file"),
+            new CLOptionDescriptor("grouptest", CLOptionDescriptor.ARGUMENT_REQUIRED, GROUP_OPT,
+            "the directory of file which typed *.jmx"),
                     };
 
     public JMeter() {
@@ -379,6 +382,24 @@ public class JMeter implements JMeterPlugin {
                 // Start the server
                 startServer(JMeterUtils.getPropDefault("server_port", 0));// $NON-NLS-1$
                 startOptionalServers();
+            } else if (parser.getArgumentById(GROUP_OPT) != null){
+            	CLOption folder=parser.getArgumentById(GROUP_OPT);
+            	if (folder != null) {
+            		String path = folder.getArgument();
+            		File f = new File(path);
+            		if (!f.exists()) {
+            			System.out.println("No jmx file can be found in folder "+path+"!");
+            			System.exit(0);	
+					} else if (f.isFile()){
+						System.out.println("Please input folder included jmx files!");
+						System.exit(0);	
+					} else if (f.listFiles().length==0){
+						System.out.println("Three are no jmx files to run!");
+						System.exit(0);	
+					}
+            		startNonGuiGroup(path);
+            		startOptionalServers();
+				}
             } else {
                 String testFile=null;
                 CLOption testFileOpt = parser.getArgumentById(TESTFILE_OPT);
@@ -722,6 +743,20 @@ public class JMeter implements JMeterPlugin {
         }
     }
 
+    /*
+     * 执行多个jmx使用
+     * jex004A
+     */
+    private void startNonGuiGroup(String path){
+    	System.setProperty(JMETER_NON_GUI, "true");
+    	JMeter driver = new JMeter();
+    	driver.remoteProps = this.remoteProps;
+    	driver.remoteStop = this.remoteStop;
+    	driver.parent = this;
+    	PluginManager.install(this, false);
+    	driver.runNonGui(path);
+    }
+
     private void startNonGui(String testFile, String logFile, CLOption remoteStart)
             throws IllegalUserActionException {
         // add a system property so samplers can check to see if JMeter
@@ -751,6 +786,52 @@ public class JMeter implements JMeterPlugin {
             driver.runNonGui(testFile, logFile, remoteStart != null,remote_hosts_string);
         }
     }
+    
+    /*
+     * 
+     */
+	private void runNonGui(String folderPath) {
+		FileInputStream reader = null;
+		File folder = new File(folderPath);
+		try {
+			File[] files = folder.listFiles();
+			for (int i = 0; i < files.length; i++) {
+				File f = files[i];
+				reader = new FileInputStream(f);
+				log.info("Loading file: " + f);
+				HashTree tree = SaveService.loadTree(reader);
+				JMeterTreeModel treeModel = new JMeterTreeModel(new Object());
+				JMeterTreeNode root = (JMeterTreeNode) treeModel.getRoot();
+				treeModel.addSubTree(tree, root);
+				SearchByClass replaceableControllers = new SearchByClass(
+						ReplaceableController.class);
+				tree.traverse(replaceableControllers);
+				Collection replaceableControllersRes = replaceableControllers
+						.getSearchResults();
+				for (Iterator iter = replaceableControllersRes.iterator(); iter
+						.hasNext();) {
+					ReplaceableController replaceableController = (ReplaceableController) iter
+							.next();
+					replaceableController.resolveReplacementSubTree(root);
+				}
+				convertSubTree(tree);
+				tree.add(tree.getArray()[0], new ListenToTest(parent, null));
+				println("Created the tree successfully using " + f);
+				JMeterEngine engine = null;
+				engine = new StandardJMeterEngine();
+				engine.configure(tree);
+				long now = System.currentTimeMillis();
+				println("Starting the test @ " + new Date(now) + " (" + now
+						+ ")");
+				engine.runTest();
+			}
+		} catch (Exception e) {
+			System.out.println("Error in NonGUIDriver " + e.toString());
+			log.error("", e);
+		} finally {
+			JOrphanUtils.closeQuietly(reader);
+		}
+	}
 
     // run test in batch mode
     private void runNonGui(String testFile, String logFile, boolean remoteStart, String remote_hosts_string) {

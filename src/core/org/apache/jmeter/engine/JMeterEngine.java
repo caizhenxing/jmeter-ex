@@ -25,6 +25,8 @@ import org.apache.jorphan.collections.HashTree;
 public interface JMeterEngine {
     void configure(HashTree testPlan);
 
+    void runTestInMainThread() throws JMeterEngineException;	// jex004A
+    
     void runTest() throws JMeterEngineException;
 
     void stopTest();

@@ -155,4 +155,13 @@ public class ClientJMeterEngine implements JMeterEngine, Runnable {
         savep = p;
         // Sent later
     }
+
+	/*
+	 * jex004A
+	 * @see org.apache.jmeter.engine.JMeterEngine#runTestInMainThread()
+	 */
+	public void runTestInMainThread() throws JMeterEngineException {
+		// TODO Auto-generated method stub
+		
+	}
 }

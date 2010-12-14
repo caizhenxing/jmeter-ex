@@ -193,6 +193,21 @@ public class StandardJMeterEngine implements JMeterEngine, JMeterThreadMonitor, 
           }
     }
 
+    /*
+     * jex004A
+     * @see org.apache.jmeter.engine.JMeterEngine#runTest()
+     */
+    public void runTestInMainThread() throws JMeterEngineException {
+    	try {
+    		run();
+    	} catch (Exception err) {
+    		stopTest();
+    		StringWriter string = new StringWriter();
+    		PrintWriter writer = new PrintWriter(string);
+    		err.printStackTrace(writer);
+    		throw new JMeterEngineException(string.toString());
+    	}
+    }
     public void runTest() throws JMeterEngineException {
         if (host != null){
             long now=System.currentTimeMillis();

@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.commons.cli.avalon.CLArgsParser;
 import org.apache.commons.cli.avalon.CLOption;
@@ -69,6 +70,7 @@ import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.services.FileServer;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestListener;
+import org.apache.jmeter.threads.ThreadGroup;
 import org.apache.jmeter.util.BeanShellInterpreter;
 import org.apache.jmeter.util.BeanShellServer;
 import org.apache.jmeter.util.JMeterUtils;
@@ -398,7 +400,6 @@ public class JMeter implements JMeterPlugin {
 						System.exit(0);	
 					}
             		startNonGuiGroup(path);
-            		startOptionalServers();
 				}
             } else {
                 String testFile=null;
@@ -754,6 +755,7 @@ public class JMeter implements JMeterPlugin {
     	driver.remoteStop = this.remoteStop;
     	driver.parent = this;
     	PluginManager.install(this, false);
+    	
     	driver.runNonGui(path);
     }
 
@@ -788,7 +790,8 @@ public class JMeter implements JMeterPlugin {
     }
     
     /*
-     * 
+     * 运行测试计划组
+     * jex004A
      */
 	private void runNonGui(String folderPath) {
 		FileInputStream reader = null;
@@ -797,6 +800,13 @@ public class JMeter implements JMeterPlugin {
 			File[] files = folder.listFiles();
 			for (int i = 0; i < files.length; i++) {
 				File f = files[i];
+				String name = f.getName();
+				if (!name.endsWith("jmx")) {
+                    continue;
+                } else {
+                    int index = name.indexOf("jmx");
+                    name=name.substring(0, index-1);
+                }
 				reader = new FileInputStream(f);
 				log.info("Loading file: " + f);
 				HashTree tree = SaveService.loadTree(reader);
@@ -815,15 +825,32 @@ public class JMeter implements JMeterPlugin {
 					replaceableController.resolveReplacementSubTree(root);
 				}
 				convertSubTree(tree);
+				String summariserName = JMeterUtils.getPropDefault("summariser.name", "");
+	            if (summariserName.length() > 0) {
+	                String info = "Creating summariser for test plan <" + f.getName() + ">";
+	                log.info(info);
+	                println(info);
+	                Summariser summer = new Summariser(name);
+	                tree.add(tree.getArray()[0], summer);
+	            }
 				tree.add(tree.getArray()[0], new ListenToTest(parent, null));
 				println("Created the tree successfully using " + f);
-				JMeterEngine engine = null;
-				engine = new StandardJMeterEngine();
+				StandardJMeterEngine engine = new StandardJMeterEngine();
 				engine.configure(tree);
 				long now = System.currentTimeMillis();
 				println("Starting the test @ " + new Date(now) + " (" + now
 						+ ")");
-				engine.runTest();
+				SearchByClass searcher = new SearchByClass(ThreadGroup.class);
+				tree.traverse(searcher);
+				int numThreads = 0;
+				Iterator iter = searcher.getSearchResults().iterator();
+				while (iter.hasNext()) {
+				    ThreadGroup group = (ThreadGroup) iter.next();
+		            numThreads = numThreads+group.getNumThreads();
+		            
+				}
+				engine.setCountDownLatch(new CountDownLatch(numThreads));
+				engine.runTestInMainThread();
 			}
 		} catch (Exception e) {
 			System.out.println("Error in NonGUIDriver " + e.toString());

@@ -33,6 +33,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.jmeter.JMeter;
 import org.apache.jmeter.testbeans.TestBean;
@@ -110,6 +111,15 @@ public class StandardJMeterEngine implements JMeterEngine, JMeterThreadMonitor, 
 
     private final String host;
 
+    private CountDownLatch downLatch = null;    // jex004A
+
+    /*
+     * jex004A
+     */
+    public void setCountDownLatch(CountDownLatch downLatch){
+        this.downLatch=downLatch;
+    }
+    
     public static void stopEngineNow() {
         if (engine != null) {// May be null if called from Unit test
             engine.stopTest(true);
@@ -207,6 +217,11 @@ public class StandardJMeterEngine implements JMeterEngine, JMeterThreadMonitor, 
     		err.printStackTrace(writer);
     		throw new JMeterEngineException(string.toString());
     	}
+    	try {                              // jex004A
+            this.downLatch.await();        // jex004A
+        } catch (InterruptedException e) { // jex004A
+            e.printStackTrace();           // jex004A
+        }                                  // jex004A
     }
     public void runTest() throws JMeterEngineException {
         if (host != null){
@@ -492,6 +507,10 @@ public class StandardJMeterEngine implements JMeterEngine, JMeterThreadMonitor, 
                 jmeterThread.setOnErrorStopTestNow(onErrorStopTestNow);
                 jmeterThread.setOnErrorStopThread(onErrorStopThread);
 
+                if (downLatch!=null) {                              // jex004A
+                    jmeterThread.setCountDownLatch(downLatch);      // jex004A
+                }                                                   // jex004A
+                
                 Thread newThread = new Thread(jmeterThread);
                 newThread.setName(threadName);
                 allThreads.put(jmeterThread, newThread);

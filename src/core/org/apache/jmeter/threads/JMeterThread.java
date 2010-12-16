@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.jmeter.assertions.Assertion;
 import org.apache.jmeter.assertions.AssertionResult;
@@ -119,6 +120,15 @@ public class JMeterThread implements Runnable, Interruptible {
     
     private volatile Sampler currentSampler;
 
+    private CountDownLatch downLatch = null;  //jex004A
+
+    /*
+     * jex004A
+     */
+    public void setCountDownLatch(CountDownLatch downLatch){
+        this.downLatch=downLatch;
+    }
+    
     public JMeterThread(HashTree test, JMeterThreadMonitor monitor, ListenerNotifier note) {
         this.monitor = monitor;
         threadVars = new JMeterVariables();
@@ -268,6 +278,10 @@ public class JMeterThread implements Runnable, Interruptible {
             log.info("Thread finished: " + threadName);
             threadFinished();
             monitor.threadFinished(this); // Tell the engine we are done
+            if (downLatch!=null) {      // jex004A
+                downLatch.countDown();  // jex004A
+                log.info(Thread.currentThread().getName()+ " call thread count reduced");   // jex004A
+            }                           // jex004A
         }
     }
 

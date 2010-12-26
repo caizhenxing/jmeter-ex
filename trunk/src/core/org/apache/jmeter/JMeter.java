@@ -29,10 +29,12 @@ import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.concurrent.CountDownLatch;
@@ -222,6 +224,9 @@ public class JMeter implements JMeterPlugin {
     private Properties remoteProps; // Properties to be sent to remote servers
 
     private boolean remoteStop; // should remote engines be stopped at end of GUI test?
+
+    private static Map<String,String> params = new HashMap<String,String>();    // jex004A
+    public static final String GROUP_ENABLE = "group_enable";    // jex004A
 
     /**
      * Starts up JMeter in GUI mode
@@ -755,7 +760,7 @@ public class JMeter implements JMeterPlugin {
     	driver.remoteStop = this.remoteStop;
     	driver.parent = this;
     	PluginManager.install(this, false);
-    	
+    	initGroupTestParameters(); // jex004A
     	driver.runNonGui(path);
     }
 
@@ -798,6 +803,7 @@ public class JMeter implements JMeterPlugin {
 		File folder = new File(folderPath);
 		try {
 			File[] files = folder.listFiles();
+			initGroupTestParameters();
 			for (int i = 0; i < files.length; i++) {
 				File f = files[i];
 				String name = f.getName();
@@ -844,10 +850,24 @@ public class JMeter implements JMeterPlugin {
 				tree.traverse(searcher);
 				int numThreads = 0;
 				Iterator iter = searcher.getSearchResults().iterator();
+				// 遍历所有的线程组，设定线程组参数，然后取得线程总数
 				while (iter.hasNext()) {
 				    ThreadGroup group = (ThreadGroup) iter.next();
+				    if (params.get(JMeter.GROUP_ENABLE).equals("true")) {
+				        int nums = Integer.parseInt(params.get(ThreadGroup.NUM_THREADS));
+				        group.setNumThreads(nums);
+				        int rampUp= Integer.parseInt(params.get(ThreadGroup.RAMP_TIME));
+				        group.setRampUp(rampUp);
+				        boolean scheduler = Boolean.parseBoolean(params.get(ThreadGroup.SCHEDULER));
+				        group.setScheduler(scheduler);
+				        long duration= Long.parseLong(params.get(ThreadGroup.DURATION));
+				        group.setDuration(duration);
+				        long delay = Long.parseLong(params.get(ThreadGroup.DELAY));
+				        group.setDelay(delay);
+				        String error = params.get(ThreadGroup.ON_SAMPLE_ERROR);
+				        group.setProperty(ThreadGroup.ON_SAMPLE_ERROR, error);
+                    }
 		            numThreads = numThreads+group.getNumThreads();
-		            
 				}
 				engine.setCountDownLatch(new CountDownLatch(numThreads));
 				engine.runTestInMainThread();
@@ -859,6 +879,19 @@ public class JMeter implements JMeterPlugin {
 			JOrphanUtils.closeQuietly(reader);
 		}
 	}
+
+    /*
+     * jex004A 
+     */
+    private void initGroupTestParameters() {
+        params.put(JMeter.GROUP_ENABLE, JMeterUtils.getPropDefault("jmeter.threadgroup.enabled","false"));
+        params.put(ThreadGroup.NUM_THREADS, JMeterUtils.getPropDefault("jmeter.threadgroup.num_threads","1"));
+        params.put(ThreadGroup.RAMP_TIME, JMeterUtils.getPropDefault("jmeter.threadgroup.ramp_time","0"));
+        params.put(ThreadGroup.SCHEDULER, JMeterUtils.getPropDefault("jmeter.threadgroup.scheduler","false"));
+        params.put(ThreadGroup.DURATION, JMeterUtils.getPropDefault("jmeter.threadgroup.duration","0"));
+        params.put(ThreadGroup.DELAY, JMeterUtils.getPropDefault("jmeter.threadgroup.delay","0"));
+        params.put(ThreadGroup.ON_SAMPLE_ERROR, JMeterUtils.getPropDefault("jmeter.threadgroup.on_sample_error","continue"));
+    }
 
     // run test in batch mode
     private void runNonGui(String testFile, String logFile, boolean remoteStart, String remote_hosts_string) {

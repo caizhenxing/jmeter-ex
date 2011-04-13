@@ -20,13 +20,20 @@ package org.apache.jmeter.control.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Container;
+import java.awt.TextField;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 
 import org.apache.jmeter.config.Arguments;
 import org.apache.jmeter.config.gui.ArgumentsPanel;
@@ -35,11 +42,15 @@ import org.apache.jmeter.gui.action.ActionNames;
 import org.apache.jmeter.gui.util.FileListPanel;
 import org.apache.jmeter.gui.util.MenuFactory;
 import org.apache.jmeter.gui.util.VerticalPanel;
+import org.apache.jmeter.protocol.java.sampler.JavaSamplerClient;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.testelement.property.JMeterProperty;
 import org.apache.jmeter.threads.gui.ThreadGroupGui;
 import org.apache.jmeter.util.JMeterUtils;
+import org.apache.jorphan.logging.LoggingManager;
+import org.apache.jorphan.reflect.ClassFinder;
+import org.apache.log.Logger;
 
 /**
  * JMeter GUI component representing the test plan which will be executed when
@@ -60,6 +71,7 @@ public class TestPlanGui extends AbstractJMeterGuiComponent {
     private ArgumentsPanel argsPanel;
 
     FileListPanel browseJar = null;
+    private JTextField className = null;	// jex005A
 
     /**
      * Create a new TestPlanGui.
@@ -113,6 +125,7 @@ public class TestPlanGui extends AbstractJMeterGuiComponent {
             tp.setSerialized(serializedMode.isSelected());
             tp.setUserDefinedVariables((Arguments) argsPanel.createTestElement());
             tp.setTestPlanClasspathArray(browseJar.getFiles());
+            tp.setContextClassName(className.getText());	// jex005A
         }
     }
 
@@ -152,6 +165,7 @@ public class TestPlanGui extends AbstractJMeterGuiComponent {
             argsPanel.configure((Arguments) udv.getObjectValue());
         }
         browseJar.setFiles(tp.getTestPlanClasspathArray());
+        className.setText(tp.getContextClassName());	// jex005A
         }
     }
 
@@ -167,8 +181,15 @@ public class TestPlanGui extends AbstractJMeterGuiComponent {
     }
 
     protected Container createClassPathPanel() {
+        JPanel outter=new JPanel(new BorderLayout());	// jex005A
+        JPanel inner=new JPanel(new BorderLayout());	// jex005A
+        inner.add(new JLabel("每次迭代测试间，执行测试准备和测试清理的类名"),BorderLayout.WEST);	// jex005A
+        className = new JTextField();					// jex005A
+        inner.add(className,BorderLayout.CENTER);		// jex005A
         browseJar = new FileListPanel(JMeterUtils.getResString("test_plan_classpath_browse"), ".jar"); // $NON-NLS-1$ $NON-NLS-2$
-        return browseJar;
+        outter.add(inner,BorderLayout.CENTER);			// jex005A
+        outter.add(browseJar,BorderLayout.SOUTH);		// jex005A
+        return outter;
     }
 
     /**

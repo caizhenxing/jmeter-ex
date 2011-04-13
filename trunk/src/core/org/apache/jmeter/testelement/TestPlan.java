@@ -54,6 +54,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestL
     private final static String SERIALIZE_THREADGROUPS = "TestPlan.serialize_threadgroups"; //$NON-NLS-1$
 
     private final static String CLASSPATHS = "TestPlan.user_define_classpath"; //$NON-NLS-1$
+    private final static String CONTEXT_CLASS_NAME = "TestPlan.user_context_classname"; // jex005A
     private static final String CLASSPATH_SEPARATOR = ","; //$NON-NLS-1$
 
     private final static String BASEDIR = "basedir";
@@ -115,6 +116,20 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestL
      */
     public boolean isFunctionalMode() {
         return getPropertyAsBoolean(FUNCTIONAL_MODE);
+    }
+    
+    /*
+     * jex005A
+     */
+    public void setContextClassName(String vars) {
+    	setProperty(CONTEXT_CLASS_NAME, vars);
+    }
+    
+    /*
+     * jex005A
+     */
+    public String getContextClassName() {
+    	return getPropertyAsString(CONTEXT_CLASS_NAME);
     }
 
     public void setUserDefinedVariables(Arguments vars) {
@@ -361,7 +376,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestL
     public static void findJarFiles(String baseDirName, List<String> fileList) {
         String tempName = null;
 
-        // 判断目录是否存在  
+        // 判断目录是否存在
         File baseDir = new File(baseDirName);
         String[] filelist = baseDir.list();
         for (int i = 0; i < filelist.length; i++) {
@@ -369,7 +384,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestL
             if (!readfile.isDirectory()) {
                 tempName = readfile.getName();
                 if (tempName.toLowerCase().endsWith("jar")) {
-                    // 匹配成功，将文件名添加到结果集   
+                    // 匹配成功，将文件名添加到结果集
                     fileList.add(readfile.getAbsolutePath());
                 }
             } else if (readfile.isDirectory()) {

@@ -813,6 +813,10 @@ public class JMeter implements JMeterPlugin {
                     int index = name.indexOf("jmx");
                     name=name.substring(0, index-1);
                 }
+				//执行初始化处理
+				
+				log.info("Loading file: " + f);
+				
 				reader = new FileInputStream(f);
 				log.info("Loading file: " + f);
 				HashTree tree = SaveService.loadTree(reader);

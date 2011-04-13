@@ -18,8 +18,11 @@
 
 package org.apache.jmeter.testelement;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -316,9 +319,25 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestL
         }
         // we set the classpath
         String[] paths = this.getTestPlanClasspathArray();
+        File jarFile =null;   // jex005A
         for (int idx=0; idx < paths.length; idx++) {
-            NewDriver.addURL(paths[idx]);
-            log.info("add " + paths[idx] + " to classpath");
+            jarFile=new File(paths[idx]);                                                   // jex005A
+            if (!jarFile.exists()) {                                                        // jex005A
+                log.warn("error jar file(folder):" + paths[idx] + " to classpath");         // jex005A
+                continue;                                                                   // jex005A
+            }                                                                               // jex005A
+            if(jarFile.isDirectory()){                                                      // jex005A
+                List<String> fileList = new ArrayList<String>();                            // jex005A
+                TestPlan.findJarFiles(jarFile.getAbsolutePath(), fileList);                 // jex005A
+                for (Iterator<String> iterator = fileList.iterator(); iterator.hasNext();) {// jex005A
+                    String fileName = iterator.next();                                      // jex005A
+                    NewDriver.addURL(fileName);                                             // jex005A
+                    log.info("add " + fileName + " to classpath");                          // jex005A
+                }                                                                           // jex005A
+            } else {                                                                        // jex005A
+                NewDriver.addURL(paths[idx]);                                               // jex005C
+                log.info("add " + paths[idx] + " to classpath");                            // jex005C
+            }                                                                               // jex005A
         }
     }
 
@@ -331,4 +350,31 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestL
         testStarted();
     }
 
+    /**
+     * 找出所有文件夹下的jar文件名，包括嵌套的文件夹
+     * 
+     * @since jex005A
+     * @author chenchao.yecc
+     * @param baseDirName 文件目录(只能是目录)
+     * @param fileList 结果集
+     */
+    public static void findJarFiles(String baseDirName, List<String> fileList) {
+        String tempName = null;
+
+        // 判断目录是否存在  
+        File baseDir = new File(baseDirName);
+        String[] filelist = baseDir.list();
+        for (int i = 0; i < filelist.length; i++) {
+            File readfile = new File(baseDirName + "\\" + filelist[i]);
+            if (!readfile.isDirectory()) {
+                tempName = readfile.getName();
+                if (tempName.toLowerCase().endsWith("jar")) {
+                    // 匹配成功，将文件名添加到结果集   
+                    fileList.add(readfile.getAbsolutePath());
+                }
+            } else if (readfile.isDirectory()) {
+                findJarFiles(baseDirName + "\\" + filelist[i], fileList);
+            }
+        }
+    }
 }

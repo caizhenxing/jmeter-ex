@@ -43,9 +43,11 @@ import org.apache.commons.cli.avalon.CLArgsParser;
 import org.apache.commons.cli.avalon.CLOption;
 import org.apache.commons.cli.avalon.CLOptionDescriptor;
 import org.apache.commons.cli.avalon.CLUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.jmeter.control.ReplaceableController;
 import org.apache.jmeter.engine.ClientJMeterEngine;
 import org.apache.jmeter.engine.JMeterEngine;
+import org.apache.jmeter.engine.JmeterLoopTestContext;
 import org.apache.jmeter.engine.RemoteJMeterEngineImpl;
 import org.apache.jmeter.engine.StandardJMeterEngine;
 import org.apache.jmeter.engine.event.LoopIterationEvent;
@@ -62,7 +64,7 @@ import org.apache.jmeter.gui.tree.JMeterTreeNode;
 import org.apache.jmeter.jtlparse.JTLParser;
 import org.apache.jmeter.plugin.JMeterPlugin;
 import org.apache.jmeter.plugin.PluginManager;
-import org.apache.jmeter.reporters.RealTimeSummariser;
+import org.apache.jmeter.protocol.java.sampler.JavaSamplerClient;
 import org.apache.jmeter.reporters.ResultCollector;
 import org.apache.jmeter.reporters.Summariser;
 import org.apache.jmeter.reporters.TotalSampleSummariser;
@@ -72,10 +74,13 @@ import org.apache.jmeter.save.SaveService;
 import org.apache.jmeter.services.FileServer;
 import org.apache.jmeter.testelement.TestElement;
 import org.apache.jmeter.testelement.TestListener;
+import org.apache.jmeter.testelement.TestPlan;
 import org.apache.jmeter.threads.ThreadGroup;
 import org.apache.jmeter.util.BeanShellInterpreter;
 import org.apache.jmeter.util.BeanShellServer;
+import org.apache.jmeter.util.CustomLoopControler;
 import org.apache.jmeter.util.JMeterUtils;
+import org.apache.jmeter.util.StringUtilities;
 import org.apache.jorphan.collections.HashTree;
 import org.apache.jorphan.collections.SearchByClass;
 import org.apache.jorphan.gui.ComponentUtil;
@@ -227,7 +232,15 @@ public class JMeter implements JMeterPlugin {
 
     private static Map<String,String> params = new HashMap<String,String>();    // jex004A
     public static final String GROUP_ENABLE = "group_enable";    // jex004A
+    public CustomLoopControler loopCtrl = new CustomLoopControler();    // jex004A
 
+    /*
+     *  jex0045
+     */
+    public void setCustomLoopControler(CustomLoopControler loopCtrl){
+        this.loopCtrl=loopCtrl;
+    }
+    
     /**
      * Starts up JMeter in GUI mode
      */
@@ -753,15 +766,20 @@ public class JMeter implements JMeterPlugin {
      * 执行多个jmx使用
      * jex004A
      */
-    private void startNonGuiGroup(String path){
-    	System.setProperty(JMETER_NON_GUI, "true");
-    	JMeter driver = new JMeter();
-    	driver.remoteProps = this.remoteProps;
-    	driver.remoteStop = this.remoteStop;
-    	driver.parent = this;
-    	PluginManager.install(this, false);
-    	initGroupTestParameters(); // jex004A
-    	driver.runNonGui(path);
+    private void startNonGuiGroup(String path) {
+        System.setProperty(JMETER_NON_GUI, "true");
+        JMeter driver = new JMeter();
+        driver.remoteProps = this.remoteProps;
+        driver.remoteStop = this.remoteStop;
+        driver.parent = this;
+        PluginManager.install(this, false);
+        initGroupTestParameters();
+        // 初始化循环控制器
+        loopCtrl.setStartNum(JMeterUtils.getPropDefault("jmeter.thread.start.num", 0));
+        loopCtrl.setEndNum(JMeterUtils.getPropDefault("jmeter.thread.end.num", 0));
+        loopCtrl.setStepNum(JMeterUtils.getPropDefault("jmeter.thread.step.num", 0));
+        driver.setCustomLoopControler(loopCtrl);
+        driver.runNonGui(path);
     }
 
     private void startNonGui(String testFile, String logFile, CLOption remoteStart)
@@ -800,82 +818,129 @@ public class JMeter implements JMeterPlugin {
      */
 	private void runNonGui(String folderPath) {
 		FileInputStream reader = null;
+		Summariser summer = null;
+		JmeterLoopTestContext loopContext = null;
+		boolean needLoopContext =false;
+		boolean hasBeenInited =false;
+		int sleepSeconds = JMeterUtils.getPropDefault("jmeter.threadgroup.sleep", 0)*1000;
 		File folder = new File(folderPath);
 		try {
 			File[] files = folder.listFiles();
 			initGroupTestParameters();
 			for (int i = 0; i < files.length; i++) {
-				File f = files[i];
-				String name = f.getName();
-				if (!name.endsWith("jmx")) {
+                File f = files[i];
+                String name = f.getName();
+                if (!name.endsWith("jmx")) {
                     continue;
                 } else {
                     int index = name.indexOf("jmx");
-                    name=name.substring(0, index-1);
+                    name = name.substring(0, index - 1);
                 }
-				//执行初始化处理
-				
-				log.info("Loading file: " + f);
-				
-				reader = new FileInputStream(f);
-				log.info("Loading file: " + f);
-				HashTree tree = SaveService.loadTree(reader);
-				JMeterTreeModel treeModel = new JMeterTreeModel(new Object());
-				JMeterTreeNode root = (JMeterTreeNode) treeModel.getRoot();
-				treeModel.addSubTree(tree, root);
-				SearchByClass replaceableControllers = new SearchByClass(
-						ReplaceableController.class);
-				tree.traverse(replaceableControllers);
-				Collection replaceableControllersRes = replaceableControllers
-						.getSearchResults();
-				for (Iterator iter = replaceableControllersRes.iterator(); iter
-						.hasNext();) {
-					ReplaceableController replaceableController = (ReplaceableController) iter
-							.next();
-					replaceableController.resolveReplacementSubTree(root);
-				}
-				convertSubTree(tree);
-				String summariserName = JMeterUtils.getPropDefault("summariser.name", "");
-	            if (summariserName.length() > 0) {
-	                String info = "Creating summariser for test plan <" + f.getName() + ">";
-	                log.info(info);
-	                println(info);
-	                Summariser summer = new Summariser(name);
-	                tree.add(tree.getArray()[0], summer);
-	            }
-				tree.add(tree.getArray()[0], new ListenToTest(parent, null));
-				println("Created the tree successfully using " + f);
-				StandardJMeterEngine engine = new StandardJMeterEngine();
-				engine.configure(tree);
-				long now = System.currentTimeMillis();
-				println("Starting the test @ " + new Date(now) + " (" + now
-						+ ")");
-				SearchByClass searcher = new SearchByClass(ThreadGroup.class);
-				tree.traverse(searcher);
-				int numThreads = 0;
-				Iterator iter = searcher.getSearchResults().iterator();
-				// 遍历所有的线程组，设定线程组参数，然后取得线程总数
-				while (iter.hasNext()) {
-				    ThreadGroup group = (ThreadGroup) iter.next();
-				    if (params.get(JMeter.GROUP_ENABLE).equals("true")) {
-				        int nums = Integer.parseInt(params.get(ThreadGroup.NUM_THREADS));
-				        group.setNumThreads(nums);
-				        int rampUp= Integer.parseInt(params.get(ThreadGroup.RAMP_TIME));
-				        group.setRampUp(rampUp);
-				        boolean scheduler = Boolean.parseBoolean(params.get(ThreadGroup.SCHEDULER));
-				        group.setScheduler(scheduler);
-				        long duration= Long.parseLong(params.get(ThreadGroup.DURATION));
-				        group.setDuration(duration);
-				        long delay = Long.parseLong(params.get(ThreadGroup.DELAY));
-				        group.setDelay(delay);
-				        String error = params.get(ThreadGroup.ON_SAMPLE_ERROR);
-				        group.setProperty(ThreadGroup.ON_SAMPLE_ERROR, error);
+                
+                // 读取jmx文件，生成tree。只保留一份
+                log.info("Loading file: " + f);
+                reader = new FileInputStream(f);
+                HashTree initTree = SaveService.loadTree(reader);
+                
+                // 初始化loopContext
+                if (loopContext == null && !hasBeenInited) {
+                    HashTree tree = (HashTree) initTree.clone();
+                    SearchByClass testPlanSearcher = new SearchByClass(TestPlan.class);
+                    tree.traverse(testPlanSearcher);
+                    for (Iterator<TestPlan> iterator = testPlanSearcher.getSearchResults().iterator(); iterator
+                    .hasNext();) {
+                        TestPlan tp = iterator.next();
+                        String classname=tp.getPropertyAsString(TestPlan.CONTEXT_CLASS_NAME);
+                        if (StringUtils.isNotEmpty(classname)) {
+                            Class clazz = Class.forName(classname, false, Thread.currentThread()
+                                    .getContextClassLoader());
+                            loopContext = (JmeterLoopTestContext) clazz.newInstance();
+                            needLoopContext = true;
+                        }
                     }
-		            numThreads = numThreads+group.getNumThreads();
-				}
-				engine.setCountDownLatch(new CountDownLatch(numThreads));
-				engine.runTestInMainThread();
-			}
+                    hasBeenInited = true;
+                }
+
+                // 读取配置文件
+                for (int j = loopCtrl.getStartNum(); j <= loopCtrl.getEndNum(); j = j
+                + loopCtrl.getStepNum()) {
+                    // 执行迭代的setUp操作
+                    if (needLoopContext) {
+                        loopContext.setUpTest();
+                        log.info("Test plan "+ f.getName() +"do set up operation with"+j+" threads");
+                    }
+                    HashTree tree = (HashTree) initTree.clone();
+                    JMeterTreeModel treeModel = new JMeterTreeModel(new Object());
+                    JMeterTreeNode root = (JMeterTreeNode) treeModel.getRoot();
+                    treeModel.addSubTree(tree, root);
+                    SearchByClass replaceableControllers = new SearchByClass(
+                            ReplaceableController.class);
+                    tree.traverse(replaceableControllers);
+                    Collection replaceableControllersRes = replaceableControllers
+                            .getSearchResults();
+                    for (Iterator iter = replaceableControllersRes.iterator(); iter.hasNext();) {
+                        ReplaceableController replaceableController = (ReplaceableController) iter
+                                .next();
+                        replaceableController.resolveReplacementSubTree(root);
+                    }
+                    convertSubTree(tree);
+                    String summariserName = JMeterUtils.getPropDefault("summariser.name", "");
+                    if (summariserName.length() > 0) {
+                        String info = "Creating summariser for test plan <" + f.getName() + ">";
+                        log.info(info);
+                        println(info);
+                        summer = new Summariser(name);
+                        tree.add(tree.getArray()[0], summer);
+                    }
+                    tree.add(tree.getArray()[0], new ListenToTest(parent, null));
+                    println("Created the tree successfully using " + f);
+                    StandardJMeterEngine engine = new StandardJMeterEngine();
+                    engine.configure(tree);
+                    long now = System.currentTimeMillis();
+                    println("Starting the test @ " + new Date(now) + " (" + now + ")");
+                    SearchByClass searcher = new SearchByClass(ThreadGroup.class);
+                    tree.traverse(searcher);
+                    
+                    int numThreads = 0;
+                    Iterator iter = searcher.getSearchResults().iterator();
+                    // 如果设定了迭代执行，则遍历所有的线程组，设定线程组参数，然后取得线程总数
+                    while (iter.hasNext()) {
+                        ThreadGroup group = (ThreadGroup) iter.next();
+                        if (params.get(JMeter.GROUP_ENABLE).equals("true")) {
+                            int nums = Integer.parseInt(params.get(ThreadGroup.NUM_THREADS));
+                            group.setNumThreads(nums);
+                            int rampUp = Integer.parseInt(params.get(ThreadGroup.RAMP_TIME));
+                            group.setRampUp(rampUp);
+                            boolean scheduler = Boolean.parseBoolean(params
+                                    .get(ThreadGroup.SCHEDULER));
+                            group.setScheduler(scheduler);
+                            long duration = Long.parseLong(params.get(ThreadGroup.DURATION));
+                            group.setDuration(duration);
+                            long delay = Long.parseLong(params.get(ThreadGroup.DELAY));
+                            group.setDelay(delay);
+                            String error = params.get(ThreadGroup.ON_SAMPLE_ERROR);
+                            group.setProperty(ThreadGroup.ON_SAMPLE_ERROR, error);
+                        }
+                        // j为0则只是执行1次
+                        if (j != 0) {
+                            group.setNumThreads(j);
+                        }
+                        numThreads = numThreads + group.getNumThreads();
+                    }
+                    if (summer!=null) {
+                        summer.setName(name + " with "+j );
+                    }
+                    engine.setCountDownLatch(new CountDownLatch(numThreads));
+                    engine.runTestInMainThread();
+                    Thread.sleep(sleepSeconds);
+                    // 执行迭代的tearDown操作
+                    if (needLoopContext) {
+                        loopContext.tearDownTest();
+                        log.info("Test plan "+ f.getName() +" do tear down operation with"+j+" threads");
+                    }
+                    Thread.sleep(sleepSeconds);
+                }
+            }
 		} catch (Exception e) {
 			System.out.println("Error in NonGUIDriver " + e.toString());
 			log.error("", e);

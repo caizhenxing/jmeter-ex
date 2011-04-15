@@ -54,7 +54,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestL
     private final static String SERIALIZE_THREADGROUPS = "TestPlan.serialize_threadgroups"; //$NON-NLS-1$
 
     private final static String CLASSPATHS = "TestPlan.user_define_classpath"; //$NON-NLS-1$
-    private final static String CONTEXT_CLASS_NAME = "TestPlan.user_context_classname"; // jex005A
+    public final static String CONTEXT_CLASS_NAME = "TestPlan.user_context_classname"; // jex005A
     private static final String CLASSPATH_SEPARATOR = ","; //$NON-NLS-1$
 
     private final static String BASEDIR = "basedir";
@@ -380,7 +380,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestL
         File baseDir = new File(baseDirName);
         String[] filelist = baseDir.list();
         for (int i = 0; i < filelist.length; i++) {
-            File readfile = new File(baseDirName + "\\" + filelist[i]);
+            File readfile = new File(baseDirName + File.separator + filelist[i]);
             if (!readfile.isDirectory()) {
                 tempName = readfile.getName();
                 if (tempName.toLowerCase().endsWith("jar")) {
@@ -388,7 +388,7 @@ public class TestPlan extends AbstractTestElement implements Serializable, TestL
                     fileList.add(readfile.getAbsolutePath());
                 }
             } else if (readfile.isDirectory()) {
-                findJarFiles(baseDirName + "\\" + filelist[i], fileList);
+                findJarFiles(baseDirName + File.separator + filelist[i], fileList);
             }
         }
     }
